@@ -62,105 +62,113 @@ export const Home: React.FC = () => {
                   <span>How It Works</span>
                 </Link>
               </div>
-
-              {/* 4 Quick Stat Badges */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-4">
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-left">
-                  <p className="text-xs font-bold text-[#123044] flex items-center gap-1">
-                    <Stethoscope className="w-3.5 h-3.5 text-rose-600" />
-                    Patient Alerts
-                  </p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Kidney &amp; Diabetes</p>
-                </div>
-
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-left">
-                  <p className="text-xs font-bold text-[#123044] flex items-center gap-1">
-                    <Activity className="w-3.5 h-3.5 text-emerald-600" />
-                    Additives
-                  </p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">INS Codes Decoded</p>
-                </div>
-
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-left">
-                  <p className="text-xs font-bold text-[#123044] flex items-center gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
-                    FSSAI Checks
-                  </p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Statutory Rules</p>
-                </div>
-
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-left">
-                  <p className="text-xs font-bold text-[#123044] flex items-center gap-1">
-                    <Scale className="w-3.5 h-3.5 text-amber-600" />
-                    Metrology
-                  </p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">MRP &amp; Net Quantity</p>
-                </div>
-              </div>
             </div>
 
             {/* Right Product Mockup with Safe Responsive Floating Cards */}
-            <div className="lg:col-span-5 relative flex items-center justify-center pt-4 lg:pt-0">
-              <div className="relative w-full max-w-sm sm:max-w-md mx-auto">
+            <div className="lg:col-span-5 relative flex items-center justify-center pt-2 lg:pt-0">
+              <div className="relative w-full max-w-xs sm:max-w-md mx-auto">
                 {/* Packaged Food Product Mockup Image */}
                 <div className="relative z-10 rounded-3xl overflow-hidden shadow-xl border border-slate-200 bg-gradient-to-b from-emerald-50/40 via-amber-50/30 to-slate-50 p-3 sm:p-4">
                   <img
                     src="https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=800&auto=format&fit=crop&q=80"
                     alt="Sample Packaged Food with Nutrition Label"
-                    className="w-full h-64 sm:h-80 object-cover rounded-2xl"
+                    className="w-full h-56 sm:h-80 object-cover rounded-2xl"
                   />
-                  <div className="absolute bottom-5 left-5 right-5 p-2.5 sm:p-3 rounded-xl bg-black/80 backdrop-blur-md text-white flex items-center justify-between border border-white/10 shadow-lg">
+                  <div className="absolute bottom-4 left-4 right-4 sm:bottom-5 sm:left-5 sm:right-5 p-2 sm:p-3 rounded-xl bg-black/80 backdrop-blur-md text-white flex items-center justify-between border border-white/10 shadow-lg">
                     <div>
-                      <p className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1">
+                      <p className="text-[10px] sm:text-[11px] font-semibold text-emerald-400 flex items-center gap-1">
                         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                         Packaged Food Scan
                       </p>
                       <p className="text-xs sm:text-sm font-bold truncate">Potato Chips Label</p>
                     </div>
-                    <span className="text-[10px] sm:text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-md">
+                    <span className="text-[9px] sm:text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-md">
                       FSSAI Verified
                     </span>
                   </div>
                 </div>
 
                 {/* Floating Card 1: Health Analysis */}
-                <div className="absolute -top-3 -right-2 sm:-right-4 z-20 bg-white rounded-xl p-2.5 sm:p-3 shadow-lg border border-slate-200 flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-[#087F5B] flex items-center justify-center border border-emerald-100">
-                    <Heart className="w-4 h-4 fill-[#087F5B]/20" />
+                <div className="absolute top-2 right-2 sm:-top-3 sm:-right-4 z-20 bg-white/95 backdrop-blur-sm rounded-xl p-2 sm:p-3 shadow-lg border border-slate-200 flex items-center gap-2">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-50 text-[#087F5B] flex items-center justify-center border border-emerald-100 shrink-0">
+                    <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-[#087F5B]/20" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-[#123044]">Health Analysis</p>
-                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-200">
+                    <p className="text-[11px] sm:text-xs font-bold text-[#123044]">Health Analysis</p>
+                    <span className="text-[9px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-200">
                       High Sodium
                     </span>
                   </div>
                 </div>
 
                 {/* Floating Card 2: Patient Alert */}
-                <div className="absolute top-1/2 -right-2 sm:-right-4 -translate-y-1/2 z-20 bg-white rounded-xl p-2.5 sm:p-3 shadow-lg border border-slate-200 flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center border border-rose-100">
-                    <Stethoscope className="w-4 h-4" />
+                <div className="absolute top-1/2 right-2 sm:-right-4 -translate-y-1/2 z-20 bg-white/95 backdrop-blur-sm rounded-xl p-2 sm:p-3 shadow-lg border border-slate-200 flex items-center gap-2">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center border border-rose-100 shrink-0">
+                    <Stethoscope className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-[#123044]">Patient Warning</p>
-                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-rose-100 text-rose-800 border border-rose-200">
-                      Kidney / CKD Alert
+                    <p className="text-[11px] sm:text-xs font-bold text-[#123044]">Patient Warning</p>
+                    <span className="text-[9px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded bg-rose-100 text-rose-800 border border-rose-200">
+                      Kidney Alert
                     </span>
                   </div>
                 </div>
 
                 {/* Floating Card 3: Legal Metrology */}
-                <div className="absolute -bottom-3 -left-2 sm:-left-4 z-20 bg-white rounded-xl p-2.5 sm:p-3 shadow-lg border border-slate-200 flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-amber-50 text-[#9A6712] flex items-center justify-center border border-amber-100">
-                    <Scale className="w-4 h-4" />
+                <div className="absolute bottom-2 left-2 sm:-bottom-3 sm:-left-4 z-20 bg-white/95 backdrop-blur-sm rounded-xl p-2 sm:p-3 shadow-lg border border-slate-200 flex items-center gap-2">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-50 text-[#9A6712] flex items-center justify-center border border-amber-100 shrink-0">
+                    <Scale className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-[#123044]">Legal Metrology</p>
-                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    <p className="text-[11px] sm:text-xs font-bold text-[#123044]">Legal Metrology</p>
+                    <span className="text-[9px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
                       Compliant
                     </span>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 4 Quick Stat Badges */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 pt-2">
+            <div className="p-3 sm:p-3.5 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-700 flex items-center justify-center shrink-0">
+                <Stethoscope className="w-4 h-4 sm:w-5 sm:h-5" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-[#123044]">Patient Alerts</p>
+                <p className="text-[10px] sm:text-[11px] text-slate-500">Kidney &amp; Diabetes</p>
+              </div>
+            </div>
+
+            <div className="p-3 sm:p-3.5 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-emerald-50 text-[#087F5B] flex items-center justify-center shrink-0">
+                <Activity className="w-4 h-4 sm:w-5 sm:h-5" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-[#123044]">Additives</p>
+                <p className="text-[10px] sm:text-[11px] text-slate-500">INS Codes Decoded</p>
+              </div>
+            </div>
+
+            <div className="p-3 sm:p-3.5 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#1E40AF] flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-[#123044]">FSSAI Checks</p>
+                <p className="text-[10px] sm:text-[11px] text-slate-500">Statutory Rules</p>
+              </div>
+            </div>
+
+            <div className="p-3 sm:p-3.5 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-amber-50 text-[#9A6712] flex items-center justify-center shrink-0">
+                <Scale className="w-4 h-4 sm:w-5 sm:h-5" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-[#123044]">Metrology</p>
+                <p className="text-[10px] sm:text-[11px] text-slate-500">MRP &amp; Net Quantity</p>
               </div>
             </div>
           </div>
