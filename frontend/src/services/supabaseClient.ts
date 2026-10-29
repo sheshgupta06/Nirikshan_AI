@@ -18,7 +18,11 @@ const LS_SUPABASE_KEY = 'nirikshan_supabase_anon_key'
  */
 export function getSupabaseCredentials(): { url: string; key: string; isRuntime: boolean } {
   const envUrl = (import.meta.env.VITE_SUPABASE_URL || '').trim()
-  const envKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim()
+  const envKey = (
+    import.meta.env.VITE_SUPABASE_ANON_KEY ||
+    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+    ''
+  ).trim()
 
   const lsUrl = (localStorage.getItem(LS_SUPABASE_URL) || '').trim()
   const lsKey = (localStorage.getItem(LS_SUPABASE_KEY) || '').trim()

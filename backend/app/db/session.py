@@ -76,6 +76,29 @@ except Exception as exc:
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
+# Initialize Supabase Python client for REST and admin operations
+SUPABASE_URL = os.getenv("SUPABASE_URL") or os.getenv("VITE_SUPABASE_URL")
+SUPABASE_KEY = (
+    os.getenv("SUPABASE_SECRET_KEY")
+    or os.getenv("SUPABASE_PUBLISHABLE_KEY")
+    or os.getenv("VITE_SUPABASE_ANON_KEY")
+)
+
+supabase_py_client = None
+if SUPABASE_URL and SUPABASE_KEY:
+    try:
+        from supabase import create_client
+
+        supabase_py_client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        logger.info("Initialized Supabase Python client for %s", SUPABASE_URL)
+    except Exception as exc:
+        logger.warning("Could not initialize Supabase Python client: %s", exc)
+
+
+def get_supabase_client():
+    """Returns initialized Supabase Python Client if configured."""
+    return supabase_py_client
+
 
 def get_db() -> Generator:
     """FastAPI dependency for database session management."""
