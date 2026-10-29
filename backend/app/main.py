@@ -21,7 +21,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Enable CORS for local development (Vite frontend on default ports)
+# Enable CORS for local development and production deployments (Vercel, Render, Cloud Run)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -31,6 +31,7 @@ app.add_middleware(
         "http://127.0.0.1:3000",
         "*",
     ],
+    allow_origin_regex=r"^https://.*\.vercel\.app$|^https://.*\.onrender\.com$|^https://.*\.run\.app$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
