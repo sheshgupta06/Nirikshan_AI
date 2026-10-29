@@ -45,6 +45,7 @@ export interface EvidenceSource {
 export interface NormalizedIngredient {
   raw_text: string
   status: 'NORMALIZED' | 'UNVERIFIED' | 'UNCLEAR'
+  prd_match_status?: 'EXACT' | 'SYNONYM' | 'PROBABLE' | 'AMBIGUOUS' | 'UNKNOWN' | string
   canonical_name?: string
   canonical_id?: string
   ins_code?: string
@@ -158,6 +159,8 @@ export interface ComplianceItem {
   category: string
   is_mandatory: boolean
   status: 'COMPLIANT' | 'NON_COMPLIANT_MISSING' | 'UNCLEAR_NEEDS_REVIEW' | 'EXEMPTED' | string
+  metrology_status?: 'DETECTED' | 'NOT_DETECTED' | 'POTENTIAL_ISSUE' | 'NEEDS_MANUAL_VERIFICATION' | 'NOT_ASSESSED' | string
+  legal_metrology_rule?: string
   evidence_text: string
   explanation: string
   explanation_hi?: string
@@ -170,8 +173,11 @@ export interface FSSAIComplianceReport {
     compliant: number
     non_compliant_missing: number
     unclear_needs_review: number
+    detected?: number
+    not_detected?: number
+    needs_manual_verification?: number
     total_checked: number
-    [key: string]: number
+    [key: string]: number | undefined
   }
   compliance_score_percent: number
   statutory_reference: string
@@ -195,18 +201,28 @@ export interface OFFProductReference {
   reference_url?: string
 }
 
+export interface ImageQualityMetadata {
+  width?: number
+  height?: number
+  channels?: number
+  file_size_bytes?: number
+  is_blurry?: boolean
+  blur_score?: number
+  blur_assessment?: 'SHARP' | 'MODERATE' | 'BLURRY' | string
+  brightness_mean?: number
+  lighting_assessment?: 'NORMAL' | 'LOW_LIGHT' | 'GLARE_OR_OVEREXPOSED' | string
+  contrast_score?: number
+  contrast_assessment?: 'NORMAL' | 'LOW_CONTRAST' | string
+  quality_recommendation?: string
+  restormer_status?: string
+  restormer_note?: string
+  [key: string]: unknown
+}
+
 export interface ScanImageResponse {
   status: 'SUCCESS' | 'UNCLEAR' | 'EMPTY'
   filename?: string
-  image_metadata: {
-    width?: number
-    height?: number
-    channels?: number
-    file_size_bytes?: number
-    is_blurry?: boolean
-    blur_score?: number
-    [key: string]: unknown
-  }
+  image_metadata: ImageQualityMetadata
   ocr_detected_boxes: OCRTextBox[]
   raw_extracted_text: string
   sections_summary: LabelSectionSummary
@@ -214,6 +230,10 @@ export interface ScanImageResponse {
   evaluation: EvaluationResult
   health_impact_report?: HealthImpactReport
   compliance_report?: FSSAIComplianceReport
+  legal_metrology?: FSSAIComplianceReport
+  ingredient_safety?: HealthImpactReport
+  modules_requested?: string[]
+  jurisdiction?: string
   open_food_facts_reference?: OFFProductReference
   message?: string
   disclaimer: string

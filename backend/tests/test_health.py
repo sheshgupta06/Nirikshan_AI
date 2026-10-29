@@ -24,3 +24,14 @@ async def test_root_endpoint():
         data = response.json()
         assert "Nirikshan AI API is running" in data["message"]
         assert data["health_check"] == "/api/v1/health"
+
+
+@pytest.mark.asyncio
+async def test_prd_health_endpoint():
+    """Verify that GET /health (PRD Section 12.3) returns HTTP 200 and {'status': 'ok'}."""
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.get("/health")
+        assert response.status_code == 200
+        assert response.json() == {"status": "ok"}
+

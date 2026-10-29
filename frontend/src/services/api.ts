@@ -21,17 +21,21 @@ export async function checkHealth(): Promise<{ status: string; message?: string 
 }
 
 /**
- * Uploads a food label image to POST /api/v1/scan/image with multipart/form-data.
+ * Uploads a food label image to POST /api/v1/analyze (PRD Section 12.3) with multipart/form-data.
  */
 export async function scanFoodLabelImage(
   imageFile: File,
-  profile: UserProfileConfig
+  profile: UserProfileConfig,
+  modules: 'both' | 'legal_metrology' | 'ingredient_safety' = 'both',
+  jurisdiction: string = 'IN'
 ): Promise<ScanImageResponse> {
-  const url = `${API_BASE_URL}/api/v1/scan/image`
+  const url = `${API_BASE_URL}/api/v1/analyze`
   const formData = new FormData()
 
   // The backend expects the file parameter named exactly "file"
   formData.append('file', imageFile)
+  formData.append('modules', modules)
+  formData.append('jurisdiction', jurisdiction)
   formData.append('profile_name', profile.profile_name || 'Default')
 
   if (profile.allergies.trim()) {

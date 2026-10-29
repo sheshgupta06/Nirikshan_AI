@@ -28,6 +28,26 @@ app.add_middleware(
 app.include_router(health_router, prefix="/api/v1")
 app.include_router(scan_router, prefix="/api/v1")
 
+# PRD Section 12.3 Endpoints
+from backend.app.api.v1.scan import scan_food_label_image, ScanImageResponse
+from backend.app.api.v1.health import health_check
+
+app.add_api_route(
+    "/api/v1/analyze",
+    scan_food_label_image,
+    methods=["POST"],
+    response_model=ScanImageResponse,
+    summary="Screen Packaged Food Label Image (PRD Section 12.3)",
+    tags=["PRD Analysis"],
+)
+app.add_api_route(
+    "/health",
+    health_check,
+    methods=["GET"],
+    summary="Health Check Gateway (PRD Section 12.3)",
+    tags=["Health"],
+)
+
 
 @app.get("/", summary="Root Index")
 async def root():

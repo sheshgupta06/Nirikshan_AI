@@ -24,7 +24,21 @@ class DummyMockOCRService(OCRService):
         self._boxes = boxes or []
 
     def extract_text_from_bytes(self, image_bytes: bytes, content_type: str = "image/jpeg"):
-        metadata = {"width": 800, "height": 600, "channels": 3, "file_size_bytes": len(image_bytes), "is_blurry": False}
+        metadata = {
+            "width": 800,
+            "height": 600,
+            "channels": 3,
+            "file_size_bytes": len(image_bytes),
+            "is_blurry": False,
+            "blur_score": 150.0,
+            "blur_assessment": "SHARP",
+            "brightness_mean": 128.0,
+            "lighting_assessment": "NORMAL",
+            "contrast_score": 55.0,
+            "contrast_assessment": "NORMAL",
+            "restormer_status": "DISABLED_NO_WEIGHTS",
+            "restormer_note": "Real Restormer PyTorch weights not present in environment.",
+        }
         return self._boxes, metadata
 
 
@@ -157,5 +171,75 @@ class TestScanAPIWithComplianceReport:
             assert "items" in comp
             assert len(comp["items"]) == 11
             assert "compliance_score_percent" in comp
+        finally:
+            app.dependency_overrides.pop(get_ocr_service, None)
+
+    def test_analyze_endpoint_prd_contract(self, client):
+        """Verifies POST /api/v1/analyze satisfies PRD Section 12.3 contract."""
+        boxes = [
+            OCRTextBox(text="PANI PURI PELLETS", confidence=0.98),
+            OCRTextBox(text="INGREDIENTS: Wheat Flour, Salt.", confidence=0.96),
+            OCRTextBox(text="FSSAI Lic.No.10018013001471", confidence=0.98),
+        ]
+        mock_service = DummyMockOCRService(boxes=boxes)
+        app.dependency_overrides[get_ocr_service] = lambda: mock_service
+
+        try:
+            image_bytes = create_dummy_png_bytes()
+            response = client.post(
+                "/api/v1/analyze",
+                files={"file": ("label.png", image_bytes, "image/png")},
+                data={"modules": "both", "jurisdiction": "IN"},
+            )
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["status"] == "SUCCESS"
+            assert "legal_metrology" in data and data["legal_metrology"] is not None
+            assert "ingredient_safety" in data and data["ingredient_safety"] is not None
+            assert data["modules_requested"] == ["legal_metrology", "ingredient_safety"]
+            assert data["jurisdiction"] == "IN"
+
+            # Check image quality metadata
+            meta = data["image_metadata"]
+            assert "blur_score" in meta
+            assert "blur_assessment" in meta
+            assert "lighting_assessment" in meta
+            assert "contrast_assessment" in meta
+            assert "restormer_status" in meta
+            assert meta["restormer_status"] == "DISABLED_NO_WEIGHTS"
+        finally:
+            app.dependency_overrides.pop(get_ocr_service, None)
+
+    def test_analyze_endpoint_selective_modules(self, client):
+        """Verifies selective screening when only legal_metrology or ingredient_safety is requested."""
+        boxes = [OCRTextBox(text="SALT", confidence=0.99)]
+        mock_service = DummyMockOCRService(boxes=boxes)
+        app.dependency_overrides[get_ocr_service] = lambda: mock_service
+
+        try:
+            image_bytes = create_dummy_png_bytes()
+
+            # Case A: Only Legal Metrology
+            res_legal = client.post(
+                "/api/v1/analyze",
+                files={"file": ("label.png", image_bytes, "image/png")},
+                data={"modules": "legal_metrology"},
+            )
+            assert res_legal.status_code == 200
+            data_legal = res_legal.json()
+            assert data_legal["legal_metrology"] is not None
+            assert data_legal["ingredient_safety"] is None
+
+            # Case B: Only Ingredient Safety
+            res_ing = client.post(
+                "/api/v1/analyze",
+                files={"file": ("label.png", image_bytes, "image/png")},
+                data={"modules": "ingredient_safety"},
+            )
+            assert res_ing.status_code == 200
+            data_ing = res_ing.json()
+            assert data_ing["legal_metrology"] is None
+            assert data_ing["ingredient_safety"] is not None
         finally:
             app.dependency_overrides.pop(get_ocr_service, None)

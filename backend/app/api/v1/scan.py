@@ -110,7 +110,23 @@ class ScanImageResponse(BaseModel):
     )
     compliance_report: Optional[FSSAIComplianceReport] = Field(
         default=None,
-        description="Module 3: FSSAI 2020 mandatory statutory labelling compliance evaluation (11 points)",
+        description="Module A: Legal Metrology & FSSAI mandatory statutory labelling compliance evaluation (11 points)",
+    )
+    legal_metrology: Optional[FSSAIComplianceReport] = Field(
+        default=None,
+        description="Module A: Legal Metrology Compliance Report (PRD Section 6)",
+    )
+    ingredient_safety: Optional[HealthImpactReport] = Field(
+        default=None,
+        description="Module B: Food Ingredient Safety Information Report (PRD Section 7)",
+    )
+    modules_requested: List[str] = Field(
+        default_factory=lambda: ["legal_metrology", "ingredient_safety"],
+        description="Active screening modules evaluated in this scan",
+    )
+    jurisdiction: str = Field(
+        default="IN",
+        description="Primary legal jurisdiction evaluated (e.g. 'IN' for India)",
     )
     open_food_facts_reference: Optional[OFFProductReference] = Field(
         default=None,
@@ -118,20 +134,40 @@ class ScanImageResponse(BaseModel):
     )
     message: Optional[str] = None
     disclaimer: str = (
-        "Educational label analysis only. Nirikshan AI evaluates visible and recognized label text. "
-        "It does not diagnose allergies, guarantee absence of undeclared allergens, or replace clinical advice."
+        "Educational label analysis only. Nirikshan AI is a photo-based screening platform combining "
+        "database-driven Legal Metrology compliance with evidence-backed Food Ingredient Safety information. "
+        "It does not replace laboratory testing, official inspection, or professional regulatory/medical judgement."
     )
 
 
 @router.post(
+    "/analyze",
+    response_model=ScanImageResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Screen Packaged Food Label Image (PRD Section 12.3)",
+    description="Analyzes packaged food labels for Legal Metrology (Module A), Ingredient Safety (Module B), or Both.",
+)
+@router.post(
     "/image",
     response_model=ScanImageResponse,
     status_code=status.HTTP_200_OK,
-    summary="Scan Packaged Food Label Image",
-    description="Upload a food label image (JPEG, PNG, WebP) to extract text via OCR, parse sections, and evaluate ingredients against dietary rules.",
+    summary="Scan Packaged Food Label Image (Alias)",
+    description="Upload a food label image (JPEG, PNG, WebP) to extract text via OCR, parse sections, and evaluate ingredients.",
 )
 async def scan_food_label_image(
     file: UploadFile = File(..., description="Packaged food label image file"),
+    modules: Optional[str] = Form(
+        "both",
+        description="Screening modules to run: 'both', 'legal_metrology', or 'ingredient_safety' (PRD Section 4 & 5)",
+    ),
+    jurisdiction: Optional[str] = Form(
+        "IN",
+        description="Jurisdiction code to evaluate against (default 'IN')",
+    ),
+    product_category: Optional[str] = Form(
+        None,
+        description="Optional packaging category, e.g. 'snacks', 'beverages', 'staples'",
+    ),
     profile_name: str = Form("Default", description="User or family profile name"),
     allergies: Optional[str] = Form(
         None,
@@ -326,22 +362,37 @@ async def scan_food_label_image(
     if parsed_sections.may_contain_incomplete:
         msg += " Note: Precautionary allergen advisory was detected, but specific allergen names were not legibly recognized."
 
-    # 10. Deterministic Health Impact Analysis against user-selected profile
-    health_impact_report = health_impact_engine.evaluate(
-        candidate_ingredients=candidate_tokens,
-        parsed_sections=parsed_sections,
-        boxes=boxes,
-        allergies=parsed_allergies,
-        health_conditions=parsed_conditions,
-    )
+    # Determine modules requested
+    raw_modules = (modules or "both").lower()
+    if raw_modules in ("both", "all"):
+        req_modules = ["legal_metrology", "ingredient_safety"]
+    elif "legal" in raw_modules or "metrology" in raw_modules:
+        req_modules = ["legal_metrology"]
+    elif "ingredient" in raw_modules or "safety" in raw_modules:
+        req_modules = ["ingredient_safety"]
+    else:
+        req_modules = ["legal_metrology", "ingredient_safety"]
 
-    # 11. Module 3: FSSAI Label Compliance Checker (11 Mandatory Points)
-    compliance_report = fssai_compliance_engine.evaluate(
-        boxes=boxes,
-        parsed_sections=parsed_sections,
-        candidate_ingredients=candidate_tokens,
-        nutrition_facts=health_impact_report.nutrition_facts if health_impact_report else None,
-    )
+    # 10. Module B: Food Ingredient Safety Information (PRD Section 7)
+    health_impact_report = None
+    if "ingredient_safety" in req_modules:
+        health_impact_report = health_impact_engine.evaluate(
+            candidate_ingredients=candidate_tokens,
+            parsed_sections=parsed_sections,
+            boxes=boxes,
+            allergies=parsed_allergies,
+            health_conditions=parsed_conditions,
+        )
+
+    # 11. Module A: Legal Metrology Compliance (PRD Section 6)
+    compliance_report = None
+    if "legal_metrology" in req_modules:
+        compliance_report = fssai_compliance_engine.evaluate(
+            boxes=boxes,
+            parsed_sections=parsed_sections,
+            candidate_ingredients=candidate_tokens,
+            nutrition_facts=health_impact_report.nutrition_facts if health_impact_report else None,
+        )
 
     # 12. Open Food Facts Barcode Resolution (if barcode is detected in OCR text)
     off_reference: Optional[OFFProductReference] = None
@@ -364,6 +415,10 @@ async def scan_food_label_image(
         evaluation=evaluation,
         health_impact_report=health_impact_report,
         compliance_report=compliance_report,
+        legal_metrology=compliance_report,
+        ingredient_safety=health_impact_report,
+        modules_requested=req_modules,
+        jurisdiction=jurisdiction or "IN",
         open_food_facts_reference=off_reference,
         message=msg,
     )

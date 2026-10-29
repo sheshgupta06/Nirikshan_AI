@@ -22,6 +22,10 @@ class NormalizedIngredient(BaseModel):
         ...,
         description="Normalization status: 'NORMALIZED', 'UNVERIFIED', or 'UNCLEAR'",
     )
+    prd_match_status: str = Field(
+        default="EXACT",
+        description="PRD 7.3 status: 'EXACT', 'SYNONYM', 'PROBABLE', 'AMBIGUOUS', or 'UNKNOWN'",
+    )
     canonical_name: Optional[str] = None
     canonical_id: Optional[str] = None
     ins_code: Optional[str] = None
@@ -139,6 +143,7 @@ class IngredientNormalizer:
             return NormalizedIngredient(
                 raw_text=raw_text,
                 status="UNCLEAR",
+                prd_match_status="AMBIGUOUS",
                 uncertainty_reason="Token is ambiguous, unreadable, or corrupted",
             )
 
@@ -151,6 +156,7 @@ class IngredientNormalizer:
                 return NormalizedIngredient(
                     raw_text=raw_text,
                     status="NORMALIZED",
+                    prd_match_status="EXACT",
                     canonical_name=ins_info["canonical_name"],
                     canonical_id=f"ins_{ins_code}",
                     ins_code=ins_info["ins_number"],
@@ -165,6 +171,7 @@ class IngredientNormalizer:
                 return NormalizedIngredient(
                     raw_text=raw_text,
                     status="UNVERIFIED",
+                    prd_match_status="UNKNOWN",
                     ins_code=ins_code,
                     canonical_name=f"Additive INS {ins_code.upper()}",
                     uncertainty_reason=f"INS {ins_code.upper()} is not present in the curated FSSAI reference database",
@@ -233,6 +240,7 @@ class IngredientNormalizer:
         return NormalizedIngredient(
             raw_text=raw_text,
             status="UNVERIFIED",
+            prd_match_status="UNKNOWN",
             canonical_name=token,
             uncertainty_reason="No verified entry found in curated database",
         )
@@ -242,10 +250,15 @@ class IngredientNormalizer:
     ) -> NormalizedIngredient:
         """Constructs a NormalizedIngredient from verified canonical data."""
         canonical_info = self.canonical_ingredients[canonical_id]
+        canonical_name = canonical_info["canonical_name"]
+        is_synonym = matched_alias.strip().lower() != canonical_name.strip().lower()
+        prd_status = "SYNONYM" if is_synonym else "EXACT"
+
         return NormalizedIngredient(
             raw_text=raw_text,
             status="NORMALIZED",
-            canonical_name=canonical_info["canonical_name"],
+            prd_match_status=prd_status,
+            canonical_name=canonical_name,
             canonical_id=canonical_info["id"],
             matched_alias=matched_alias,
             category=canonical_info.get("category"),

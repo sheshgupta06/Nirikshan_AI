@@ -3251,5 +3251,354 @@ body {
   color: #64748b;
 }
 
+/* -------------------------------------------------------------
+ * PRD MVP STYLES (Screen 1 Module Selector, Screen 2 Image Quality,
+ * Screen 3 Progress, Screen 4 Metrology, Screen 5 Ingredient Safety)
+ * ------------------------------------------------------------- */
+
+/* PRD Module Selector */
+.prd-module-selector-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
+}
+
+.module-selector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.selector-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #10b981;
+}
+
+.selector-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.module-options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.module-opt-btn {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  color: var(--text-main);
+}
+
+.module-opt-btn:hover {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.module-opt-btn.opt-active {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: #10b981;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.15);
+}
+
+.opt-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.opt-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.opt-text strong {
+  font-size: 14px;
+  color: #ffffff;
+}
+
+.opt-text span {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Image Quality Assessment Banner (Screen 2) */
+.image-quality-banner-card {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(14, 165, 233, 0.25);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
+}
+
+.quality-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.quality-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.quality-icon {
+  font-size: 26px;
+}
+
+.quality-title-group h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.quality-subtitle {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.quality-badges-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.quality-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.quality-pill.pill-sharp,
+.quality-pill.pill-normal {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.quality-pill.pill-moderate,
+.quality-pill.pill-low_contrast {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.quality-pill.pill-blurry,
+.quality-pill.pill-low_light,
+.quality-pill.pill-glare_or_overexposed {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.quality-rec {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: #e2e8f0;
+}
+
+.restormer-transparency-box {
+  background: rgba(2, 6, 23, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.restormer-tag {
+  background: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+  font-weight: 700;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Screening Progress Box (Screen 3) */
+.screening-progress-box {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 16px;
+}
+
+.progress-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.progress-spinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid rgba(16, 185, 129, 0.2);
+  border-top-color: #10b981;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.progress-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.progress-step-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.progress-step-item.step-active {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.step-num {
+  width: 22px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.step-active .step-num {
+  background: #10b981;
+  color: #0f172a;
+}
+
+/* PRD 6.4 Metrology Status Badges */
+.pill-detected {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.pill-potential_issue {
+  background: rgba(249, 115, 22, 0.15);
+  color: #fb923c;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.pill-not_detected {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.pill-needs_manual_verification {
+  background: rgba(234, 179, 8, 0.15);
+  color: #facc15;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+.pill-not_assessed {
+  background: rgba(148, 163, 184, 0.15);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+/* PRD 7.3 Match Status Badges in Ingredient Table */
+.prd-match-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-block;
+  margin-left: 6px;
+}
+
+.prd-match-exact {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.prd-match-synonym {
+  background: rgba(14, 165, 233, 0.2);
+  color: #38bdf8;
+}
+
+.prd-match-probable {
+  background: rgba(234, 179, 8, 0.2);
+  color: #facc15;
+}
+
+.prd-match-ambiguous {
+  background: rgba(249, 115, 22, 0.2);
+  color: #fb923c;
+}
+
+.prd-match-unknown {
+  background: rgba(148, 163, 184, 0.2);
+  color: #94a3b8;
+}
+
+/* Combined Report Separation Notice */
+.combined-notice-card {
+  background: rgba(30, 41, 59, 0.6);
+  border-left: 4px solid #6366f1;
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+
+.combined-notice-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+
 
 

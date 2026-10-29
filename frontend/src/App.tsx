@@ -43,6 +43,8 @@ const DEFAULT_PROFILE: UserProfileConfig = {
 export default function App() {
   // Mode: 'upload' or 'camera'
   const [activeScanMode, setActiveScanMode] = useState<'upload' | 'camera'>('upload')
+  // PRD Module Scope Selection: 'both' | 'legal_metrology' | 'ingredient_safety' (PRD Screen 1)
+  const [selectedModules, setSelectedModules] = useState<'both' | 'legal_metrology' | 'ingredient_safety'>('both')
 
   // Backend Health Telemetry
   const [health, setHealth] = useState<HealthState>({
@@ -210,7 +212,7 @@ export default function App() {
     setScanError(null)
 
     try {
-      const response = await scanFoodLabelImage(selectedFile, profile)
+      const response = await scanFoodLabelImage(selectedFile, profile, selectedModules, 'IN')
       setScanResult(response)
       setScanLifecycle('SCAN_COMPLETE')
     } catch (err: unknown) {
@@ -392,6 +394,52 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="nirikshan-main">
+        {/* PRD Screen 1: Screening Scope Module Selector */}
+        <div className="prd-module-selector-card">
+          <div className="module-selector-header">
+            <span className="selector-label">PRD Architecture: Select Screening Scope</span>
+            <span className="selector-sub">Legal Metrology Act, 2009 &amp; Food Ingredient Safety Information</span>
+          </div>
+          <div className="module-options-grid">
+            <button
+              type="button"
+              className={`module-opt-btn ${selectedModules === 'legal_metrology' ? 'opt-active' : ''}`}
+              onClick={() => setSelectedModules('legal_metrology')}
+              id="opt-legal-metrology"
+            >
+              <span className="opt-icon">⚖️</span>
+              <div className="opt-text">
+                <strong>Module A: Legal Metrology</strong>
+                <span>Rule 6 Mandatory Declarations &amp; FSSAI 2020</span>
+              </div>
+            </button>
+            <button
+              type="button"
+              className={`module-opt-btn ${selectedModules === 'ingredient_safety' ? 'opt-active' : ''}`}
+              onClick={() => setSelectedModules('ingredient_safety')}
+              id="opt-ingredient-safety"
+            >
+              <span className="opt-icon">🥗</span>
+              <div className="opt-text">
+                <strong>Module B: Ingredient Safety</strong>
+                <span>Allergens, Additives &amp; Multi-Country Status</span>
+              </div>
+            </button>
+            <button
+              type="button"
+              className={`module-opt-btn ${selectedModules === 'both' ? 'opt-active' : ''}`}
+              onClick={() => setSelectedModules('both')}
+              id="opt-both-modules"
+            >
+              <span className="opt-icon">📋</span>
+              <div className="opt-text">
+                <strong>Both Modules (Combined)</strong>
+                <span>Complete Legal &amp; Safety Screening</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
         {/* Mode Selector Tabs */}
         <div className="scan-mode-tabs-container">
           <button
@@ -563,15 +611,52 @@ export default function App() {
                   {isScanning ? (
                     <>
                       <span className="spinner-border"></span>
-                      <span>Extracting Text &amp; Evaluating Allergens...</span>
+                      <span>Running Nirikshan AI Screening Pipeline...</span>
                     </>
                   ) : (
                     <>
                       <span>🔍</span>
-                      <span>Scan Product Label</span>
+                      <span>
+                        Screen Label ({selectedModules === 'both' ? 'Legal Metrology & Ingredient Safety' : selectedModules === 'legal_metrology' ? 'Module A: Legal Metrology' : 'Module B: Ingredient Safety'})
+                      </span>
                     </>
                   )}
                 </button>
+
+                {isScanning && (
+                  <div className="screening-progress-box">
+                    <div className="progress-header">
+                      <div className="progress-spinner"></div>
+                      <strong>Screening Pipeline Active (PRD Section 5 &amp; 12.3)</strong>
+                    </div>
+                    <div className="progress-steps-list">
+                      <div className="progress-step-item step-active">
+                        <span className="step-num">1</span>
+                        <span>Validating Image Format &amp; In-Memory Dimensions</span>
+                      </div>
+                      <div className="progress-step-item step-active">
+                        <span className="step-num">2</span>
+                        <span>OpenCV Quality Assessment (Blur, Lighting &amp; Contrast)</span>
+                      </div>
+                      <div className="progress-step-item step-active">
+                        <span className="step-num">3</span>
+                        <span>PaddleOCR Text Detection &amp; Angle Classification</span>
+                      </div>
+                      <div className="progress-step-item">
+                        <span className="step-num">4</span>
+                        <span>{selectedModules === 'ingredient_safety' ? 'Skipping Module A (Legal Metrology)' : 'Module A: Legal Metrology Rule 6 & FSSAI 2020 Statutory Evaluation'}</span>
+                      </div>
+                      <div className="progress-step-item">
+                        <span className="step-num">5</span>
+                        <span>{selectedModules === 'legal_metrology' ? 'Skipping Module B (Ingredient Safety)' : 'Module B: Ingredient Normalization & Multi-Country Additive Safety (FSSAI/EFSA/FDA)'}</span>
+                      </div>
+                      <div className="progress-step-item">
+                        <span className="step-num">6</span>
+                        <span>Compiling Structured Screening Report &amp; Verifying Evidence</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -618,6 +703,55 @@ export default function App() {
                 </span>
               </div>
             </div>
+
+            {/* PRD Screen 6: Combined Report Independence Notice */}
+            {scanResult.modules_requested && scanResult.modules_requested.length > 1 && (
+              <div className="combined-notice-card">
+                <span className="combined-notice-icon">⚖️</span>
+                <div>
+                  <strong>Combined Analysis Architecture:</strong> Legal Metrology compliance findings and Food Ingredient Safety information are screened independently per PRD Section 1.1 &amp; 20. Statutory conformity does not certify clinical suitability, and health assessments do not establish legal compliance.
+                </div>
+              </div>
+            )}
+
+            {/* PRD Screen 2: OpenCV Image Quality Assessment Card */}
+            {scanResult.image_metadata && (
+              <div className="image-quality-banner-card">
+                <div className="quality-header">
+                  <div className="quality-title-group">
+                    <span className="quality-icon">🔬</span>
+                    <div>
+                      <h4>OpenCV Image Quality Assessment &amp; Restoration Audit</h4>
+                      <p className="quality-subtitle">Automated image validation before OCR extraction (PRD Section 8.2 &amp; 8.3)</p>
+                    </div>
+                  </div>
+                  <div className="quality-badges-row">
+                    <span className={`quality-pill pill-${(scanResult.image_metadata.blur_assessment || 'SHARP').toLowerCase()}`}>
+                      Blur: {scanResult.image_metadata.blur_assessment || (scanResult.image_metadata.is_blurry ? 'BLURRY' : 'SHARP')} ({scanResult.image_metadata.blur_score ?? 0})
+                    </span>
+                    <span className={`quality-pill pill-${(scanResult.image_metadata.lighting_assessment || 'NORMAL').toLowerCase()}`}>
+                      Lighting: {scanResult.image_metadata.lighting_assessment || 'NORMAL'}
+                    </span>
+                    <span className={`quality-pill pill-${(scanResult.image_metadata.contrast_assessment || 'NORMAL').toLowerCase()}`}>
+                      Contrast: {scanResult.image_metadata.contrast_assessment || 'NORMAL'}
+                    </span>
+                  </div>
+                </div>
+                <div className="quality-body">
+                  <p className="quality-rec">
+                    <strong>Quality Guidance:</strong> {scanResult.image_metadata.quality_recommendation || 'Image quality is suitable for OCR screening.'}
+                  </p>
+                  <div className="restormer-transparency-box">
+                    <span className="restormer-tag">Restormer Audit</span>
+                    <span>
+                      <strong>Status: Disabled (No local weights loaded).</strong>{' '}
+                      {scanResult.image_metadata.restormer_note ||
+                        'Processing original image with OpenCV preprocessing without synthetic deblurring (per PRD Rule 8.3 & 18).'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Metrics Ribbon */}
             <div className="metrics-grid">
@@ -1184,10 +1318,10 @@ export default function App() {
               <div className="compliance-card" id="fssai-compliance-section">
                 <div className="card-header-flex">
                   <div>
-                    <div className="phase-pill-mini statutory-pill">Module 3: FSSAI Statutory Compliance</div>
-                    <h3 className="card-subheading">FSSAI Label Mandatory Compliance Checklist</h3>
+                    <div className="phase-pill-mini statutory-pill">Module A: Legal Metrology Compliance</div>
+                    <h3 className="card-subheading">Legal Metrology &amp; FSSAI Mandatory Declarations</h3>
                     <p className="card-desc">
-                      Independent evaluation against the 11 mandatory labelling declarations specified under the{' '}
+                      Statutory screening against Rule 6 of the <strong>Legal Metrology (Packaged Commodities) Rules, 2011</strong> and the{' '}
                       <strong>Food Safety and Standards (Labelling and Display) Regulations, 2020</strong>.
                     </p>
                   </div>
@@ -1198,13 +1332,13 @@ export default function App() {
                     </div>
                     <div className="compliance-counts-col">
                       <span className="summary-badge badge-compliant">
-                        Compliant: {scanResult.compliance_report.summary_counts.compliant || 0}
+                        Detected: {scanResult.compliance_report.summary_counts.detected ?? scanResult.compliance_report.summary_counts.compliant ?? 0}
                       </span>
                       <span className="summary-badge badge-missing">
-                        Missing: {scanResult.compliance_report.summary_counts.non_compliant_missing || 0}
+                        Not Detected: {scanResult.compliance_report.summary_counts.not_detected ?? scanResult.compliance_report.summary_counts.non_compliant_missing ?? 0}
                       </span>
                       <span className="summary-badge badge-unclear">
-                        Review Needed: {scanResult.compliance_report.summary_counts.unclear_needs_review || 0}
+                        Manual Review: {scanResult.compliance_report.summary_counts.needs_manual_verification ?? scanResult.compliance_report.summary_counts.unclear_needs_review ?? 0}
                       </span>
                     </div>
                   </div>
@@ -1214,13 +1348,18 @@ export default function App() {
                   {scanResult.compliance_report.items.map((item, idx) => (
                     <div key={idx} className={`compliance-item-card comp-${item.status.toLowerCase()}`}>
                       <div className="comp-item-header">
-                        <span className={`comp-status-pill pill-${item.status.toLowerCase()}`}>
-                          {item.status === 'COMPLIANT' && '✓ COMPLIANT'}
-                          {item.status === 'NON_COMPLIANT_MISSING' && '✗ MISSING'}
-                          {item.status === 'UNCLEAR_NEEDS_REVIEW' && '⚠️ REVIEW NEEDED'}
-                          {item.status === 'EXEMPTED' && '— EXEMPTED'}
+                        <span className={`comp-status-pill pill-${(item.metrology_status || (item.status === 'COMPLIANT' ? 'detected' : item.status === 'NON_COMPLIANT_MISSING' ? 'not_detected' : 'needs_manual_verification')).toLowerCase()}`}>
+                          {item.metrology_status === 'DETECTED' && '✓ DETECTED'}
+                          {item.metrology_status === 'POTENTIAL_ISSUE' && '⚠️ POTENTIAL ISSUE'}
+                          {item.metrology_status === 'NOT_DETECTED' && '✗ NOT DETECTED'}
+                          {item.metrology_status === 'NEEDS_MANUAL_VERIFICATION' && '🔍 NEEDS MANUAL VERIFICATION'}
+                          {item.metrology_status === 'NOT_ASSESSED' && '— NOT ASSESSED'}
+                          {!item.metrology_status && (
+                            item.status === 'COMPLIANT' ? '✓ DETECTED' :
+                            item.status === 'NON_COMPLIANT_MISSING' ? '✗ NOT DETECTED' : '⚠️ REVIEW NEEDED'
+                          )}
                         </span>
-                        <span className="comp-clause">{item.clause}</span>
+                        <span className="comp-clause">{item.legal_metrology_rule || item.clause}</span>
                       </div>
                       <h4 className="comp-item-title">
                         {item.title}
@@ -1355,6 +1494,27 @@ export default function App() {
                           <td className="col-status">
                             <span className={`status-badge badge-${ing.status.toLowerCase()}`}>
                               {ing.status}
+                            </span>
+                            <span
+                              className={`prd-match-badge prd-match-${(
+                                ing.prd_match_status ||
+                                (ing.status === 'NORMALIZED'
+                                  ? isNormalizedDifferently
+                                    ? 'synonym'
+                                    : 'exact'
+                                  : ing.status === 'UNCLEAR'
+                                  ? 'ambiguous'
+                                  : 'unknown')
+                              ).toLowerCase()}`}
+                            >
+                              {ing.prd_match_status ||
+                                (ing.status === 'NORMALIZED'
+                                  ? isNormalizedDifferently
+                                    ? 'SYNONYM'
+                                    : 'EXACT'
+                                  : ing.status === 'UNCLEAR'
+                                  ? 'AMBIGUOUS'
+                                  : 'UNKNOWN')}
                             </span>
                             {ing.category && <span className="category-sub">{ing.category}</span>}
                           </td>

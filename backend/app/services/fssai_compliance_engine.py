@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class ComplianceItem(BaseModel):
-    """Evaluation result for one of the 11 mandatory FSSAI label declarations."""
+    """Evaluation result for Legal Metrology & FSSAI statutory declarations."""
 
     rule_id: str
     clause: str
@@ -30,6 +30,14 @@ class ComplianceItem(BaseModel):
     category: str
     is_mandatory: bool = True
     status: str = Field(..., description="'COMPLIANT', 'NON_COMPLIANT_MISSING', 'UNCLEAR_NEEDS_REVIEW', or 'EXEMPTED'")
+    metrology_status: str = Field(
+        default="DETECTED",
+        description="'DETECTED', 'NOT_DETECTED', 'POTENTIAL_ISSUE', 'NEEDS_MANUAL_VERIFICATION', or 'NOT_ASSESSED' per PRD Section 6.4",
+    )
+    legal_metrology_rule: Optional[str] = Field(
+        default=None,
+        description="Legal Metrology (Packaged Commodities) Rules, 2011 rule reference",
+    )
     evidence_text: str = Field(..., description="Actual packaging text detected that supports the status")
     explanation: str
     explanation_hi: Optional[str] = None
@@ -43,12 +51,13 @@ class FSSAIComplianceReport(BaseModel):
     summary_counts: Dict[str, int] = Field(default_factory=dict)
     compliance_score_percent: float = 0.0
     statutory_reference: str = (
-        "Food Safety and Standards (Labelling and Display) Regulations, 2020 "
-        "(Gazette Notification F. No. 1-94/FSSAI/SP(L&C)/2020)"
+        "Legal Metrology (Packaged Commodities) Rules, 2011 (Rule 6) & "
+        "Food Safety and Standards (Labelling and Display) Regulations, 2020 (Gazette Notification F. No. 1-94/FSSAI/SP(L&C)/2020)"
     )
     disclaimer: str = (
-        "Statutory compliance review is based on text and declarations visible in the scanned packaging panel. "
-        "Absence in a single-panel scan does not certify non-compliance of outer cartons or uncaptured sides."
+        "Statutory compliance screening is based on declarations visible in the scanned packaging panel. "
+        "Absence in a single-panel scan does not certify non-compliance of outer cartons or uncaptured sides, "
+        "and is not a substitute for official Legal Metrology or FSSAI inspection."
     )
 
 
@@ -525,6 +534,30 @@ class FSSAIComplianceEngine:
                 )
             )
 
+        # Map PRD 6.4 Metrology Status & Legal Metrology 2011 Rule Codes
+        rule_mapping = {
+            "FSSAI_REQ_01_NAME_OF_FOOD": "LM Rule 6(1)(b) - Generic/Commodity Name",
+            "FSSAI_REQ_02_INGREDIENTS_LIST": "FSSAI Reg 5(1)(2) - Ingredient Declaration",
+            "FSSAI_REQ_03_NUTRITIONAL_INFO": "FSSAI Reg 5(1)(3) - Nutrition Panel",
+            "FSSAI_REQ_04_ALLERGEN_DECLARATION": "FSSAI Reg 5(3) & Sched II - Allergen Declarations",
+            "FSSAI_REQ_05_VEG_NONVEG_LOGO": "FSSAI Reg 5(4) - Veg/Non-Veg Logo Symbol",
+            "FSSAI_REQ_06_FSSAI_LOGO_AND_LICENSE": "FSSAI Sec 31 & Reg 5(5) - 14-Digit Lic Number",
+            "FSSAI_REQ_07_NET_QUANTITY": "LM Rule 6(1)(c) - Net Quantity in Standard Units",
+            "FSSAI_REQ_08_BATCH_NUMBER": "LM Rule 6(1)(f) - Lot/Batch/Code Number",
+            "FSSAI_REQ_09_DATE_MARKING": "LM Rule 6(1)(d) - Mfg / Pkd Date & Expiry",
+            "FSSAI_REQ_10_MANUFACTURER_DETAILS": "LM Rule 6(1)(a) - Name & Complete Address of Mfr/Packer",
+            "FSSAI_REQ_11_MRP_AND_CONSUMER_CARE": "LM Rule 6(1)(da) - MRP (incl. taxes) & Rule 6(2) Consumer Helpline",
+        }
+        for item in results:
+            if not item.legal_metrology_rule:
+                item.legal_metrology_rule = rule_mapping.get(item.rule_id, "LM Rule 6 Mandatory Declarations")
+            if item.status == "COMPLIANT":
+                item.metrology_status = "DETECTED"
+            elif item.status == "NON_COMPLIANT_MISSING":
+                item.metrology_status = "NOT_DETECTED"
+            elif item.status == "UNCLEAR_NEEDS_REVIEW":
+                item.metrology_status = "NEEDS_MANUAL_VERIFICATION"
+
         # Summary Counts
         compliant_count = sum(1 for item in results if item.status == "COMPLIANT")
         missing_count = sum(1 for item in results if item.status == "NON_COMPLIANT_MISSING")
@@ -537,6 +570,9 @@ class FSSAIComplianceEngine:
                 "compliant": compliant_count,
                 "non_compliant_missing": missing_count,
                 "unclear_needs_review": unclear_count,
+                "detected": compliant_count,
+                "not_detected": missing_count,
+                "needs_manual_verification": unclear_count,
                 "total_checked": len(results),
             },
             compliance_score_percent=score_pct,

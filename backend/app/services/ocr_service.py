@@ -190,16 +190,56 @@ class OCRService:
                 f"Image dimensions ({w}x{h}) are too small for OCR processing."
             )
 
-        # 4. Blur / Quality Check via Laplacian Variance
+        # 4. Blur, Lighting & Contrast Quality Assessment (OpenCV)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         blur_score = float(cv2.Laplacian(gray, cv2.CV_64F).var())
+        brightness_mean = float(np.mean(gray))
+        contrast_score = float(np.std(gray))
+
+        if blur_score >= 100.0:
+            blur_assessment = "SHARP"
+        elif blur_score >= 30.0:
+            blur_assessment = "MODERATE"
+        else:
+            blur_assessment = "BLURRY"
+
+        if brightness_mean < 60.0:
+            lighting_assessment = "LOW_LIGHT"
+        elif brightness_mean > 215.0:
+            lighting_assessment = "GLARE_OR_OVEREXPOSED"
+        else:
+            lighting_assessment = "NORMAL"
+
+        contrast_assessment = "NORMAL" if contrast_score >= 35.0 else "LOW_CONTRAST"
+
+        if blur_assessment == "BLURRY":
+            recommendation = "Label appears blurry. Hold packaging steady and tap to refocus before scanning."
+        elif lighting_assessment == "LOW_LIGHT":
+            recommendation = "Lighting is low. Move to a well-lit area to avoid OCR misreads."
+        elif lighting_assessment == "GLARE_OR_OVEREXPOSED":
+            recommendation = "Glare or reflection detected on packaging. Angle label away from direct lighting."
+        elif contrast_assessment == "LOW_CONTRAST":
+            recommendation = "Low contrast detected between text and background packaging."
+        else:
+            recommendation = "Image quality is clear and suitable for OCR screening."
 
         metadata = {
             "width": w,
             "height": h,
             "channels": c,
             "blur_score": round(blur_score, 2),
-            "is_blurry": blur_score < 30.0,
+            "blur_assessment": blur_assessment,
+            "brightness_mean": round(brightness_mean, 2),
+            "lighting_assessment": lighting_assessment,
+            "contrast_score": round(contrast_score, 2),
+            "contrast_assessment": contrast_assessment,
+            "is_blurry": blur_assessment == "BLURRY",
+            "quality_recommendation": recommendation,
+            "restormer_status": "DISABLED_NO_WEIGHTS",
+            "restormer_note": (
+                "Real Restormer PyTorch model weights are not loaded in the local environment. "
+                "Processing original image with OpenCV preprocessing without synthetic deblurring (per PRD Rule 8.3 & 18)."
+            ),
         }
 
         return img, metadata

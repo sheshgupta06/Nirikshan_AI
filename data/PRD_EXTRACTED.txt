@@ -1,0 +1,703 @@
+NIRIKSHAN AI
+Product Requirements Document (PRD)
+Project Name: Nirikshan AITeam Name: InspectraProject Type: AI-powered packaged-food label analysis and compliance screening platformDocument Version: 1.0Status: Finalized MVP RequirementsPrimary Market: IndiaDevelopment Approach: AI-assisted development / Vibe Coding
+1. PROJECT OVERVIEW
+1.1 What is Nirikshan AI?
+Nirikshan AI is an AI-powered application that analyses photographs of packaged-food labels and provides two separate types of analysis:
+Legal Metrology Compliance Module
+Food Ingredient Safety Information Module
+The application will extract text from product labels, identify relevant declarations and ingredients, compare the extracted information against verified databases and rules, and present understandable findings with supporting evidence.
+The system will help users identify possible labelling issues and understand ingredient-related information.
+Nirikshan AI is a screening and information-support system. It is not a replacement for laboratory testing, an official government inspection, or a legal certification.
+1.2 Problem Statement
+Packaged-food labels contain important information, including:
+Manufacturer, packer or importer details
+Net quantity
+Maximum Retail Price (MRP)
+Relevant date declarations
+Consumer-care information
+Ingredient lists
+Food additives
+Allergen declarations
+Other product-related information
+Checking this information manually can be time-consuming.
+Furthermore, simply extracting text from a label does not establish whether the information is legally compliant or whether an ingredient is permitted under a particular regulation.
+Nirikshan AI aims to automate the initial reading and screening process while maintaining evidence traceability and clearly communicating uncertainty.
+2. PRODUCT OBJECTIVES
+The system must:
+Allow users to capture a product-label photograph or upload an existing image.
+Extract readable text from the image using OCR.
+Improve image quality where appropriate.
+Automatically attempt deblurring with Restormer when the configured quality checks indicate that restoration may help.
+Analyse mandatory declarations using a verified, database-driven Legal Metrology rule engine.
+Identify ingredients using a curated ingredient database.
+Present ingredient information and jurisdiction-specific regulatory findings with supporting sources.
+Flag uncertain OCR results and ambiguous ingredient matches.
+Avoid unsupported claims about food safety or legal compliance.
+Provide a responsive, user-friendly interface.
+Support deployment as a web application.
+Provide a foundation for future research and accuracy evaluation.
+3. TARGET USERS
+3.1 Consumers
+Consumers can use the application to understand packaged-food labels, identify declared ingredients and allergens, and view available regulatory information.
+3.2 Inspectors and Reviewers
+Potential users include people who need assistance identifying possible labelling issues.
+The application must not claim to replace an inspector's professional judgement.
+3.3 Data Reviewers
+Authorised project administrators or reviewers will maintain the ingredient database, regulatory evidence, and Legal Metrology rule records.
+Regulatory records must be reviewed before being treated as verified.
+4. FINALIZED MVP SCOPE
+The first version will contain the following features.
+Feature
+MVP Decision
+Product-label photo capture
+Included
+Existing image upload
+Included
+Continuous live-camera scanning
+Excluded
+Image quality assessment
+Included
+OpenCV preprocessing
+Included
+PaddleOCR text extraction
+Included
+Automatic Restormer deblurring
+Included as an optional, tested feature
+Original/restored OCR comparison
+Included
+Legal Metrology module
+Included
+Ingredient Safety module
+Included
+Ingredient database
+Included
+Regulatory evidence and sources
+Included
+Custom ML model training
+Not required initially
+Laboratory test prediction
+Excluded
+Official compliance certification
+Excluded
+Cloud deployment
+Included in deployment plan
+Important implementation rule: Restormer must not be represented as operational until the actual model, dependencies and inference pipeline have been integrated and tested.
+5. USER WORKFLOW
+The expected workflow is:
+User opens Nirikshan AI.
+User chooses Legal Metrology, Ingredient Safety, or both.
+User captures a product-label photograph or selects an image from the device.
+The application displays an image preview.
+The backend validates the image.
+The system checks for possible blur, poor lighting, low contrast and other image-quality problems.
+OpenCV preprocessing is applied where appropriate.
+If Restormer is enabled and the quality policy indicates that deblurring may help, the system attempts restoration automatically.
+PaddleOCR extracts text from the original and relevant processed image candidates.
+The system compares the OCR outputs and flags important disagreements.
+The user is asked to retake the photograph or confirm uncertain text when necessary.
+The selected analysis modules process the extracted information.
+The application displays findings, uncertainty, and supporting evidence.
+The user can review the results and understand their limitations.
+The application must preserve the original image during processing.
+If restoration fails, the application should fall back to the original image where possible instead of crashing the complete analysis.
+6. MODULE A — LEGAL METROLOGY COMPLIANCE
+6.1 Purpose
+This module will screen packaged-food labels for selected declarations relevant to the Legal Metrology Act, 2009, and the Legal Metrology (Packaged Commodities) Rules, 2011, as applicable to the product and packaging.
+The precise legal requirements must be verified against the applicable current rules and amendments before implementation.
+6.2 Information to Detect
+The system should attempt to identify applicable declarations such as:
+Manufacturer details
+Packer details
+Importer details, where applicable
+Net quantity
+Maximum Retail Price (MRP)
+Relevant manufacturing, packing or import date declarations
+Consumer-care details
+Other applicable mandatory declarations
+Not every declaration necessarily applies to every product. The engine must account for the applicable product and packaging scope.
+6.3 Processing Requirements
+The module must:
+Extract label text through OCR.
+Identify candidate declarations.
+Normalize extracted text for matching.
+Retrieve applicable, verified rules from the database.
+Evaluate whether the relevant declaration appears to be present.
+Flag possible issues and uncertain cases.
+Return an explanation and reference to the rule used.
+6.4 Finding Categories
+The module should distinguish between:
+Detected: Relevant text was identified.
+Not detected: The system could not find the expected declaration.
+Potential issue: Available evidence indicates a possible discrepancy.
+Needs manual verification: OCR, applicability or rule interpretation is uncertain.
+Not assessed: No applicable verified rule is available.
+A declaration not detected by OCR must not automatically be treated as legally absent. It may have been cropped, obscured or incorrectly recognized.
+6.5 Font-Size and Text-Height Measurement
+Font-height measurement may be implemented as an advanced feature.
+However, pixel height cannot reliably be converted into physical millimetres without a validated calibration method and suitable image-capture conditions.
+Therefore:
+Do not invent physical measurements.
+Do not claim legally accurate millimetre measurements from uncalibrated photographs.
+Return measurement as unavailable when calibration requirements are not satisfied.
+Validate any implemented measurement method against known physical measurements before using it for compliance findings.
+6.6 Rule Database Requirements
+Every rule record should contain:
+Rule identifier
+Rule title
+Jurisdiction
+Product and packaging scope
+Rule summary
+Source reference
+Effective date, where available
+Verification status
+Last verification date
+Review notes
+Regulatory thresholds must not be hardcoded into frontend components.
+The system must use verified database records and clearly distinguish a potential issue from a definitive legal determination.
+7. MODULE B — FOOD INGREDIENT SAFETY INFORMATION
+7.1 Purpose
+This module will read the ingredient declaration from a packaged-food label and present information about identified ingredients, declared allergens, and relevant regulatory or scientific evidence.
+It must not assume that every additive is harmful or that every ingredient absent from a warning database is safe.
+7.2 Ingredient Analysis Workflow
+The workflow should be:
+Extract ingredient text using PaddleOCR.
+Identify the ingredient-list section where possible.
+Separate candidate ingredient names.
+Normalize spelling and formatting.
+Match each candidate against canonical ingredient records and verified synonyms.
+Retrieve available evidence and applicable regulatory records.
+Evaluate whether the match and evidence are sufficiently reliable.
+Display the ingredient identity, available information, regulatory context and sources.
+Mark ambiguous or unidentified ingredients for confirmation.
+7.3 Ingredient Identification
+The first version should use:
+Exact-name matching
+Verified synonym matching
+Text normalization
+Conservative fuzzy matching
+Explicit ambiguous and unknown outcomes
+A large language model may help explain retrieved information in simple language, but it must not independently decide whether an ingredient is legally permitted or prohibited.
+The system must not automatically accept a fuzzy match as a confirmed ingredient identity.
+Match statuses
+Status
+Meaning
+Exact
+The extracted name matches a canonical record
+Synonym
+The text matches a verified synonym
+Probable
+A candidate match exists but requires confirmation
+Ambiguous
+Multiple candidates or insufficient evidence exist
+Unknown
+No reliable match was found
+7.4 Ingredient Information
+Where verified information is available, show:
+Canonical ingredient name
+Ingredient type or function
+Identified synonyms
+Relevant scientific information
+Relevant allergen information
+Regulatory status by jurisdiction
+Applicable food category and conditions of use
+Maximum permitted level and unit, if applicable and verified
+Source references
+Verification date
+Limitations or uncertainty
+Only show information supported by the available evidence.
+7.5 Regulatory Status
+Regulatory status must be evaluated separately for each jurisdiction and applicable use.
+The application must distinguish between:
+Permitted under specified conditions
+Restricted
+Prohibited or not authorised under the applicable rule
+Unknown
+Not assessed
+These labels must reflect the wording and meaning of the underlying verified source.
+A restriction in another country must not automatically be treated as an Indian prohibition.
+Likewise, absence from the database must not be interpreted as proof of permission or prohibition.
+7.6 Health-Related Information
+The module may explain evidence-backed ingredient information in understandable language.
+However:
+An ingredient must not be labelled harmful merely because it is an additive.
+Scientific findings must be presented with relevant context and limitations.
+A general hazard finding must not be presented as proof that the quantity in a specific product is dangerous.
+The application must not infer the actual concentration of an ingredient from its name alone.
+It must not claim that the product passed or failed laboratory testing.
+It must not label an entire product completely safe or unsafe based only on its label photograph.
+7.7 Allergen Detection
+The module should identify declared allergens when the OCR text and verified ingredient mappings support the finding.
+It must distinguish between:
+An allergen-related term detected in the label text.
+A possible allergen match that requires confirmation.
+No allergen identified in the readable text.
+Failure to detect an allergen does not prove that the product is allergen-free.
+The interface should advise users with serious allergies to verify the physical packaging and relevant manufacturer information.
+8. IMAGE PROCESSING AND AI PIPELINE
+8.1 PaddleOCR
+PaddleOCR will be the primary text-extraction component.
+It should extract text and bounding boxes where supported by the selected implementation.
+Confidence values must be used only if the selected OCR interface actually provides them.
+OCR confidence is not a guarantee of correctness.
+8.2 OpenCV
+OpenCV will support:
+Image decoding and validation
+Image orientation handling where possible
+Blur estimation
+Brightness and contrast assessment
+Image resizing
+Preprocessing
+Suitable thresholding or contrast enhancement
+Preparation of image candidates for OCR
+Image-quality thresholds must be calibrated using the project's own test images.
+8.3 Restormer
+Restormer is the optional image-restoration component intended to improve certain blurred images before OCR.
+Required behaviour
+Assess image quality.
+Determine whether restoration should be attempted.
+Run the actual Restormer model if enabled and available.
+Preserve the original image.
+Run OCR on the original image.
+Run OCR on the restored image when restoration succeeds.
+Compare the outputs.
+Use the validated selection policy to choose a result or flag uncertainty.
+Request user confirmation when important text differs.
+Fall back safely if the model fails.
+Restrictions
+Do not claim that every blurred image can be repaired.
+Do not assume restored text is more accurate.
+Do not silently replace the original image.
+Do not implement a sharpening filter and describe it as Restormer.
+Do not activate the feature in production until the real model is tested in the target environment.
+The model implementation, licence, weights, dependencies and hardware requirements must be verified before integration.
+8.4 Custom ML Model
+A separately trained custom ML model is not mandatory for the MVP.
+The initial system can use existing OCR and restoration models, a database-backed matching process, and deterministic rule engines.
+Custom training should be considered only after testing identifies a specific weakness that cannot be adequately addressed by the existing components.
+9. DATABASE REQUIREMENTS
+The application requires a structured database for ingredient information, regulatory evidence and Legal Metrology rules.
+9.1 Core Tables
+A. Ingredients
+Stores canonical ingredient identities.
+Suggested fields:
+ID
+Canonical name
+Ingredient type
+Verified identifier, if applicable
+Description
+Review status
+Created date
+Updated date
+B. Ingredient Synonyms
+Stores verified alternative names and spelling variants.
+Suggested fields:
+ID
+Ingredient ID
+Synonym
+Language
+Supporting source
+Review status
+C. Sources
+Stores references supporting regulatory and scientific claims.
+Suggested fields:
+ID
+Source title
+Publisher
+Source type
+URL
+Publication date
+Access date
+Jurisdiction
+Document version
+Review status
+D. Regulatory Records
+Stores ingredient-specific regulatory information.
+Suggested fields:
+ID
+Ingredient ID
+Source ID
+Jurisdiction
+Food category
+Conditions of use
+Regulatory status
+Maximum level, where applicable
+Unit
+Effective date
+Verification date
+Review status
+E. Evidence Records
+Stores reviewed scientific information.
+Suggested fields:
+ID
+Ingredient ID
+Source ID
+Finding summary
+Evidence type
+Relevant conditions
+Evidence-strength category, if a documented assessment method exists
+Review status
+Review date
+F. Legal Rules
+Stores versioned Legal Metrology requirements.
+Suggested fields:
+ID
+Rule code
+Title
+Jurisdiction
+Product scope
+Packaging scope
+Rule summary
+Machine-checkable flag
+Effective date
+Source ID
+Verification date
+Review status
+9.2 Data Quality Policy
+The system must:
+Record where every important regulatory claim came from.
+Keep unreviewed records separate from verified records.
+Track jurisdiction and effective dates.
+Avoid duplicate ingredient identities.
+Flag outdated sources.
+Avoid inventing legal limits or regulatory status.
+Support a documented review process.
+Return unknown when sufficient verified evidence is unavailable.
+A database record should not be treated as verified merely because it was imported successfully.
+10. DATA COLLECTION AND ACCURACY VALIDATION
+10.1 Ingredient Database Development
+The database should be developed through a controlled process:
+Collect representative packaged-food label samples.
+Record the ingredients actually printed on those labels.
+Create candidate canonical ingredient records.
+Identify synonyms using credible sources.
+Collect relevant official regulatory records and scientific references.
+Record jurisdiction, category, conditions and effective dates.
+Have the records reviewed before marking them verified.
+Test matching against both known and previously unseen ingredient text.
+Update the database when reliable new information becomes available.
+Do not generate arbitrary ingredient statuses to make the application appear complete.
+10.2 OCR Test Dataset
+Create a manually verified dataset containing images with:
+Clear labels
+Blurry labels
+Low-light images
+Glare and reflections
+Curved packaging
+Small text
+Partially cropped ingredient lists
+OCR-sensitive spelling variants
+Each test image should have a human-verified transcription for the relevant text.
+10.3 Accuracy Metrics
+Evaluate the following:
+Character Error Rate (CER)
+Word Error Rate (WER), where appropriate
+Exact-match rate for important declarations
+Ingredient matching precision
+Ingredient matching recall
+Ambiguous/unknown case handling
+Legal rule decision accuracy on reviewed examples
+False-positive findings
+False-negative findings
+OCR performance before and after Restormer
+Processing time and resource usage
+Do not publish accuracy percentages until the corresponding experiments have actually been completed.
+11. FRONTEND REQUIREMENTS
+11.1 Main Screens
+Screen 1: Home
+Display:
+Nirikshan AI branding
+Short product description
+Legal Metrology module
+Food Ingredient Safety module
+Option to analyse both modules
+Screen 2: Image Capture and Upload
+Provide:
+Camera capture
+Gallery/file selection
+Image preview
+Retake or remove option
+Clear upload instructions
+Image-quality guidance
+The MVP will not perform continuous live scanning.
+Screen 3: Analysis Progress
+Display meaningful progress states, such as:
+Validating image
+Checking image quality
+Extracting label text
+Analysing declarations
+Matching ingredients
+Preparing results
+Progress messages must reflect actual backend stages. Do not show fabricated progress or success.
+Screen 4: Legal Metrology Results
+Display:
+Extracted declarations
+Detected information
+Possible issues
+Uncertain fields
+Applicable rule references
+Source details
+Manual-review recommendations
+Screen 5: Ingredient Safety Results
+Display:
+Extracted ingredient list
+Matched canonical names
+Unidentified or ambiguous terms
+Allergen-related findings
+Regulatory information
+Supporting evidence
+Jurisdiction and applicable conditions
+Uncertainty and limitations
+Screen 6: Combined Report
+If both modules were selected, display the results in clearly separated sections.
+The combined report must not merge legal compliance findings with health-related conclusions.
+11.2 Interface Principles
+The interface should be:
+Responsive on desktop and mobile
+Easy for non-technical users
+Clear about uncertainty
+Accessible and readable
+Consistent in error handling
+Transparent about evidence
+Free from unsupported safety claims
+12. BACKEND REQUIREMENTS
+12.1 Recommended Technology
+Python
+FastAPI
+Pydantic
+SQLAlchemy
+Alembic
+PostgreSQL
+12.2 Core Responsibilities
+The backend must:
+Validate image uploads.
+Perform image-quality assessment.
+Run OpenCV preprocessing.
+Run PaddleOCR.
+Invoke Restormer when configured and appropriate.
+Compare OCR outputs.
+Identify uncertain text.
+Retrieve ingredient and regulatory records.
+Execute Legal Metrology rules.
+Produce structured analysis results.
+Handle errors safely.
+Delete temporary image files after processing.
+12.3 Proposed API
+GET /health
+Checks whether the backend is responding.
+POST /api/v1/analyze
+Accepts:
+Product-label image
+Selected analysis modules
+Jurisdiction
+Product category, if known
+Optional configuration supported by the backend
+Returns:
+Analysis status
+Image-quality indicators
+Extracted OCR text
+Uncertainty indicators
+Legal Metrology findings
+Ingredient Safety findings
+Supporting source references
+Warnings and limitations
+The API contract must be shared between frontend and backend development to avoid mismatched request and response formats.
+12.4 Error Handling
+The backend must handle:
+Unsupported image formats
+Oversized images
+Corrupted images
+OCR failure
+Restoration failure
+Database unavailability
+Missing regulatory records
+Unknown ingredients
+Unexpected processing errors
+Errors should return understandable messages and appropriate HTTP status codes.
+Internal stack traces must not be exposed to users.
+13. SECURITY AND PRIVACY
+The application must:
+Validate uploaded files on the backend.
+Enforce configurable upload-size limits.
+Avoid trusting user-supplied filenames.
+Keep database credentials on the server.
+Use environment variables for secrets.
+Restrict CORS to approved frontend origins.
+Avoid committing .env files.
+Avoid logging sensitive image contents.
+Avoid permanent image storage by default.
+Delete temporary images after processing.
+Use protected database credentials and HTTPS in deployment.
+Avoid sending images to third-party services unless explicitly approved.
+If image retention is introduced later, the application must provide an appropriate consent, access-control, retention and deletion policy.
+14. RECOMMENDED TECHNOLOGY STACK
+Component
+Recommended Technology
+Responsibility
+Frontend
+React + TypeScript
+User interface
+Build tooling
+Vite
+Frontend development/build
+Installable web app
+PWA support
+Optional installation experience
+Backend
+FastAPI
+API and analysis orchestration
+Database
+PostgreSQL
+Ingredients, sources and rules
+ORM
+SQLAlchemy
+Database access
+Migrations
+Alembic
+Versioned schema changes
+Image processing
+OpenCV
+Quality checks and preprocessing
+OCR
+PaddleOCR
+Text extraction
+Image restoration
+Restormer
+Optional automatic deblurring
+Frontend hosting
+Vercel or equivalent
+Web application hosting
+Backend hosting
+Docker-capable hosting service
+API deployment
+Database hosting
+Managed PostgreSQL
+Hosted database
+If an existing project already has a working frontend or backend, inspect it before replacing the technology stack.
+The stack must be validated for dependency compatibility, memory requirements, processing time and hosting limits.
+15. HOSTING AND DEPLOYMENT REQUIREMENTS
+The application should be prepared for deployment using:
+A Git repository
+Hosted frontend
+Hosted FastAPI backend
+Managed PostgreSQL database
+Environment-based configuration
+Database migrations
+Health endpoint
+Production build and smoke tests
+The deployment process must verify:
+The frontend opens over HTTPS.
+The backend health endpoint works.
+The frontend can communicate with the backend.
+Database connectivity is successful.
+Database migrations have been applied.
+OCR dependencies work in the deployed environment.
+Restormer works only if its real model is successfully loaded and tested.
+File uploads and errors behave correctly.
+Secrets are not exposed.
+The application does not claim that unavailable features are operational.
+Hosting plans must be checked for upload limits, request timeouts, memory, CPU/GPU availability, cold starts and database retention.
+16. TESTING REQUIREMENTS
+Testing must cover:
+Functional Tests
+Capture or upload a photo.
+Preview and retake the image.
+Select one or both modules.
+Extract OCR text.
+Display structured results.
+Display source references.
+Handle unknown ingredients.
+Image Pipeline Tests
+Clear image
+Blurry image
+Low-light image
+Glare
+Corrupted image
+Restormer disabled
+Restormer failure
+Different OCR outputs from original and restored images
+Legal Metrology Tests
+Applicable verified rule
+Missing declaration in OCR output
+Uncertain OCR text
+Missing rule
+Outdated rule
+Product category unknown
+Ingredient Safety Tests
+Exact ingredient match
+Verified synonym match
+Misspelled ingredient
+Multiple possible matches
+Unknown ingredient
+Missing evidence
+Foreign-jurisdiction rule
+Outdated regulatory record
+Allergen-related text uncertainty
+Deployment Tests
+Production frontend build
+Backend tests
+Database migration
+Health endpoint
+HTTPS API communication
+Invalid upload handling
+Secret configuration
+Model loading and inference, if Restormer is enabled
+17. OUT OF SCOPE
+The following are not part of the first MVP:
+Continuous live-camera scanning.
+Laboratory test simulation or replacement.
+Prediction of actual chemical concentration without appropriate measurements.
+Guaranteed detection of all adulteration or tampering.
+Official government certification.
+Definitive declaration that a food product is completely safe or unsafe.
+Unverified automatic scraping of legal databases.
+Automatic approval of newly imported regulatory records.
+Custom model training without a demonstrated need.
+Guaranteed recovery of unreadable text by image restoration.
+These features must not be advertised as implemented unless separately developed, tested and approved.
+18. MVP ACCEPTANCE CRITERIA
+The MVP will be considered ready for demonstration when:
+A user can capture or upload a packaged-food label photograph.
+The application validates the image and provides useful quality guidance.
+OpenCV preprocessing operates as intended.
+PaddleOCR extracts text from supported images.
+Restormer is either genuinely integrated and tested or clearly disabled; it is never simulated.
+Original and restored OCR outputs can be compared when restoration is enabled.
+Uncertain text is not silently treated as correct.
+Legal Metrology findings reference verified applicable rules.
+Ingredient matches use canonical records and reviewed synonyms.
+Regulatory claims include jurisdiction and supporting sources.
+Unknown or ambiguous cases remain unknown or require confirmation.
+The application separates label screening from laboratory testing.
+Frontend, backend and database integration tests pass.
+The application can be deployed and accessed through its configured hosting environment.
+Known limitations are documented and visible where relevant.
+19. FUTURE ENHANCEMENTS
+After the MVP is evaluated, possible enhancements include:
+Improved multilingual OCR
+Better curved-label handling
+Calibrated physical text-height measurement
+Additional verified regulatory jurisdictions
+A protected data-review dashboard
+More extensive ingredient synonym coverage
+Improved evidence retrieval and explanation
+Asynchronous analysis for slow model inference
+Custom model training if supported by evaluation results
+Inspector-oriented reporting and workflow features
+A larger, independently reviewed benchmark dataset
+Each enhancement must be evaluated for feasibility, reliability and measurable value before being added.
+20. FINAL PRODUCT PRINCIPLES
+All development decisions must follow these principles:
+Evidence before conclusions: Important regulatory and ingredient claims must be traceable to credible sources.
+Unknown is better than a false answer: Uncertainty must be visible.
+Separate OCR from interpretation: Reading text does not establish compliance or safety.
+Separate regulatory status from health evidence: These are different questions.
+No fake AI: Features must use the actual stated models or be labelled unavailable.
+No unsupported accuracy claims: Performance must be measured on reviewed test data.
+Preserve original evidence: Image restoration must not silently replace the original.
+Human review where necessary: High-impact ambiguous results must be flagged.
+Versioned regulatory data: Rules and sources must be reviewed and maintained.
+Incremental development: Build and test one module or phase at a time.
+Final Definition
+Nirikshan AI is a photo-based, AI-assisted packaged-food label screening platform that combines a database-driven Legal Metrology module with an evidence-backed Food Ingredient Safety Information module.
+Its purpose is to make label information easier to analyse, identify potential issues, and provide transparent explanations—not to replace laboratory testing, official inspection, or professional regulatory judgement.
