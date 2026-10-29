@@ -29,44 +29,56 @@ async def gemini_health_check():
             "mode": "FALLBACK_CLINICAL_ENGINE",
         }
 
-    endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={key}"
+    candidate_models = [
+        "gemini-flash-lite-latest",
+        "gemini-flash-latest",
+        "gemini-2.5-flash",
+        "gemini-2.5-flash-lite",
+    ]
+
+    last_error = None
+    last_status = 500
+
     payload = {
         "contents": [{"parts": [{"text": "Say 'OK' in one word"}]}],
         "generationConfig": {"temperature": 0.1, "maxOutputTokens": 10},
     }
 
-    try:
-        async with httpx.AsyncClient(timeout=6.0) as client:
-            resp = await client.post(endpoint, json=payload)
-            if resp.status_code == 200:
-                data = resp.json()
-                reply = (
-                    data.get("candidates", [{}])[0]
-                    .get("content", {})
-                    .get("parts", [{}])[0]
-                    .get("text", "")
-                    .strip()
-                )
-                return {
-                    "configured": True,
-                    "status": "connected",
-                    "http_status": 200,
-                    "model": "gemini-flash-latest",
-                    "response": reply,
-                    "message": "Google AI Studio Gemini API is active and working perfectly!",
-                }
-            else:
-                return {
-                    "configured": True,
-                    "status": "api_error",
-                    "http_status": resp.status_code,
-                    "error_detail": resp.text[:200],
-                    "message": f"Gemini API returned status {resp.status_code}. Fallback Clinical Engine will be used.",
-                }
-    except Exception as exc:
-        return {
-            "configured": True,
-            "status": "network_timeout_or_error",
-            "error_detail": str(exc),
-            "message": "Request timed out or network blocked. Fallback Clinical Engine will be used.",
-        }
+    async with httpx.AsyncClient(timeout=5.0) as client:
+        for model in candidate_models:
+            endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
+            try:
+                resp = await client.post(endpoint, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    reply = (
+                        data.get("candidates", [{}])[0]
+                        .get("content", {})
+                        .get("parts", [{}])[0]
+                        .get("text", "")
+                        .strip()
+                    )
+                    return {
+                        "configured": True,
+                        "status": "connected",
+                        "http_status": 200,
+                        "active_model": model,
+                        "response": reply,
+                        "message": f"Google AI Studio Gemini API is active and working perfectly on '{model}'!",
+                    }
+                else:
+                    last_status = resp.status_code
+                    last_error = resp.text[:200]
+                    # If 503 or 429, continue to next candidate model
+                    if resp.status_code in (503, 429, 404):
+                        continue
+            except Exception as exc:
+                last_error = str(exc)
+
+    return {
+        "configured": True,
+        "status": "api_error",
+        "http_status": last_status,
+        "error_detail": last_error,
+        "message": f"Gemini API returned status {last_status}. Fallback Clinical Engine is active and protecting scans.",
+    }

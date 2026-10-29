@@ -283,25 +283,49 @@ Output strictly valid JSON with this exact schema:
             },
         }
 
-        async with httpx.AsyncClient(timeout=3.5) as client:
-            resp = await client.post(endpoint, json=payload)
-            if resp.status_code != 200:
-                logger.warning("Gemini API error %d: %s", resp.status_code, resp.text[:300])
-                return None
+        candidate_models = [
+            "gemini-flash-lite-latest",
+            "gemini-flash-latest",
+            "gemini-2.5-flash",
+            "gemini-2.5-flash-lite",
+        ]
 
-            data = resp.json()
-            raw_content = data["candidates"][0]["content"]["parts"][0]["text"].strip()
-            parsed = json.loads(raw_content)
+        async with httpx.AsyncClient(timeout=4.0) as client:
+            for model in candidate_models:
+                endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={self.api_key}"
+                try:
+                    resp = await client.post(endpoint, json=payload)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        raw_content = data["candidates"][0]["content"]["parts"][0]["text"].strip()
+                        parsed = json.loads(raw_content)
 
-            return LLMHealthAnalysisResult(
-                source="GEMINI_AI_STUDIO",
-                overall_health_verdict=parsed.get("overall_health_verdict", "Evaluated by Gemini Clinical AI."),
-                overall_health_verdict_hi=parsed.get("overall_health_verdict_hi"),
-                patient_advisories=[PatientRiskAdvisory(**pa) for pa in parsed.get("patient_advisories", [])],
-                ingredient_evaluations=[IngredientPatientEvaluation(**ie) for ie in parsed.get("ingredient_evaluations", [])],
-                safe_patient_groups=parsed.get("safe_patient_groups", []),
-                high_risk_patient_groups=parsed.get("high_risk_patient_groups", []),
-            )
+                        return LLMHealthAnalysisResult(
+                            source="GEMINI_AI_STUDIO",
+                            overall_health_verdict=parsed.get(
+                                "overall_health_verdict", "Evaluated by Gemini Clinical AI."
+                            ),
+                            overall_health_verdict_hi=parsed.get("overall_health_verdict_hi"),
+                            patient_advisories=[
+                                PatientRiskAdvisory(**pa) for pa in parsed.get("patient_advisories", [])
+                            ],
+                            ingredient_evaluations=[
+                                IngredientPatientEvaluation(**ie)
+                                for ie in parsed.get("ingredient_evaluations", [])
+                            ],
+                            safe_patient_groups=parsed.get("safe_patient_groups", []),
+                            high_risk_patient_groups=parsed.get("high_risk_patient_groups", []),
+                        )
+                    else:
+                        logger.warning(
+                            "Gemini model '%s' returned status %d. Trying next candidate model.",
+                            model,
+                            resp.status_code,
+                        )
+                except Exception as exc:
+                    logger.warning("Gemini model '%s' call failed: %s", model, exc)
+
+            return None
 
     def _evaluate_with_clinical_rules(self, ingredients: List[str]) -> LLMHealthAnalysisResult:
         """Deterministic, highly accurate clinical rules engine for patient risk mapping."""
