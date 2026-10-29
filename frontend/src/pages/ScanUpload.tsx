@@ -18,6 +18,7 @@ import { scanFoodLabelImage } from '../services/api'
 import { scanStorage } from '../services/scanStorage'
 import type { ScanImageResponse, UserProfileConfig } from '../types/scan'
 import { CameraCaptureModal } from '../components/CameraCaptureModal'
+import { useAuth } from '../contexts/AuthContext'
 
 interface ImageSlotState {
   file: File
@@ -38,14 +39,15 @@ export const ScanUpload: React.FC = () => {
   const backInputRef = useRef<HTMLInputElement | null>(null)
   const navigate = useNavigate()
 
-  // User Profile Config
-  const [profile] = useState<UserProfileConfig>({
-    profile_name: 'Default User',
-    allergies: '',
-    health_conditions: [],
-    dietary_preference: 'VEGETARIAN',
-    watchlist: '',
-  })
+  // Active Personalized User Profile Config from Supabase / AuthContext
+  const { profile: authProfile } = useAuth()
+  const profile: UserProfileConfig = {
+    profile_name: authProfile?.profile_name || 'Default User',
+    allergies: authProfile?.allergies || '',
+    health_conditions: authProfile?.health_conditions || [],
+    dietary_preference: authProfile?.dietary_preference || 'VEGETARIAN',
+    watchlist: authProfile?.watchlist || '',
+  }
 
   const validateAndProcessFile = (
     selectedFile: File,

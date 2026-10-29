@@ -13,6 +13,10 @@ import type { ScanImageResponse, UserProfileConfig } from '../types/scan'
 const LS_SUPABASE_URL = 'nirikshan_supabase_url'
 const LS_SUPABASE_KEY = 'nirikshan_supabase_anon_key'
 
+// Default Nirikshan AI Supabase Cloud Project credentials
+const DEFAULT_SUPABASE_URL = 'https://bnikjphbaszintuxdkwc.supabase.co'
+const DEFAULT_SUPABASE_KEY = 'sb_publishable_5MXREbFoO--uCA3IYCDWng_jrrhttLf'
+
 /**
  * Returns current Supabase credentials from environment or runtime localStorage.
  */
@@ -35,11 +39,12 @@ export function getSupabaseCredentials(): { url: string; key: string; isRuntime:
   const isPlaceholderUrl = !envUrl || envUrl.includes('your-project-ref') || envUrl.includes('example.com')
   const isPlaceholderKey = !envKey || envKey.includes('your-anon-public-key')
 
-  if (!isPlaceholderUrl && !isPlaceholderKey) {
+  if (!isPlaceholderUrl && !isPlaceholderKey && envUrl && envKey) {
     return { url: envUrl, key: envKey, isRuntime: false }
   }
 
-  return { url: '', key: '', isRuntime: false }
+  // Fallback to project defaults so all preview/mobile/prod deployments connect seamlessly
+  return { url: DEFAULT_SUPABASE_URL, key: DEFAULT_SUPABASE_KEY, isRuntime: false }
 }
 
 /**
@@ -213,6 +218,26 @@ export async function supabaseGetSession(): Promise<Session | null> {
   if (!client) return null
   const { data } = await client.auth.getSession()
   return data.session
+}
+
+/**
+ * Listens to Supabase Auth state changes (sign in, sign out, token refresh).
+ */
+export function onSupabaseAuthStateChange(
+  callback: (event: string, session: Session | null) => void
+): { unsubscribe: () => void } {
+  const client = getSupabaseClient()
+  if (!client) {
+    return { unsubscribe: () => {} }
+  }
+  const { data } = client.auth.onAuthStateChange((event, session) => {
+    callback(event, session)
+  })
+  return {
+    unsubscribe: () => {
+      data.subscription.unsubscribe()
+    },
+  }
 }
 
 // ============================================================================
@@ -454,13 +479,14 @@ export async function fetchSupabaseProfile(userId: string): Promise<Partial<User
   try {
     const { data, error } = await client
       .from('profiles')
-      .select('allergies, health_conditions, dietary_preference, watchlist')
+      .select('full_name, email, allergies, health_conditions, dietary_preference, watchlist')
       .eq('id', userId)
       .single()
 
     if (error || !data) return null
 
     return {
+      profile_name: data.full_name || 'My Profile',
       allergies: data.allergies || '',
       health_conditions: (data.health_conditions || []) as UserProfileConfig['health_conditions'],
       dietary_preference: (data.dietary_preference || '') as UserProfileConfig['dietary_preference'],
@@ -479,6 +505,7 @@ export async function saveSupabaseProfile(userId: string, profile: Partial<UserP
     const { error } = await client.from('profiles').upsert(
       {
         id: userId,
+        full_name: profile.profile_name ?? undefined,
         allergies: profile.allergies ?? '',
         health_conditions: profile.health_conditions ?? [],
         dietary_preference: profile.dietary_preference ?? '',

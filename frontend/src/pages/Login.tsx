@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Leaf, Eye, EyeOff, Check, AlertCircle } from 'lucide-react'
 import { isSupabaseConfigured, supabaseSignIn } from '../services/supabaseClient'
+import { useAuth } from '../contexts/AuthContext'
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('')
@@ -11,6 +12,14 @@ export const Login: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const navigate = useNavigate()
+  const { user } = useAuth()
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user) {
+      navigate('/scan', { replace: true })
+    }
+  }, [user, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,6 +43,13 @@ export const Login: React.FC = () => {
         setLoading(false)
       }
     } else {
+      // Mock session fallback
+      const mockUser = {
+        id: 'mock_user_' + Date.now(),
+        email: email.trim(),
+        user_metadata: { full_name: email.trim().split('@')[0] },
+      }
+      localStorage.setItem('nirikshan_mock_user', JSON.stringify(mockUser))
       setTimeout(() => {
         setLoading(false)
         navigate('/scan')

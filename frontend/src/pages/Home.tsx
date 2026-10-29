@@ -25,103 +25,105 @@ export const Home: React.FC = () => {
         <div className="absolute top-0 right-1/4 w-72 sm:w-96 h-72 sm:h-96 bg-emerald-100/40 rounded-full blur-3xl pointer-events-none -z-10" />
         <div className="absolute bottom-0 left-1/4 w-64 sm:w-80 h-64 sm:h-80 bg-teal-100/30 rounded-full blur-3xl pointer-events-none -z-10" />
 
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-6 sm:space-y-10">
+          {/* Main Hero: Side-by-side horizontal on both phone and desktop */}
+          <div className="grid grid-cols-12 gap-3 sm:gap-8 lg:gap-12 items-center">
             {/* Left Content */}
-            <div className="lg:col-span-7 space-y-5 text-center lg:text-left">
+            <div className="col-span-7 lg:col-span-7 space-y-2.5 sm:space-y-5 text-left">
               {/* Trust Badge */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-[#0F766E] text-xs font-bold shadow-2xs">
-                <Sparkles className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
-                <span>AI-Powered Food Label &amp; Patient Safety Intelligence</span>
+              <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-[#0F766E] text-[10px] sm:text-xs font-bold shadow-2xs">
+                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 animate-pulse shrink-0" />
+                <span className="hidden sm:inline">AI-Powered Food Label &amp; Patient Safety Intelligence</span>
+                <span className="sm:hidden">Food Safety &amp; Health AI</span>
               </div>
 
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-[#123044] tracking-tight leading-[1.15]">
+              <h1 className="text-xl xs:text-2xl sm:text-5xl lg:text-6xl font-extrabold text-[#123044] tracking-tight leading-[1.15]">
                 Know What's <br className="hidden sm:block" />
                 on <span className="text-[#087F5B]">Your Food.</span>
               </h1>
 
-              <p className="text-sm sm:text-base lg:text-lg text-[#64748B] leading-relaxed max-w-xl mx-auto lg:mx-0 font-normal">
-                पैकेट पर लिखी हर सामग्री की सच्चाई जानें। Scan packaged food labels instantly to decode ingredients, uncover hidden additives, and get clinical safety warnings for <strong>Diabetes, Kidney Disease &amp; High BP</strong>.
+              <p className="text-[11px] xs:text-xs sm:text-base lg:text-lg text-[#64748B] leading-snug sm:leading-relaxed max-w-xl font-normal">
+                पैकेट पर लिखी हर सामग्री की सच्चाई जानें। Scan packaged food labels instantly to decode ingredients and get clinical safety warnings for <strong>Diabetes, Kidney Disease &amp; High BP</strong>.
               </p>
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-2">
+              <div className="flex flex-row flex-wrap sm:flex-nowrap items-center justify-start gap-2 sm:gap-3.5 pt-1 sm:pt-2">
                 <Link
                   to="/scan"
-                  className="w-full sm:w-auto px-7 py-3.5 rounded-xl font-bold text-white bg-[#0F766E] hover:bg-[#0D655E] transition-all shadow-md shadow-[#0F766E]/20 flex items-center justify-center gap-2.5 text-sm sm:text-base group"
+                  className="px-3.5 sm:px-7 py-2 sm:py-3.5 rounded-xl font-bold text-white bg-[#0F766E] hover:bg-[#0D655E] transition-all shadow-md shadow-[#0F766E]/20 flex items-center justify-center gap-1.5 sm:gap-2.5 text-xs sm:text-base group shrink-0"
                 >
-                  <Camera className="w-5 h-5 text-emerald-200" />
+                  <Camera className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-emerald-200" />
                   <span>Scan Food Packet</span>
-                  <ArrowRight className="w-4 h-4 text-emerald-200 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-200 group-hover:translate-x-1 transition-transform hidden xs:inline" />
                 </Link>
                 <Link
                   to="/how-it-works"
-                  className="w-full sm:w-auto px-6 py-3.5 rounded-xl font-semibold text-[#0F766E] bg-white hover:bg-emerald-50/50 border border-[#CBD5E1] transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
+                  className="px-3 sm:px-6 py-2 sm:py-3.5 rounded-xl font-semibold text-[#0F766E] bg-white hover:bg-emerald-50/50 border border-[#CBD5E1] transition-all flex items-center justify-center gap-1.5 text-xs sm:text-base shrink-0"
                 >
-                  <Info className="w-5 h-5 text-[#0F766E]" />
+                  <Info className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#0F766E]" />
                   <span>How It Works</span>
                 </Link>
               </div>
             </div>
 
             {/* Right Product Mockup with Safe Responsive Floating Cards */}
-            <div className="lg:col-span-5 relative flex items-center justify-center pt-2 lg:pt-0">
-              <div className="relative w-full max-w-xs sm:max-w-md mx-auto">
+            <div className="col-span-5 lg:col-span-5 relative flex items-center justify-center">
+              <div className="relative w-full max-w-[190px] xs:max-w-[230px] sm:max-w-md mx-auto">
                 {/* Packaged Food Product Mockup Image */}
-                <div className="relative z-10 rounded-3xl overflow-hidden shadow-xl border border-slate-200 bg-gradient-to-b from-emerald-50/40 via-amber-50/30 to-slate-50 p-3 sm:p-4">
+                <div className="relative z-10 rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg sm:shadow-xl border border-slate-200 bg-gradient-to-b from-emerald-50/40 via-amber-50/30 to-slate-50 p-1.5 sm:p-4">
                   <img
                     src="https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=800&auto=format&fit=crop&q=80"
                     alt="Sample Packaged Food with Nutrition Label"
-                    className="w-full h-56 sm:h-80 object-cover rounded-2xl"
+                    className="w-full h-40 xs:h-52 sm:h-80 object-cover rounded-xl sm:rounded-2xl"
                   />
-                  <div className="absolute bottom-4 left-4 right-4 sm:bottom-5 sm:left-5 sm:right-5 p-2 sm:p-3 rounded-xl bg-black/80 backdrop-blur-md text-white flex items-center justify-between border border-white/10 shadow-lg">
-                    <div>
-                      <p className="text-[10px] sm:text-[11px] font-semibold text-emerald-400 flex items-center gap-1">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        Packaged Food Scan
+                  <div className="absolute bottom-2.5 left-2.5 right-2.5 sm:bottom-5 sm:left-5 sm:right-5 p-1.5 sm:p-3 rounded-lg sm:rounded-xl bg-black/85 backdrop-blur-md text-white flex items-center justify-between border border-white/10 shadow-lg">
+                    <div className="min-w-0 pr-1">
+                      <p className="text-[8px] sm:text-[11px] font-semibold text-emerald-400 flex items-center gap-1 truncate">
+                        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Food Scan
                       </p>
-                      <p className="text-xs sm:text-sm font-bold truncate">Potato Chips Label</p>
+                      <p className="text-[10px] sm:text-sm font-bold truncate">Packaged Label</p>
                     </div>
-                    <span className="text-[9px] sm:text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-md">
+                    <span className="text-[8px] sm:text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-1.5 py-0.5 rounded shrink-0">
                       FSSAI Verified
                     </span>
                   </div>
                 </div>
 
                 {/* Floating Card 1: Health Analysis */}
-                <div className="absolute top-2 right-2 sm:-top-3 sm:-right-4 z-20 bg-white/95 backdrop-blur-sm rounded-xl p-2 sm:p-3 shadow-lg border border-slate-200 flex items-center gap-2">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-50 text-[#087F5B] flex items-center justify-center border border-emerald-100 shrink-0">
-                    <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-[#087F5B]/20" />
+                <div className="absolute -top-1.5 -right-1.5 sm:-top-3 sm:-right-4 z-20 bg-white/95 backdrop-blur-sm rounded-lg sm:rounded-xl p-1 sm:p-3 shadow-md sm:shadow-lg border border-slate-200 flex items-center gap-1 sm:gap-2 scale-[0.78] xs:scale-85 sm:scale-100 origin-top-right">
+                  <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-md sm:rounded-lg bg-emerald-50 text-[#087F5B] flex items-center justify-center border border-emerald-100 shrink-0">
+                    <Heart className="w-3 h-3 sm:w-4 sm:h-4 fill-[#087F5B]/20" />
                   </div>
                   <div>
-                    <p className="text-[11px] sm:text-xs font-bold text-[#123044]">Health Analysis</p>
-                    <span className="text-[9px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-200">
+                    <p className="text-[10px] sm:text-xs font-bold text-[#123044] leading-tight">Health Analysis</p>
+                    <span className="text-[8px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-200">
                       High Sodium
                     </span>
                   </div>
                 </div>
 
                 {/* Floating Card 2: Patient Alert */}
-                <div className="absolute top-1/2 right-2 sm:-right-4 -translate-y-1/2 z-20 bg-white/95 backdrop-blur-sm rounded-xl p-2 sm:p-3 shadow-lg border border-slate-200 flex items-center gap-2">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center border border-rose-100 shrink-0">
-                    <Stethoscope className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <div className="absolute top-1/2 -right-2 sm:-right-4 -translate-y-1/2 z-20 bg-white/95 backdrop-blur-sm rounded-lg sm:rounded-xl p-1 sm:p-3 shadow-md sm:shadow-lg border border-slate-200 flex items-center gap-1 sm:gap-2 scale-[0.78] xs:scale-85 sm:scale-100 origin-right">
+                  <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center border border-rose-100 shrink-0">
+                    <Stethoscope className="w-3 h-3 sm:w-4 sm:h-4" />
                   </div>
                   <div>
-                    <p className="text-[11px] sm:text-xs font-bold text-[#123044]">Patient Warning</p>
-                    <span className="text-[9px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded bg-rose-100 text-rose-800 border border-rose-200">
+                    <p className="text-[10px] sm:text-xs font-bold text-[#123044] leading-tight">Patient Warning</p>
+                    <span className="text-[8px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded bg-rose-100 text-rose-800 border border-rose-200">
                       Kidney Alert
                     </span>
                   </div>
                 </div>
 
                 {/* Floating Card 3: Legal Metrology */}
-                <div className="absolute bottom-2 left-2 sm:-bottom-3 sm:-left-4 z-20 bg-white/95 backdrop-blur-sm rounded-xl p-2 sm:p-3 shadow-lg border border-slate-200 flex items-center gap-2">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-50 text-[#9A6712] flex items-center justify-center border border-amber-100 shrink-0">
-                    <Scale className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <div className="absolute -bottom-1.5 -left-1.5 sm:-bottom-3 sm:-left-4 z-20 bg-white/95 backdrop-blur-sm rounded-lg sm:rounded-xl p-1 sm:p-3 shadow-md sm:shadow-lg border border-slate-200 flex items-center gap-1 sm:gap-2 scale-[0.78] xs:scale-85 sm:scale-100 origin-bottom-left">
+                  <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-lg bg-amber-50 text-[#9A6712] flex items-center justify-center border border-amber-100 shrink-0">
+                    <Scale className="w-3 h-3 sm:w-4 sm:h-4" />
                   </div>
                   <div>
-                    <p className="text-[11px] sm:text-xs font-bold text-[#123044]">Legal Metrology</p>
-                    <span className="text-[9px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    <p className="text-[10px] sm:text-xs font-bold text-[#123044] leading-tight">Legal Metrology</p>
+                    <span className="text-[8px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
                       Compliant
                     </span>
                   </div>
