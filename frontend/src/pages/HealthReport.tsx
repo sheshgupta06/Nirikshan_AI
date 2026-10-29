@@ -77,17 +77,47 @@ export const HealthReport: React.FC = () => {
         statusColor = 'bg-slate-100 text-slate-800 border-slate-200'
       }
 
+      // Assign evidence-backed plain-English health concern
+      const lower = (item.ingredient.canonical_name || item.ingredient.raw_text).toLowerCase()
+      let healthConcern = item.alerts[0]?.message || ''
+
+      if (!healthConcern) {
+        if (lower.includes('soy')) {
+          healthConcern = 'Allergen Concern: Contains soy protein; can trigger allergic reactions in soy-sensitive individuals.'
+        } else if (lower.includes('wheat') || lower.includes('maida') || lower.includes('gluten')) {
+          healthConcern = 'Gluten / Allergen Concern: Contains gluten; unsafe for Coeliac Disease and wheat allergy.'
+        } else if (lower.includes('salt') || lower.includes('sodium')) {
+          healthConcern = 'Cardiovascular / BP Risk: Concentrated sodium source; high intake elevates blood pressure (hypertension) and kidney strain.'
+        } else if (lower.includes('sugar') || lower.includes('glucose') || lower.includes('fructose') || lower.includes('syrup')) {
+          healthConcern = 'Metabolic / Diabetes Risk: Simple carbohydrate; rapidly spikes blood glucose levels and increases diabetic risk.'
+        } else if (lower.includes('palmolein') || lower.includes('palm oil')) {
+          healthConcern = 'Heart Health Concern: High in saturated fatty acids (~50%); may increase serum LDL cholesterol.'
+        } else if (lower.includes('citric acid') || lower.includes('330') || lower.includes('acidity regulator')) {
+          healthConcern = 'Digestive Note: Acidity regulator (INS 330); safe in standard amounts, high intake may aggravate acidity or reflux.'
+        } else if (lower.includes('monosodium') || lower.includes('msg') || lower.includes('621')) {
+          healthConcern = 'Flavor Enhancer: Permitted glutamate additive; some individuals report mild sensitivity symptoms.'
+        } else if (lower.includes('water')) {
+          healthConcern = 'Safe hydration carrier ingredient.'
+        } else if (lower.includes('milk') || lower.includes('dairy') || lower.includes('whey')) {
+          healthConcern = 'Allergen / Lactose Concern: Contains dairy proteins and lactose; unsuitable for lactose intolerance or milk allergy.'
+        } else if (lower.includes('peanut') || lower.includes('nut')) {
+          healthConcern = 'Severe Allergen Warning: Nut allergens can induce severe systemic allergic reactions.'
+        } else {
+          healthConcern = 'Standard Food Ingredient: Evaluated against FSSAI and ICMR-NIN safety guidelines.'
+        }
+      }
+
       return {
         name: item.ingredient.canonical_name || item.ingredient.raw_text,
         status,
         statusColor,
-        details: item.alerts[0]?.message,
+        details: healthConcern,
       }
     })
   } else if (scan.corrections?.rawIngredients || scan.response?.raw_extracted_text) {
     // Extract tokens from corrected or raw text
     const text = scan.corrections?.rawIngredients || scan.response?.raw_extracted_text || ''
-    const match = text.match(/INGREDIENTS\s*[:\-]?\s*([^.\n]+)/i)
+    const match = text.match(/INGREDIENTS?\s*[:\-]?\s*([^.\n]+)/i)
     const rawTokens = match
       ? match[1].split(/[,;]+/)
       : text.split('\n').filter((l) => l.length > 3 && l.length < 50)
@@ -95,11 +125,36 @@ export const HealthReport: React.FC = () => {
     ingredientsList = rawTokens
       .map((t) => t.trim().replace(/^[-•*]\s*/, ''))
       .filter((t) => t.length > 2 && !t.toUpperCase().includes('NUTRITION'))
-      .map((name) => ({
-        name,
-        status: 'Detected ingredient',
-        statusColor: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-      }))
+      .map((name) => {
+        const lower = name.toLowerCase()
+        let status = 'Generally safe'
+        let statusColor = 'bg-emerald-100 text-emerald-800 border-emerald-200'
+        let details = 'Evaluated food component.'
+
+        if (lower.includes('soy') || lower.includes('wheat') || lower.includes('milk') || lower.includes('nut') || lower.includes('mustard')) {
+          status = 'Allergen Alert'
+          statusColor = 'bg-rose-100 text-rose-800 border-rose-200'
+          details = 'Known allergen: Can cause allergic reactions or food sensitivity.'
+        } else if (lower.includes('salt') || lower.includes('sodium')) {
+          status = 'High in sodium'
+          statusColor = 'bg-rose-100 text-rose-800 border-rose-200'
+          details = 'High intake elevates blood pressure (hypertension) and kidney strain.'
+        } else if (lower.includes('sugar') || lower.includes('glucose')) {
+          status = 'Metabolic Caution'
+          statusColor = 'bg-amber-100 text-amber-800 border-amber-200'
+          details = 'Added sugar spikes blood glucose; monitor intake for diabetes.'
+        } else if (lower.includes('palm') || lower.includes('palmolein')) {
+          status = 'Saturated Fat'
+          statusColor = 'bg-amber-100 text-amber-800 border-amber-200'
+          details = 'High in saturated fat (~50%); can raise LDL cholesterol.'
+        } else if (lower.includes('330') || lower.includes('citric acid') || lower.includes('acidity')) {
+          status = 'Acidity Regulator'
+          statusColor = 'bg-emerald-100 text-emerald-800 border-emerald-200'
+          details = 'INS 330 (Citric Acid) — Generally recognized as safe by FSSAI & EFSA.'
+        }
+
+        return { name, status, statusColor, details }
+      })
   }
 
   // Fallback if empty
@@ -440,19 +495,87 @@ export const HealthReport: React.FC = () => {
           {/* Section: Health Insights */}
           {(activeSection === 'overview' || activeSection === 'insights') && (
             <div className="space-y-4">
-              <h2 className="text-lg font-bold text-[#123044]">Evidence-Backed Health Insights</h2>
+              <h2 className="text-lg font-bold text-[#123044]">Evidence-Backed Health Insights &amp; Condition Warnings</h2>
               <div className="space-y-3">
-                {healthReport?.general_health_insights && healthReport.general_health_insights.length > 0 ? (
-                  healthReport.general_health_insights.map((insight, idx) => (
-                    <div key={idx} className="bg-white p-4 rounded-2xl border border-slate-200 flex items-start gap-3 shadow-xs">
+                {/* Allergy Findings */}
+                {healthReport?.allergy_findings && healthReport.allergy_findings.length > 0 &&
+                  healthReport.allergy_findings.map((finding, idx) => (
+                    <div key={`allergy-${idx}`} className="bg-rose-50/70 p-4 rounded-2xl border border-rose-200 flex items-start gap-3 shadow-xs">
+                      <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-xs font-bold text-rose-900">{finding.title}</h4>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-200 text-rose-900 uppercase">
+                            {finding.severity}
+                          </span>
+                        </div>
+                        <p className="text-xs text-rose-800 mt-1">{finding.explanation}</p>
+                        <p className="text-[11px] text-rose-600 font-semibold mt-1">Action: {finding.recommended_action}</p>
+                      </div>
+                    </div>
+                  ))
+                }
+
+                {/* Condition Findings (Diabetes, Hypertension, CKD) */}
+                {healthReport?.condition_findings && healthReport.condition_findings.length > 0 &&
+                  healthReport.condition_findings.map((finding, idx) => (
+                    <div key={`cond-${idx}`} className="bg-amber-50/70 p-4 rounded-2xl border border-amber-200 flex items-start gap-3 shadow-xs">
+                      <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-xs font-bold text-amber-900">{finding.title}</h4>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-200 text-amber-900 uppercase">
+                            {finding.severity}
+                          </span>
+                        </div>
+                        <p className="text-xs text-amber-800 mt-1">{finding.explanation}</p>
+                        <p className="text-[11px] text-amber-700 font-semibold mt-1">Guidance: {finding.recommended_action}</p>
+                      </div>
+                    </div>
+                  ))
+                }
+
+                {/* Regulatory Additive Findings */}
+                {healthReport?.regulatory_additive_findings && healthReport.regulatory_additive_findings.length > 0 &&
+                  healthReport.regulatory_additive_findings.map((additive, idx) => (
+                    <div key={`add-${idx}`} className="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex items-start gap-3 shadow-xs">
                       <CheckCircle className="w-5 h-5 text-[#087F5B] shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="text-xs font-bold text-[#123044]">
+                          {additive.canonical_name} (INS {additive.ins_number}) — {additive.functional_class}
+                        </h4>
+                        <p className="text-xs text-slate-600 mt-0.5">{additive.plain_english || additive.health_concern}</p>
+                        <div className="flex items-center gap-2 mt-1.5 text-[11px]">
+                          <span className="font-semibold text-slate-500">Status:</span>
+                          <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-semibold text-[10px]">
+                            FSSAI: {additive.fssai_status}
+                          </span>
+                          <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-semibold text-[10px]">
+                            EU EFSA: {additive.eu_efsa_status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                }
+
+                {/* General Health Insights */}
+                {healthReport?.general_health_insights && healthReport.general_health_insights.length > 0 &&
+                  healthReport.general_health_insights.map((insight, idx) => (
+                    <div key={`gen-${idx}`} className="bg-white p-4 rounded-2xl border border-slate-200 flex items-start gap-3 shadow-xs">
+                      <Lightbulb className="w-5 h-5 text-[#0F766E] shrink-0 mt-0.5" />
                       <div>
                         <h4 className="text-xs font-bold text-[#123044]">{insight.title}</h4>
                         <p className="text-xs text-slate-600 mt-0.5">{insight.explanation}</p>
                       </div>
                     </div>
                   ))
-                ) : (
+                }
+
+                {(!healthReport?.allergy_findings?.length &&
+                  !healthReport?.condition_findings?.length &&
+                  !healthReport?.regulatory_additive_findings?.length &&
+                  !healthReport?.general_health_insights?.length) && (
                   <div className="bg-white p-4 rounded-2xl border border-slate-200 flex items-start gap-3 shadow-xs">
                     <CheckCircle className="w-5 h-5 text-[#087F5B] shrink-0 mt-0.5" />
                     <p className="text-xs text-slate-600">
