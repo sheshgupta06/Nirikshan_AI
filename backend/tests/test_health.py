@@ -35,3 +35,16 @@ async def test_prd_health_endpoint():
         assert response.status_code == 200
         assert response.json()["status"] == "ok"
 
+
+@pytest.mark.asyncio
+async def test_gemini_health_endpoint():
+    """Verify that GET /api/v1/health/gemini returns structured response."""
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.get("/api/v1/health/gemini")
+        assert response.status_code == 200
+        data = response.json()
+        assert "configured" in data
+        assert "status" in data
+        assert "message" in data
+
