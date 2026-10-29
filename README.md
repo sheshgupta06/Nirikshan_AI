@@ -50,18 +50,18 @@ python -m venv venv
 
 ### 2. Install Dependencies
 ```powershell
-pip install --upgrade pip
-pip install -r backend/requirements.txt
+.\venv\Scripts\python.exe -m pip install --upgrade pip
+.\venv\Scripts\python.exe -m pip install -r backend/requirements.txt
 ```
 
-### 3. Run Backend Test Suite (101 Tests)
+### 3. Run Backend Test Suite
 ```powershell
-python -m pytest backend/tests/ -v
+.\venv\Scripts\python.exe -m pytest backend/tests/ -v
 ```
 
 ### 4. Start the FastAPI Backend Server
 ```powershell
-uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
+.\venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 Interactive API documentation (Swagger UI) is available at: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
@@ -119,4 +119,3 @@ Nirikshan_AI/
 - **Deterministic Rule Engine**: Never uses generative AI or LLM hallucinations for legal compliance or medical allergen verification.
 - **Transparent Evidence**: Every flagged additive, allergen, or statutory clause links directly to official gazette citations, clinical guidelines (WHO, ICMR-NIN), or authority records.
 - **Privacy by Design**: User profile sensitivities are kept in browser session memory and are never persisted to disk or external analytics.
-

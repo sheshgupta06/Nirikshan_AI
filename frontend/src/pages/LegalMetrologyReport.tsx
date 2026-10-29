@@ -40,6 +40,61 @@ export const LegalMetrologyReport: React.FC = () => {
     )
   }
 
+  // Extract real compliance items and user corrections
+  const complianceItems = scan.response?.compliance_report?.items || []
+  const rawText = scan.corrections?.rawIngredients || scan.response?.raw_extracted_text || ''
+
+  const mrpItem = complianceItems.find((i) => i.rule_id === 'LM-02-MRP' || i.title.toLowerCase().includes('mrp'))
+  const netQtyItem = complianceItems.find((i) => i.rule_id === 'LM-01-NET_QTY' || i.title.toLowerCase().includes('quantity'))
+  const mfgDateItem = complianceItems.find((i) => i.rule_id === 'LM-03-MFG_DATE' || i.title.toLowerCase().includes('date'))
+  const fssaiItem = complianceItems.find((i) => i.rule_id === 'FSSAI-06-LIC' || i.title.toLowerCase().includes('license'))
+  const mfgDetailsItem = complianceItems.find((i) => i.rule_id === 'LM-04-MFG_NAME' || i.title.toLowerCase().includes('manufacturer'))
+  const consumerCareItem = complianceItems.find((i) => i.rule_id === 'LM-05-CONSUMER_CARE' || i.title.toLowerCase().includes('consumer'))
+
+  // Dynamic values with priority: User Corrections -> Compliance Report -> Extracted Regex
+  const displayMrp =
+    scan.corrections?.mrp && scan.corrections.mrp !== 'Not specified'
+      ? scan.corrections.mrp
+      : mrpItem?.evidence_text || 'Not detected on panel'
+
+  const displayNetQty =
+    scan.corrections?.netQuantity && scan.corrections.netQuantity !== 'Not specified'
+      ? scan.corrections.netQuantity
+      : netQtyItem?.evidence_text ||
+        rawText.match(/(?:NET\s*(?:WEIGHT|QTY)|DRAINED\s*WEIGHT)\s*[:\-]?\s*([0-9]+\s*(?:g|kg|ml|l))/i)?.[0] ||
+        'Not detected on panel'
+
+  const displayMfgDate =
+    scan.corrections?.mfgDate && scan.corrections.mfgDate !== 'Not specified'
+      ? scan.corrections.mfgDate
+      : mfgDateItem?.evidence_text || 'Check package panel'
+
+  const displayBestBefore =
+    scan.corrections?.expiryDate && scan.corrections.expiryDate !== 'Not specified'
+      ? scan.corrections.expiryDate
+      : rawText.match(/(?:BEST\s*BEFORE|EXP|USE\s*BY)\s*[:\-]?\s*([^\n\r]+)/i)?.[1]?.trim().slice(0, 30) ||
+        'Check package stamp'
+
+  const displayManufacturer =
+    mfgDetailsItem?.evidence_text ||
+    scan.brand ||
+    scan.productName ||
+    'Packer / Brand Holder'
+
+  const displayFssai =
+    scan.corrections?.fssaiNumber && scan.corrections.fssaiNumber !== 'Not detected'
+      ? scan.corrections.fssaiNumber
+      : fssaiItem?.evidence_text ||
+        rawText.match(/\b(1[0-9]{13})\b/)?.[1] ||
+        'Check license panel'
+
+  const displayCare =
+    consumerCareItem?.evidence_text ||
+    rawText.match(/(?:care|contact|feedback|email|tel)\s*[:\-]?\s*([^\n\r]+)/i)?.[0] ||
+    'Refer to consumer address on package'
+
+  const isCompliant = displayNetQty !== 'Not detected on panel'
+
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-6">
       {/* Top Header Row matching Screen 9 */}
@@ -52,11 +107,22 @@ export const LegalMetrologyReport: React.FC = () => {
           <span>Back to Results</span>
         </Link>
 
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#123044]">Legal Metrology Report</h1>
-          <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-            Compliant
-          </span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#123044]">Legal Metrology Report</h1>
+            <span
+              className={`text-xs font-bold px-3 py-1 rounded-full border ${
+                isCompliant
+                  ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                  : 'bg-amber-100 text-amber-800 border-amber-200'
+              }`}
+            >
+              {isCompliant ? 'Compliant' : 'Review Needed'}
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm font-semibold text-slate-600">
+            Product: <span className="font-bold text-[#123044]">{scan.corrections?.productName || scan.productName}</span>
+          </p>
         </div>
       </div>
 
@@ -164,57 +230,57 @@ export const LegalMetrologyReport: React.FC = () => {
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
-                <span className="text-2xl sm:text-3xl font-extrabold text-[#123044]">₹ 20.00</span>
+                <span className="text-xl sm:text-2xl font-extrabold text-[#123044] truncate block">{displayMrp}</span>
                 <p className="text-xs text-[#64748B]">MRP (incl. of all taxes)</p>
               </div>
 
               <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
-                <span className="text-2xl sm:text-3xl font-extrabold text-[#123044]">52 g</span>
-                <p className="text-xs text-[#64748B]">Net Quantity</p>
+                <span className="text-xl sm:text-2xl font-extrabold text-[#123044] truncate block">{displayNetQty}</span>
+                <p className="text-xs text-[#64748B]">Net / Drained Weight</p>
               </div>
 
               <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
-                <span className="text-xl sm:text-2xl font-extrabold text-[#123044]">12 Aug 2024</span>
+                <span className="text-lg sm:text-xl font-extrabold text-[#123044] truncate block">{displayMfgDate}</span>
                 <p className="text-xs text-[#64748B]">Mfg. Date</p>
               </div>
 
               <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
-                <span className="text-xl sm:text-2xl font-extrabold text-[#123044]">11 Feb 2025</span>
-                <p className="text-xs text-[#64748B]">Best Before</p>
+                <span className="text-lg sm:text-xl font-extrabold text-[#123044] truncate block">{displayBestBefore}</span>
+                <p className="text-xs text-[#64748B]">Best Before / Use By</p>
               </div>
             </div>
           </div>
 
           {/* Manufacturer Details Card matching Screen 9 */}
           <div className="space-y-4">
-            <h2 className="text-lg font-bold text-[#123044]">Manufacturer Details</h2>
+            <h2 className="text-lg font-bold text-[#123044]">Manufacturer &amp; Packer Details</h2>
 
             <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-4 pb-3 border-b border-slate-100">
-                <span className="sm:col-span-4 text-xs font-bold text-slate-500 uppercase">Manufacturer</span>
+                <span className="sm:col-span-4 text-xs font-bold text-slate-500 uppercase">Manufacturer / Brand</span>
                 <span className="sm:col-span-8 text-sm font-semibold text-[#123044]">
-                  PepsiCo India Holdings Pvt. Ltd.
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-4 pb-3 border-b border-slate-100">
-                <span className="sm:col-span-4 text-xs font-bold text-slate-500 uppercase">Address</span>
-                <span className="sm:col-span-8 text-sm text-[#123044]">
-                  Plot No. 125, Sector 24, Gurgaon, Haryana - 122001
+                  {displayManufacturer}
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-4 pb-3 border-b border-slate-100">
                 <span className="sm:col-span-4 text-xs font-bold text-slate-500 uppercase">FSSAI License No.</span>
                 <span className="sm:col-span-8 text-sm font-mono font-semibold text-[#123044]">
-                  10012064000142
+                  {displayFssai}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-4 pb-3 border-b border-slate-100">
+                <span className="sm:col-span-4 text-xs font-bold text-slate-500 uppercase">Consumer Care</span>
+                <span className="sm:col-span-8 text-sm text-[#123044]">
+                  {displayCare}
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-4">
-                <span className="sm:col-span-4 text-xs font-bold text-slate-500 uppercase">Consumer Care</span>
-                <span className="sm:col-span-8 text-sm text-[#123044]">
-                  1800-22-4020 | consumer.care@pepsico.com
+                <span className="sm:col-span-4 text-xs font-bold text-slate-500 uppercase">Statutory Rule</span>
+                <span className="sm:col-span-8 text-xs text-slate-600">
+                  Legal Metrology (Packaged Commodities) Rules, 2011 — Rule 6(1)(a-g) mandatory declarations.
                 </span>
               </div>
             </div>

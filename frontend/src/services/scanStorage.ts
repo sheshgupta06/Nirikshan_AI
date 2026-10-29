@@ -103,6 +103,83 @@ export const scanStorage = {
     if (corrections.productName) {
       scan.productName = corrections.productName
     }
+
+    // If ingredients text was edited, dynamically refresh evaluation items
+    if (corrections.rawIngredients) {
+      const text = corrections.rawIngredients
+      const match = text.match(/INGREDIENTS?\s*[:\-]?\s*([^.\n\r]+)/i)
+      const ingSection = match ? match[1] : text
+      
+      const tokens = ingSection
+        .split(/[,;\n]+/)
+        .map((t) => t.trim().replace(/^[-•*]\s*/, ''))
+        .filter((t) => t.length > 2 && !t.toUpperCase().includes('NUTRITION') && !t.toUpperCase().includes('ALLERGEN'))
+
+      if (tokens.length > 0) {
+        const allergenKeywords = ['soy', 'soya', 'wheat', 'gluten', 'milk', 'peanut', 'nut', 'almond', 'cashew', 'mustard', 'egg', 'fish', 'sesame']
+        
+        scan.response.evaluation = {
+          items: tokens.map((t) => {
+            const lower = t.toLowerCase()
+            const isAllergen = allergenKeywords.some((k) => lower.includes(k))
+            return {
+              ingredient: {
+                raw_text: t,
+                status: 'DETECTED',
+                canonical_name: t,
+                category: 'ingredient',
+              },
+              status_code: isAllergen ? 'FLAGGED' : 'SAFE',
+              matched_rules: [],
+              alerts: isAllergen
+                ? [
+                    {
+                      alert_type: 'ALLERGEN_ALERT',
+                      severity: 'WARNING',
+                      rule_name: 'Allergen Advisory',
+                      message: `Contains potential allergen: ${t}`,
+                      matched_ingredient: t,
+                    },
+                  ]
+                : [],
+              notes: 'User verified ingredient',
+            }
+          }),
+          summary: {
+            total_detected: tokens.length,
+            allergens_flagged: tokens.filter((t) =>
+              allergenKeywords.some((k) => t.toLowerCase().includes(k))
+            ).length,
+            dietary_violations: 0,
+            watchlist_matches: 0,
+            unclear_count: 0,
+          },
+        } as any
+      }
+    }
+
+    // Update compliance report evidence if user corrected key fields
+    if (scan.response?.compliance_report?.items) {
+      for (const item of scan.response.compliance_report.items) {
+        if ((item.rule_id === 'LM-01-NET_QTY' || item.title.toLowerCase().includes('quantity')) && corrections.netQuantity) {
+          item.status = 'FOUND'
+          item.evidence_text = corrections.netQuantity
+        }
+        if ((item.rule_id === 'LM-02-MRP' || item.title.toLowerCase().includes('mrp')) && corrections.mrp) {
+          item.status = 'FOUND'
+          item.evidence_text = corrections.mrp
+        }
+        if ((item.rule_id === 'FSSAI-06-LIC' || item.title.toLowerCase().includes('license')) && corrections.fssaiNumber) {
+          item.status = 'FOUND'
+          item.evidence_text = corrections.fssaiNumber
+        }
+        if ((item.rule_id === 'FSSAI-01-NAME' || item.title.toLowerCase().includes('name')) && corrections.productName) {
+          item.status = 'FOUND'
+          item.evidence_text = corrections.productName
+        }
+      }
+    }
+
     this.saveScan(scan)
     return scan
   },

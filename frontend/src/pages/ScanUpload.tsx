@@ -96,14 +96,61 @@ export const ScanUpload: React.FC = () => {
         response = await scanFoodLabelImage(sampleFile, profile, 'both', 'IN')
       }
 
-      const scanId = `scan_${Date.now()}`
-      const productName = 'Lay’s Classic Potato Chips'
+      // Dynamically extract product name & brand from OCR response or uploaded file
+      const rawLines = response.raw_extracted_text
+        ? response.raw_extracted_text.split(/[\r\n]+/).map(s => s.trim()).filter(Boolean)
+        : []
+      
+      let dynamicProductName = ''
+      let dynamicBrand = ''
 
+      // 1. Check if compliance report detected food name
+      const nameFinding = response.compliance_report?.items?.find(
+        (it) => (it.rule_id === 'FSSAI-01-NAME' || it.title.toLowerCase().includes('name')) && 
+                it.status === 'FOUND' && it.evidence_text
+      )
+      if (nameFinding?.evidence_text) {
+        dynamicProductName = nameFinding.evidence_text.replace(/^PRODUCT:\s*/i, '').trim()
+      }
+
+      // 2. Check open food facts reference
+      if (!dynamicProductName && response.open_food_facts_reference?.product_name) {
+        dynamicProductName = response.open_food_facts_reference.product_name
+        dynamicBrand = response.open_food_facts_reference.brand || ''
+      }
+
+      // 3. Fallback to first line of extracted text (e.g. "Testo", "Haldiram's", etc.)
+      if (!dynamicProductName && rawLines.length > 0) {
+        const candidateLine = rawLines.find(l => 
+          !l.toUpperCase().includes('NUTRITION') && 
+          !l.toUpperCase().includes('INGREDIENT') &&
+          !l.toUpperCase().includes('SERVING') &&
+          l.length > 2 && l.length < 60
+        )
+        if (candidateLine) {
+          dynamicProductName = candidateLine
+        }
+      }
+
+      // 4. Fallback to file name if uploaded
+      if (!dynamicProductName && file?.name) {
+        const cleanName = file.name
+          .replace(/\.[^/.]+$/, '')
+          .replace(/[-_]/g, ' ')
+          .replace(/\b\w/g, (c) => c.toUpperCase())
+        dynamicProductName = cleanName
+      }
+
+      if (!dynamicProductName) {
+        dynamicProductName = 'Packaged Food Product'
+      }
+
+      const scanId = `scan_${Date.now()}`
       scanStorage.saveScan({
         id: scanId,
         timestamp: new Date().toISOString(),
-        productName,
-        brand: 'Lay’s',
+        productName: dynamicProductName,
+        brand: dynamicBrand || dynamicProductName.split(' ')[0],
         imageUrl: previewUrl,
         modulesRequested: 'both',
         response,

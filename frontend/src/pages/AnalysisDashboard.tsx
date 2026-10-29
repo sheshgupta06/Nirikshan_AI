@@ -41,10 +41,8 @@ export const AnalysisDashboard: React.FC = () => {
     )
   }
 
-  const productName = scan.productName || 'Lay’s Classic Potato Chips'
-  const productImage =
-    scan.imageUrl ||
-    'https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=800&auto=format&fit=crop&q=80'
+  const productName = scan.corrections?.productName || scan.productName || 'Packaged Food'
+  const productImage = scan.imageUrl || '/sample_label.png'
 
   const formattedDate = new Date(scan.timestamp).toLocaleDateString('en-GB', {
     day: 'numeric',
@@ -55,6 +53,23 @@ export const AnalysisDashboard: React.FC = () => {
     hour: '2-digit',
     minute: '2-digit',
   })
+
+  // Dynamic calculations from backend response
+  const healthReport = scan.response?.health_impact_report
+  const evalResult = scan.response?.evaluation
+  const allergensCount = scan.response?.allergen_report?.contains_allergens?.length || evalResult?.summary?.allergens_flagged || 0
+  const ingredientsCount = evalResult?.items?.length || scan.response?.sections_summary?.ingredients_detected_count || 0
+  
+  const healthBadge = allergensCount > 0 
+    ? `${allergensCount} Allergen${allergensCount > 1 ? 's' : ''}` 
+    : (healthReport?.regulatory_additive_findings?.length ? 'Caution' : 'Moderate')
+
+  const complianceItems = scan.response?.compliance_report?.items || []
+  const missingFssaiCount = complianceItems.filter((i) => i.status === 'NOT_DETECTED' || i.status === 'UNCLEAR').length
+  const foundFssaiCount = complianceItems.filter((i) => i.status === 'FOUND').length
+
+  const lmRules = complianceItems.filter((i) => i.category === 'statutory_metrology' || i.legal_metrology_rule)
+  const missingLmCount = lmRules.filter((i) => i.status === 'NOT_DETECTED').length
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
@@ -91,8 +106,10 @@ export const AnalysisDashboard: React.FC = () => {
               <div className="w-12 h-12 rounded-2xl bg-[#087F5B] text-white flex items-center justify-center shadow-md shadow-[#087F5B]/20">
                 <Heart className="w-6 h-6 fill-white/20" />
               </div>
-              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
-                Moderate
+              <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${
+                allergensCount > 0 ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-emerald-100 text-emerald-800 border-emerald-200'
+              }`}>
+                {healthBadge}
               </span>
             </div>
 
@@ -109,19 +126,21 @@ export const AnalysisDashboard: React.FC = () => {
                 <div className="w-4 h-4 rounded-full bg-emerald-100 text-[#087F5B] flex items-center justify-center shrink-0">
                   <Check className="w-3 h-3 stroke-[3]" />
                 </div>
-                <span>Ingredients analysed</span>
+                <span>{ingredientsCount || 0} Ingredients analysed</span>
               </div>
               <div className="flex items-center gap-3 text-xs sm:text-sm text-[#123044]">
                 <div className="w-4 h-4 rounded-full bg-emerald-100 text-[#087F5B] flex items-center justify-center shrink-0">
                   <Check className="w-3 h-3 stroke-[3]" />
                 </div>
-                <span>Nutrition information</span>
+                <span>Nutrition facts evaluated</span>
               </div>
               <div className="flex items-center gap-3 text-xs sm:text-sm text-[#123044]">
-                <div className="w-4 h-4 rounded-full bg-emerald-100 text-[#087F5B] flex items-center justify-center shrink-0">
+                <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${
+                  allergensCount > 0 ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-[#087F5B]'
+                }`}>
                   <Check className="w-3 h-3 stroke-[3]" />
                 </div>
-                <span>Allergen check</span>
+                <span>{allergensCount > 0 ? `${allergensCount} Allergens detected` : 'No major allergens'}</span>
               </div>
               <div className="flex items-center gap-3 text-xs sm:text-sm text-[#123044]">
                 <div className="w-4 h-4 rounded-full bg-emerald-100 text-[#087F5B] flex items-center justify-center shrink-0">
@@ -149,8 +168,10 @@ export const AnalysisDashboard: React.FC = () => {
               <div className="w-12 h-12 rounded-2xl bg-[#1E40AF] text-white flex items-center justify-center shadow-md shadow-[#1E40AF]/20">
                 <FileText className="w-6 h-6" />
               </div>
-              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 border border-rose-200">
-                2 items missing
+              <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${
+                missingFssaiCount > 0 ? 'bg-rose-100 text-rose-800 border-rose-200' : 'bg-emerald-100 text-emerald-800 border-emerald-200'
+              }`}>
+                {missingFssaiCount > 0 ? `${missingFssaiCount} items missing` : 'Compliant'}
               </span>
             </div>
 
@@ -173,19 +194,21 @@ export const AnalysisDashboard: React.FC = () => {
                 <div className="w-4 h-4 rounded-full bg-emerald-100 text-[#087F5B] flex items-center justify-center shrink-0">
                   <Check className="w-3 h-3 stroke-[3]" />
                 </div>
-                <span>Detected information</span>
+                <span>{foundFssaiCount} Detected declarations</span>
               </div>
               <div className="flex items-center gap-3 text-xs sm:text-sm text-[#123044]">
-                <div className="w-4 h-4 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
-                  <XIcon className="w-3 h-3 stroke-[3]" />
+                <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${
+                  missingFssaiCount > 0 ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-[#087F5B]'
+                }`}>
+                  {missingFssaiCount > 0 ? <XIcon className="w-3 h-3 stroke-[3]" /> : <Check className="w-3 h-3 stroke-[3]" />}
                 </div>
-                <span>Missing / unclear items</span>
+                <span>{missingFssaiCount > 0 ? `${missingFssaiCount} missing / unclear items` : 'Zero missing items'}</span>
               </div>
               <div className="flex items-center gap-3 text-xs sm:text-sm text-[#123044]">
                 <div className="w-4 h-4 rounded-full bg-emerald-100 text-[#087F5B] flex items-center justify-center shrink-0">
                   <Check className="w-3 h-3 stroke-[3]" />
                 </div>
-                <span>Rule references</span>
+                <span>Rule references verified</span>
               </div>
             </div>
           </div>
@@ -207,8 +230,10 @@ export const AnalysisDashboard: React.FC = () => {
               <div className="w-12 h-12 rounded-2xl bg-[#9A6712] text-white flex items-center justify-center shadow-md shadow-[#9A6712]/20">
                 <Scale className="w-6 h-6" />
               </div>
-              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-                Compliant
+              <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${
+                missingLmCount > 0 ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-emerald-100 text-emerald-800 border-emerald-200'
+              }`}>
+                {missingLmCount > 0 ? `${missingLmCount} unclear` : 'Compliant'}
               </span>
             </div>
 

@@ -128,8 +128,15 @@ export interface HealthImpactFinding {
 export interface NutritionFacts {
   serving_size?: string
   energy_kcal?: number
+  protein_g?: number
   carbohydrates_g?: number
   sugars_g?: number
+  total_sugars_g?: number
+  added_sugars_g?: number
+  dietary_fibre_g?: number
+  total_fat_g?: number
+  saturated_fat_g?: number
+  trans_fat_g?: number
   sodium_mg?: number
   measurement_basis?: string
   raw_nutrition_lines: string[]

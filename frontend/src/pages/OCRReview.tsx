@@ -26,14 +26,14 @@ export const OCRReview: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'extracted_text' | 'key_info'>('extracted_text')
   const [extractedText, setExtractedText] = useState('')
 
-  // Key Info tab fields
-  const [productName, setProductName] = useState('Lay’s Classic Potato Chips')
-  const [brand, setBrand] = useState('Lay’s')
-  const [netQuantity, setNetQuantity] = useState('52 g')
-  const [mrp, setMrp] = useState('₹ 20.00')
-  const [mfgDate, setMfgDate] = useState('12/08/2024')
-  const [bestBefore, setBestBefore] = useState('11/02/2025')
-  const [fssaiLic, setFssaiLic] = useState('10012064000142')
+  // Key Info tab fields initialized dynamically
+  const [productName, setProductName] = useState('')
+  const [brand, setBrand] = useState('')
+  const [netQuantity, setNetQuantity] = useState('')
+  const [mrp, setMrp] = useState('')
+  const [mfgDate, setMfgDate] = useState('')
+  const [bestBefore, setBestBefore] = useState('')
+  const [fssaiLic, setFssaiLic] = useState('')
 
   const [activeThumbnail, setActiveThumbnail] = useState(0)
 
@@ -42,13 +42,68 @@ export const OCRReview: React.FC = () => {
     const record = scanStorage.getScan(scanId)
     if (record) {
       setScan(record)
-      setExtractedText(
+      const text =
         record.corrections?.rawIngredients ||
-          record.response.raw_extracted_text ||
-          DEFAULT_LAYS_EXTRACTED_TEXT
-      )
+        record.response?.raw_extracted_text ||
+        ''
+      setExtractedText(text)
       if (record.productName) setProductName(record.productName)
       if (record.brand) setBrand(record.brand)
+
+      // Extract dynamic key values from compliance report or regex from text
+      const items = record.response?.compliance_report?.items || []
+      const netQtyItem = items.find((i) => i.rule_id === 'LM-01-NET_QTY' || i.title.toLowerCase().includes('net quantity'))
+      const mrpItem = items.find((i) => i.rule_id === 'LM-02-MRP' || i.title.toLowerCase().includes('mrp') || i.title.toLowerCase().includes('price'))
+      const dateItem = items.find((i) => i.rule_id === 'LM-03-MFG_DATE' || i.title.toLowerCase().includes('date'))
+      const fssaiItem = items.find((i) => i.rule_id === 'FSSAI-06-LIC' || i.title.toLowerCase().includes('license') || i.title.toLowerCase().includes('fssai'))
+
+      // Net Quantity
+      if (record.corrections?.netQuantity) {
+        setNetQuantity(record.corrections.netQuantity)
+      } else if (netQtyItem?.evidence_text) {
+        setNetQuantity(netQtyItem.evidence_text)
+      } else {
+        const m = text.match(/(?:NET\s*(?:WEIGHT|QTY|QUANTITY)|DRAINED\s*WEIGHT)\s*[:\-]?\s*([0-9]+\s*(?:g|kg|ml|l))/i)
+        setNetQuantity(m ? m[1] : 'Not specified')
+      }
+
+      // MRP
+      if (record.corrections?.mrp) {
+        setMrp(record.corrections.mrp)
+      } else if (mrpItem?.evidence_text) {
+        setMrp(mrpItem.evidence_text)
+      } else {
+        const m = text.match(/(?:MRP|RS\.?|PRICE)\s*[:\-]?\s*(?:₹|RS\.?)?\s*([0-9]+(?:\.[0-9]{2})?)/i)
+        setMrp(m ? `₹ ${m[1]}` : 'Not specified')
+      }
+
+      // Mfg Date
+      if (record.corrections?.mfgDate) {
+        setMfgDate(record.corrections.mfgDate)
+      } else if (dateItem?.evidence_text) {
+        setMfgDate(dateItem.evidence_text)
+      } else {
+        const m = text.match(/(?:MFG|DATE\s*OF\s*MFG|PKD)\s*[:\-]?\s*([0-9]{1,2}[/-][0-9]{1,2}[/-][0-9]{2,4})/i)
+        setMfgDate(m ? m[1] : 'Not specified')
+      }
+
+      // Best Before / Expiry
+      if (record.corrections?.expiryDate) {
+        setBestBefore(record.corrections.expiryDate)
+      } else {
+        const m = text.match(/(?:BEST\s*BEFORE|EXP|EXPIRY|USE\s*BY)\s*[:\-]?\s*([^\n\r]+)/i)
+        setBestBefore(m ? m[1].trim().slice(0, 35) : 'Not specified')
+      }
+
+      // FSSAI License
+      if (record.corrections?.fssaiNumber) {
+        setFssaiLic(record.corrections.fssaiNumber)
+      } else if (fssaiItem?.evidence_text) {
+        setFssaiLic(fssaiItem.evidence_text)
+      } else {
+        const m = text.match(/\b(1[0-9]{13})\b/)
+        setFssaiLic(m ? m[1] : 'Not detected')
+      }
     } else {
       // Initialize demo data if not found
       scanStorage.initDemoScansIfEmpty()
@@ -56,6 +111,8 @@ export const OCRReview: React.FC = () => {
       if (fallback) {
         setScan(fallback)
         setExtractedText(fallback.response?.raw_extracted_text || DEFAULT_LAYS_EXTRACTED_TEXT)
+        setProductName(fallback.productName || 'Sample Food Packet')
+        setBrand(fallback.brand || 'Sample Brand')
       } else {
         setExtractedText(DEFAULT_LAYS_EXTRACTED_TEXT)
       }
@@ -65,7 +122,7 @@ export const OCRReview: React.FC = () => {
   const handleContinue = () => {
     if (scanId) {
       scanStorage.updateCorrections(scanId, {
-        productName,
+        productName: productName || scan?.productName || 'Packaged Food Product',
         rawIngredients: extractedText,
         netQuantity,
         mrp,
@@ -80,9 +137,7 @@ export const OCRReview: React.FC = () => {
   }
 
   const thumbnails = [
-    scan?.imageUrl ||
-      'https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=800&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=800&auto=format&fit=crop&q=80',
+    scan?.imageUrl || '/sample_label.png',
   ]
 
   return (

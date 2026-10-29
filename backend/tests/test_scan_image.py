@@ -9,6 +9,8 @@ Mocks the OCR engine for fast, deterministic testing of:
 - Zero readable text detection
 """
 
+import sys
+
 import cv2
 import numpy as np
 import pytest
@@ -16,7 +18,12 @@ from httpx import ASGITransport, AsyncClient
 
 from backend.app.api.v1.scan import get_ocr_service
 from backend.app.main import app
-from backend.app.services.ocr_service import MockOCREngine, OCRService, OCRTextBox
+from backend.app.services.ocr_service import (
+    MockOCREngine,
+    OCRService,
+    OCRTextBox,
+    RealPaddleOCREngine,
+)
 
 
 def create_test_image_bytes(
@@ -197,6 +204,35 @@ async def test_scan_image_ocr_engine_failure():
 
     assert response.status_code == 500
     assert "OCR processing failed" in response.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_scan_image_falls_back_when_paddleocr_is_unavailable(monkeypatch):
+    """Verify a missing PaddleOCR installation uses the configured fallback engine."""
+    fallback_boxes = [
+        OCRTextBox(
+            text="Ingredients: Potatoes, salt",
+            confidence=0.9,
+            bounding_box=[[15, 20], [380, 20], [380, 60], [15, 60]],
+        )
+    ]
+    engine = RealPaddleOCREngine()
+    engine._fallback_engine = MockOCREngine(mock_boxes=fallback_boxes)
+    app.dependency_overrides[get_ocr_service] = lambda: OCRService(engine=engine)
+    monkeypatch.setitem(sys.modules, "paddleocr", None)
+
+    image_bytes = create_test_image_bytes("Food Label")
+    files = {"file": ("packet.png", image_bytes, "image/png")}
+
+    try:
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            response = await client.post("/api/v1/scan/image", files=files)
+    finally:
+        app.dependency_overrides.pop(get_ocr_service, None)
+
+    assert response.status_code == 200
+    assert response.json()["ocr_detected_boxes"][0]["text"] == "Ingredients: Potatoes, salt"
 
 
 @pytest.mark.asyncio
@@ -520,6 +556,5 @@ async def test_scan_image_exact_real_testo_soya_chaap_pipeline():
     all_allergens = report["contains_allergens"] + report["may_contain_allergens"]
     for forbidden in ["Date", "Mfg"]:
         assert not any(forbidden.lower() in a.lower() for a in all_allergens)
-
 
 
