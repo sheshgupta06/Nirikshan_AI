@@ -1,0 +1,174 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "title": "FSSAI Mandatory Labelling & Display Statutory Rules",
+    "primary_regulation": "Food Safety and Standards (Labelling and Display) Regulations, 2020",
+    "statutory_authority": "Food Safety and Standards Authority of India (FSSAI)",
+    "gazette_notification": "F. No. 1-94/FSSAI/SP(L&C)/2020",
+    "last_reviewed_date": "2026-10-29",
+    "jurisdiction": "India"
+  },
+  "compliance_rules": [
+    {
+      "rule_id": "FSSAI_REQ_01_NAME_OF_FOOD",
+      "clause": "Regulation 5(1)(1)",
+      "title": "Name of the Food",
+      "title_hi": "खाद्य पदार्थ का नाम",
+      "category": "IDENTITY",
+      "is_mandatory": true,
+      "description": "The name of the food shall indicate the true nature of the food and shall be specific and not generic.",
+      "hindi_description": "खाद्य पदार्थ का नाम मुख्य लेबल पर स्पष्ट होना चाहिए जो भोजन की वास्तविक प्रकृति को दर्शाए।",
+      "regex_patterns": [
+        "\\b(?:puris?|pani\\s*puri|golgappa|noodles?|soya\\s*chaap|biscuits?|cookies?|chips?|namkeen|bhujia|jam|sauce|ketchup|flour|atta|maida|butter|milk|paneer|cereal\\s*pellets?|instant\\s*mix)\\b"
+      ],
+      "exemptions": "None"
+    },
+    {
+      "rule_id": "FSSAI_REQ_02_INGREDIENTS_LIST",
+      "clause": "Regulation 5(1)(2)",
+      "title": "List of Ingredients",
+      "title_hi": "सामग्री सूची",
+      "category": "COMPOSITION",
+      "is_mandatory": true,
+      "description": "Every packaged food shall declare a list of ingredients in descending order of their weight or volume at the time of manufacturing under heading 'Ingredients:'.",
+      "hindi_description": "पैकेज्ड भोजन पर उपयोग के घटते क्रम में 'Ingredients:' शीर्षक के तहत सभी सामग्रियों की सूची होनी चाहिए।",
+      "regex_patterns": [
+        "\\b(?:INGREDIENTS?|INGREDIENT|CONTENTS?|COMPOSITION)\\s*[\n\\:\\-]"
+      ],
+      "exemptions": "Single ingredient foods where the ingredient is identical to the name of food."
+    },
+    {
+      "rule_id": "FSSAI_REQ_03_NUTRITIONAL_INFO",
+      "clause": "Regulation 5(1)(3)",
+      "title": "Nutritional Information Panel",
+      "title_hi": "पोषण सूचना तालिका",
+      "category": "NUTRITION",
+      "is_mandatory": true,
+      "description": "Nutritional information per 100g/100ml or per serve: Energy (kcal), Protein (g), Carbohydrates (g), Total Sugars (g), Added Sugars (g), Total Fat (g), Saturated Fat (g), Trans Fat (g), and Sodium (mg).",
+      "hindi_description": "प्रति 100 ग्राम/मिली या प्रति सर्विंग ऊर्जा, प्रोटीन, कार्बोहाइड्रेट, चीनी, वसा और सोडियम की घोषणा अनिवार्य है।",
+      "regex_patterns": [
+        "\\b(?:NUTRITION(?:AL)?\\s*(?:FACTS?|INFORMATION|VALUES?)|TYPICAL\\s*VALUES|APPROXIMATE\\s*COMPOSITION)\\b",
+        "\\b(?:ENERGY|CALORIES|PROTEIN|CARBOHYDRATE|SUGARS?|FAT|SODIUM)\\b"
+      ],
+      "exemptions": "Unprocessed foods, herbs, spices, coffee, tea, bottled water without added ingredients."
+    },
+    {
+      "rule_id": "FSSAI_REQ_04_ALLERGEN_DECLARATION",
+      "clause": "Regulation 5(3) & Schedule II Clause 5(3)",
+      "title": "Mandatory Allergen Declaration",
+      "title_hi": "अनिवार्य एलर्जी घोषणा",
+      "category": "ALLERGENS",
+      "is_mandatory": true,
+      "description": "Mandatory declaration for cereals containing gluten, crustaceans, milk, eggs, fish, peanuts, tree nuts, soybeans, sulphites. Must clearly distinguish CONTAINS from precautionary MAY CONTAIN.",
+      "hindi_description": "ग्लूटेन, दूध, सोया, मूंगफली आदि प्रमुख 8 एलर्जी कारकों की 'CONTAINS' या 'MAY CONTAIN' के रूप में स्पष्ट घोषणा।",
+      "regex_patterns": [
+        "\\b(?:ALLERGEN\\s*(?:DECLARATION|INFORMATION|ADVICE)|CONTAINS\\b|MAY\\s*CONTAIN\\b)\\b"
+      ],
+      "exemptions": "Foods not containing any of the 8 mandatory allergens and manufactured in dedicated lines free of cross-contact."
+    },
+    {
+      "rule_id": "FSSAI_REQ_05_VEG_NONVEG_LOGO",
+      "clause": "Regulation 5(4)",
+      "title": "Declaration regarding Veg or Non-Veg Symbol",
+      "title_hi": "शाकाहारी / मांसाहारी प्रतीक",
+      "category": "DIETARY_CLASSIFICATION",
+      "is_mandatory": true,
+      "description": "Every package of Vegetarian food shall bear a green colour filled circle inside a green square. Non-vegetarian food shall bear a brown colour filled triangle inside a brown square.",
+      "hindi_description": "शाकाहारी भोजन पर हरे चौकोर में हरा वृत्त और मांसाहारी भोजन पर भूरे चौकोर में भूरा त्रिकोण अनिवार्य है।",
+      "regex_patterns": [
+        "\\b(?:100%\\s*VEG(?:ETARIAN)?|VEG(?:ETARIAN)?\\s*FOOD|PURE\\s*VEG|GREEN\\s*DOT|NON[\\-\\s]*VEG(?:ETARIAN)?)\\b"
+      ],
+      "exemptions": "Carbonated water, liquid milk, mineral water, honey, alcoholic beverages."
+    },
+    {
+      "rule_id": "FSSAI_REQ_06_FSSAI_LOGO_AND_LICENSE",
+      "clause": "Regulation 5(5)",
+      "title": "FSSAI Logo and 14-Digit Licence Number",
+      "title_hi": "FSSAI लोगो और 14-अंकीय लाइसेंस संख्या",
+      "category": "STATUTORY_AUTHORIZATION",
+      "is_mandatory": true,
+      "description": "FSSAI logo and 14-digit licence number shall be displayed in format 'Lic. No. XXXXXXXXXXXXXX' on packaging.",
+      "hindi_description": "पैकेट पर FSSAI का लोगो और 14 अंकों का खाद्य लाइसेंस नंबर (Lic. No.) मुद्रित होना अनिवार्य है।",
+      "regex_patterns": [
+        "\\b(?:FSSAI|FSSAL)\\s*(?:LIC(?:ENCE)?\\s*(?:NO\\.?)?|NO\\.?)?\\s*[\n\\:\\-]*\\s*(\\d{14})\\b",
+        "\\b(?:LIC(?:ENCE)?\\s*NO\\.?)\\s*[\n\\:\\-]*\\s*(\\d{14})\\b",
+        "\\b(\\d{14})\\b"
+      ],
+      "exemptions": "None"
+    },
+    {
+      "rule_id": "FSSAI_REQ_07_NET_QUANTITY",
+      "clause": "Regulation 5(6) & Legal Metrology Rules",
+      "title": "Net Quantity Declaration",
+      "title_hi": "शुद्ध मात्रा की घोषणा",
+      "category": "METROLOGY",
+      "is_mandatory": true,
+      "description": "Net quantity by weight, volume, or count declared in metric units (g, kg, ml, l) on principal display panel.",
+      "hindi_description": "पैकेट पर वजन या मात्रा (g, kg, ml, L में) स्पष्ट रूप से घोषित होनी चाहिए।",
+      "regex_patterns": [
+        "\\b(?:NET\\s*(?:WEIGHT|WT|QTY|QUANTITY)|PACK\\s*SIZE|NET\\s*CONTENTS?)\\s*[\n\\:\\-]*\\s*(\\d+(?:\\.\\d+)?\\s*(?:g|kg|ml|l|ltr|pcs|pieces))\\b",
+        "\\b(\\d+(?:\\.\\d+)?\\s*(?:g|kg|ml|l|ltr))\\b"
+      ],
+      "exemptions": "Packages containing less than 10g or 10ml, except tobacco."
+    },
+    {
+      "rule_id": "FSSAI_REQ_08_BATCH_LOT_IDENTIFICATION",
+      "clause": "Regulation 5(7)",
+      "title": "Batch / Lot / Code Identification",
+      "title_hi": "बैच / लॉट संख्या",
+      "category": "TRACEABILITY",
+      "is_mandatory": true,
+      "description": "Batch number or lot number or code number by which the food can be traced in manufacture and distribution.",
+      "hindi_description": "भोजन की ट्रेसबिलिटी के लिए बैच नंबर या लॉट नंबर घोषित होना अनिवार्य है।",
+      "regex_patterns": [
+        "\\b(?:BATCH\\s*(?:NO\\.?|NUMBER|CODE)|LOT\\s*(?:NO\\.?|NUMBER|CODE)|B\\.NO\\.?|L\\.NO\\.?)\\s*[\n\\:\\-]*\\s*([A-Za-z0-9\\-\\/]+)\\b"
+      ],
+      "exemptions": "Individual single-serve sachets packaged in an outer container bearing batch number."
+    },
+    {
+      "rule_id": "FSSAI_REQ_09_DATE_MARKING",
+      "clause": "Regulation 5(8)",
+      "title": "Date of Manufacture / Packaging & Expiry / Best Before",
+      "title_hi": "निर्माण और समाप्ति / सर्वश्रेष्ठ तिथि",
+      "category": "SHELF_LIFE",
+      "is_mandatory": true,
+      "description": "Date of manufacture/packaging AND Expiry date / Best Before / Use By date in DD/MM/YY or MM/YY format.",
+      "hindi_description": "निर्माण की तिथि (Mfg Date) और समाप्ति तिथि (Expiry / Best Before / Use By) स्पष्ट रूप से दर्ज होनी चाहिए।",
+      "regex_patterns": [
+        "\\b(?:DATE\\s*OF\\s*(?:MFG|MANUFACTURE|PKD|PACKING)|(?:MFG|MFD|PKD)\\s*(?:DATE|ON)?)\\b",
+        "\\b(?:USE\\s*BY|EXPIRY\\s*DATE|EXP(?:IRY)?\\s*(?:DATE|ON)?|BEST\\s*BEFORE)\\b"
+      ],
+      "exemptions": "Fresh fruits and vegetables, wine, vinegar, sugar, chewing gum, salt."
+    },
+    {
+      "rule_id": "FSSAI_REQ_10_MANUFACTURER_DETAILS",
+      "clause": "Regulation 5(9)",
+      "title": "Name and Complete Address of Manufacturer / Marketer",
+      "title_hi": "निर्माता का नाम और पूरा पता",
+      "category": "ACCOUNTABILITY",
+      "is_mandatory": true,
+      "description": "Name and complete physical postal address of manufacturer and packing premises, or marketing brand owner.",
+      "hindi_description": "निर्माता या विपणक का पूरा नाम, पता, राज्य और देश स्पष्ट होना चाहिए।",
+      "regex_patterns": [
+        "\\b(?:MANUFACTURED|PACKED|MARKETED|PRODUCED|MKT)\\s*BY\\b",
+        "\\b(?:PLOT\\s*NO|VILLAGE|DISTRICT|ROAD|SEZ|PIN\\s*CODE|INDIA)\\b"
+      ],
+      "exemptions": "None"
+    },
+    {
+      "rule_id": "FSSAI_REQ_11_MRP_AND_CONSUMER_CARE",
+      "clause": "Regulation 5(10) & Legal Metrology Rules",
+      "title": "Maximum Retail Price (MRP) & Consumer Care Details",
+      "title_hi": "अधिकतम खुदरा मूल्य (MRP) और ग्राहक सेवा संपर्क",
+      "category": "CONSUMER_PROTECTION",
+      "is_mandatory": true,
+      "description": "Maximum Retail Price (MRP inclusive of all taxes) and consumer care contact: telephone/toll-free number and email address.",
+      "hindi_description": "अधिकतम खुदरा मूल्य (MRP) और उपभोक्ता शिकायत के लिए टोल-फ्री नंबर या ईमेल दर्ज होना अनिवार्य है।",
+      "regex_patterns": [
+        "\\b(?:MRP\\s*RS?|MAX(?:IMUM)?\\s*RETAIL\\s*PRICE|INCL(?:USIVE)?\\s*(?:OF)?\\s*ALL\\s*TAXES)\\b",
+        "\\b(?:CUSTOMER\\s*CARE|CONSUMER\\s*(?:CARE|FEEDBACK)|TOLL[\\-\\s]*FREE|E[\\-\\s]*MAIL|FEEDBACK@)\\b"
+      ],
+      "exemptions": "Institutional consumer packages sold directly without retail sale."
+    }
+  ]
+}

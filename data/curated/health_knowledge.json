@@ -1,0 +1,387 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "description": "Curated deterministic health knowledge base for Nirikshan AI, linking food allergens, coeliac disease, diabetes, hypertension, and chronic kidney disease to verified public health guidance.",
+    "jurisdiction": "India / Global Public Health",
+    "last_reviewed_date": "2026-10-28",
+    "primary_sources": [
+      {
+        "id": "fssai_labelling_2020",
+        "title": "FSSAI Food Safety and Standards (Labelling and Display) Regulations, 2020",
+        "authority": "Food Safety and Standards Authority of India (FSSAI)",
+        "url": "https://www.fssai.gov.in/food-law/regulations/amendments/labelling-display",
+        "scope": "Indian statutory regulation governing mandatory allergen declaration (Schedule II, Clause 5(3)) and nutritional information panels."
+      },
+      {
+        "id": "who_sodium_guidance",
+        "title": "WHO Guideline: Sodium intake for adults and children",
+        "authority": "World Health Organization (WHO)",
+        "url": "https://www.who.int/news-room/fact-sheets/detail/sodium-reduction",
+        "scope": "Global evidence-based public health recommendation advising adults to consume less than 2000 mg of sodium (equivalent to approx 5 g salt) per day."
+      },
+      {
+        "id": "cdc_diabetes_nutrition",
+        "title": "Diabetes Meal Planning and Carbohydrate Tracking",
+        "authority": "U.S. Centers for Disease Control and Prevention (CDC)",
+        "url": "https://www.cdc.gov/diabetes/healthy-eating/diabetes-meal-planning.html",
+        "scope": "Clinical public health guidance explaining that total carbohydrates and portion sizes directly impact postprandial blood glucose, rather than single ingredients alone."
+      },
+      {
+        "id": "niddk_celiac_nutrition",
+        "title": "Eating, Diet, & Nutrition for Celiac Disease",
+        "authority": "National Institute of Diabetes and Digestive and Kidney Diseases (NIDDK)",
+        "url": "https://www.niddk.nih.gov/health-information/digestive-diseases/celiac-disease/eating-diet-nutrition",
+        "scope": "Medical guidance specifying that coeliac disease is an autoimmune condition requiring lifelong avoidance of gluten proteins from wheat, barley, rye, and cross-contaminated grains."
+      },
+      {
+        "id": "niddk_ckd_nutrition",
+        "title": "Nutrition for Adults with Chronic Kidney Disease",
+        "authority": "National Institute of Diabetes and Digestive and Kidney Diseases (NIDDK)",
+        "url": "https://www.niddk.nih.gov/health-information/kidney-disease/chronic-kidney-disease/healthy-eating-adults-chronic-kidney-disease",
+        "scope": "Medical guidance detailing individualised sodium and mineral management for impaired renal filtration."
+      }
+    ]
+  },
+  "rules": {
+    "RULE_ALLERGY_SOY_CONTAINS": {
+      "id": "RULE_ALLERGY_SOY_CONTAINS",
+      "category": "FOOD_ALLERGY",
+      "target_profile": "soy",
+      "declaration_type": "CONTAINS",
+      "severity": "CRITICAL",
+      "title": "Declared Recipe Allergen: Soy",
+      "plain_english": "The packaging explicitly declares Soy as a direct recipe ingredient in its mandatory allergen statement. People with a diagnosed soy allergy should avoid consuming this product.",
+      "hindi_explanation": "पैकेजिंग पर सोया को सीधे घटक के रूप में घोषित किया गया है। सोया एलर्जी वाले व्यक्तियों को इसका सेवन नहीं करना चाहिए।",
+      "trigger_conditions": "Matched 'soy' in label CONTAINS declaration",
+      "evidence": {
+        "title": "FSSAI Food Safety and Standards (Labelling and Display) Regulations, 2020",
+        "section": "Schedule II, Clause 5(3)(vi): Soybeans and products thereof",
+        "url": "https://www.fssai.gov.in/food-law/regulations/amendments/labelling-display"
+      },
+      "limitations": "Evaluates visible label declaration; does not quantify specific protein concentration."
+    },
+    "RULE_ALLERGY_SOY_MAY_CONTAIN": {
+      "id": "RULE_ALLERGY_SOY_MAY_CONTAIN",
+      "category": "FOOD_ALLERGY",
+      "target_profile": "soy",
+      "declaration_type": "MAY_CONTAIN",
+      "severity": "WARNING",
+      "title": "Precautionary Cross-Contact Advisory: Soy",
+      "plain_english": "The packaging includes a precautionary advisory ('MAY CONTAIN') indicating that soy is handled in the manufacturing facility or on shared lines. Soy is not listed as a direct recipe ingredient, but accidental cross-contact is possible.",
+      "hindi_explanation": "पैकेजिंग पर 'MAY CONTAIN' चेतावनी है कि कारखाने में सोया का उपयोग होता है। यह सीधा घटक नहीं है, लेकिन क्रॉस-संपर्क का जोखिम हो सकता है।",
+      "trigger_conditions": "Matched 'soy' in label MAY CONTAIN advisory",
+      "evidence": {
+        "title": "FSSAI Food Safety and Standards (Labelling and Display) Regulations, 2020",
+        "section": "Advisory Statements on Cross-Contact",
+        "url": "https://www.fssai.gov.in/food-law/regulations/amendments/labelling-display"
+      },
+      "limitations": "Precautionary statements indicate manufacturing facility risk, not verified presence or absence of residues."
+    },
+    "RULE_ALLERGY_WHEAT_CONTAINS": {
+      "id": "RULE_ALLERGY_WHEAT_CONTAINS",
+      "category": "FOOD_ALLERGY",
+      "target_profile": "wheat",
+      "declaration_type": "CONTAINS",
+      "severity": "CRITICAL",
+      "title": "Declared Recipe Allergen: Wheat",
+      "plain_english": "The packaging declares Wheat as a direct recipe ingredient in its allergen statement. Individuals with a diagnosed IgE-mediated wheat allergy should avoid this product.",
+      "hindi_explanation": "पैकेजिंग पर गेहूं को सीधे घटक के रूप में घोषित किया गया है। गेहूं से एलर्जी वाले लोगों को इससे बचना चाहिए।",
+      "trigger_conditions": "Matched 'wheat' in label CONTAINS declaration",
+      "evidence": {
+        "title": "FSSAI Food Safety and Standards (Labelling and Display) Regulations, 2020",
+        "section": "Schedule II, Clause 5(3)(i): Cereals containing gluten (wheat)",
+        "url": "https://www.fssai.gov.in/food-law/regulations/amendments/labelling-display"
+      },
+      "limitations": "Addresses wheat protein allergy; distinct from autoimmune coeliac disease."
+    },
+    "RULE_ALLERGY_WHEAT_MAY_CONTAIN": {
+      "id": "RULE_ALLERGY_WHEAT_MAY_CONTAIN",
+      "category": "FOOD_ALLERGY",
+      "target_profile": "wheat",
+      "declaration_type": "MAY_CONTAIN",
+      "severity": "WARNING",
+      "title": "Precautionary Advisory: Wheat",
+      "plain_english": "The packaging notes a potential cross-contact advisory ('MAY CONTAIN') for wheat due to shared processing equipment. It is not an intended recipe ingredient.",
+      "hindi_explanation": "पैकेजिंग पर गेहूं के संभावित क्रॉस-संपर्क की चेतावनी है। यह मुख्य घटक नहीं है।",
+      "trigger_conditions": "Matched 'wheat' in label MAY CONTAIN advisory",
+      "evidence": {
+        "title": "FSSAI Food Safety and Standards (Labelling and Display) Regulations, 2020",
+        "section": "Cross-Contact Guidance",
+        "url": "https://www.fssai.gov.in/food-law/regulations/amendments/labelling-display"
+      },
+      "limitations": "Shared equipment risk advisory; does not verify actual parts-per-million presence."
+    },
+    "RULE_ALLERGY_MILK_CONTAINS": {
+      "id": "RULE_ALLERGY_MILK_CONTAINS",
+      "category": "FOOD_ALLERGY",
+      "target_profile": "milk",
+      "declaration_type": "CONTAINS",
+      "severity": "CRITICAL",
+      "title": "Declared Recipe Allergen: Milk",
+      "plain_english": "The packaging explicitly declares Milk or dairy derivatives in its recipe allergen statement. People with a milk protein allergy must avoid this product.",
+      "hindi_explanation": "पैकेजिंग पर दूध को एलर्जी घटक के रूप में घोषित किया गया है। दूध एलर्जी वाले व्यक्तियों को इससे बचना चाहिए।",
+      "trigger_conditions": "Matched 'milk' in label CONTAINS declaration",
+      "evidence": {
+        "title": "FSSAI Food Safety and Standards (Labelling and Display) Regulations, 2020",
+        "section": "Schedule II, Clause 5(3)(vii): Milk and milk products",
+        "url": "https://www.fssai.gov.in/food-law/regulations/amendments/labelling-display"
+      },
+      "limitations": "Covers milk allergy (immunological response); distinct from lactose intolerance."
+    },
+    "RULE_ALLERGY_MILK_MAY_CONTAIN": {
+      "id": "RULE_ALLERGY_MILK_MAY_CONTAIN",
+      "category": "FOOD_ALLERGY",
+      "target_profile": "milk",
+      "declaration_type": "MAY_CONTAIN",
+      "severity": "WARNING",
+      "title": "Precautionary Advisory: Milk",
+      "plain_english": "The label notes that milk is handled in the same production facility ('MAY CONTAIN MILK'). Milk is not an intended ingredient, but trace cross-contact cannot be ruled out.",
+      "hindi_explanation": "पैकेजिंग पर चेतावनी है कि कारखाने में दूध का उपयोग होता है। यह सीधा घटक नहीं है।",
+      "trigger_conditions": "Matched 'milk' in label MAY CONTAIN advisory",
+      "evidence": {
+        "title": "FSSAI Food Safety and Standards (Labelling and Display) Regulations, 2020",
+        "section": "Advisory Statements on Cross-Contact",
+        "url": "https://www.fssai.gov.in/food-law/regulations/amendments/labelling-display"
+      },
+      "limitations": "Precautionary facility warning; does not certify presence or absence of dairy residues."
+    },
+    "RULE_ALLERGY_PEANUT_CONTAINS": {
+      "id": "RULE_ALLERGY_PEANUT_CONTAINS",
+      "category": "FOOD_ALLERGY",
+      "target_profile": "peanut",
+      "declaration_type": "CONTAINS",
+      "severity": "CRITICAL",
+      "title": "Declared Recipe Allergen: Peanut",
+      "plain_english": "Peanut (groundnut) is declared as a recipe allergen on the packaging. Individuals with peanut allergy should strictly avoid consumption.",
+      "hindi_explanation": "पैकेजिंग पर मूंगफली को एलर्जी घटक के रूप में घोषित किया गया है। मूंगफली एलर्जी वाले व्यक्तियों को इसका सेवन नहीं करना चाहिए।",
+      "trigger_conditions": "Matched 'peanut' or 'groundnut' in label CONTAINS declaration",
+      "evidence": {
+        "title": "FSSAI Food Safety and Standards (Labelling and Display) Regulations, 2020",
+        "section": "Schedule II, Clause 5(3)(v): Peanuts and products thereof",
+        "url": "https://www.fssai.gov.in/food-law/regulations/amendments/labelling-display"
+      },
+      "limitations": "Evaluates declared label text only."
+    },
+    "RULE_ALLERGY_PEANUT_MAY_CONTAIN": {
+      "id": "RULE_ALLERGY_PEANUT_MAY_CONTAIN",
+      "category": "FOOD_ALLERGY",
+      "target_profile": "peanut",
+      "declaration_type": "MAY_CONTAIN",
+      "severity": "WARNING",
+      "title": "Precautionary Advisory: Peanut",
+      "plain_english": "The packaging indicates potential cross-contact with peanuts ('MAY CONTAIN PEANUTS'). Peanuts are not in the recipe, but shared facility equipment is utilized.",
+      "hindi_explanation": "पैकेजिंग पर मूंगफली के संभावित क्रॉस-संपर्क की चेतावनी है।",
+      "trigger_conditions": "Matched 'peanut' in label MAY CONTAIN advisory",
+      "evidence": {
+        "title": "FSSAI Food Safety and Standards (Labelling and Display) Regulations, 2020",
+        "section": "Schedule II, Clause 5(3)(v)",
+        "url": "https://www.fssai.gov.in/food-law/regulations/amendments/labelling-display"
+      },
+      "limitations": "Precautionary advisory indicating facility equipment risk."
+    },
+    "RULE_ALLERGY_TREENUT_CONTAINS": {
+      "id": "RULE_ALLERGY_TREENUT_CONTAINS",
+      "category": "FOOD_ALLERGY",
+      "target_profile": "tree_nut",
+      "declaration_type": "CONTAINS",
+      "severity": "CRITICAL",
+      "title": "Declared Recipe Allergen: Tree Nuts",
+      "plain_english": "Tree nuts (such as almond, cashew, walnut, or pistachio) are declared as recipe allergens on the packaging.",
+      "hindi_explanation": "पैकेजिंग पर ट्री नट्स (बादाम, काजू आदि) को एलर्जी घटक के रूप में घोषित किया गया है।",
+      "trigger_conditions": "Matched 'nuts' or tree nut species in label CONTAINS declaration",
+      "evidence": {
+        "title": "FSSAI Food Safety and Standards (Labelling and Display) Regulations, 2020",
+        "section": "Schedule II, Clause 5(3)(viii): Tree nuts and products thereof",
+        "url": "https://www.fssai.gov.in/food-law/regulations/amendments/labelling-display"
+      },
+      "limitations": "Covers botanical tree nuts; distinct from groundnuts/peanuts."
+    },
+    "RULE_ALLERGY_TREENUT_MAY_CONTAIN": {
+      "id": "RULE_ALLERGY_TREENUT_MAY_CONTAIN",
+      "category": "FOOD_ALLERGY",
+      "target_profile": "tree_nut",
+      "declaration_type": "MAY_CONTAIN",
+      "severity": "WARNING",
+      "title": "Precautionary Advisory: Tree Nuts",
+      "plain_english": "The label notes that tree nuts are processed in the same facility ('MAY CONTAIN NUTS'). Trace cross-contact is possible on shared equipment.",
+      "hindi_explanation": "पैकेजिंग पर चेतावनी है कि कारखाने में ट्री नट्स का उपयोग होता है।",
+      "trigger_conditions": "Matched 'nuts' or tree nut species in label MAY CONTAIN advisory",
+      "evidence": {
+        "title": "FSSAI Food Safety and Standards (Labelling and Display) Regulations, 2020",
+        "section": "Schedule II, Clause 5(3)(viii)",
+        "url": "https://www.fssai.gov.in/food-law/regulations/amendments/labelling-display"
+      },
+      "limitations": "Facility advisory only."
+    },
+    "RULE_ALLERGY_MUSTARD_CONTAINS": {
+      "id": "RULE_ALLERGY_MUSTARD_CONTAINS",
+      "category": "FOOD_ALLERGY",
+      "target_profile": "mustard",
+      "declaration_type": "CONTAINS",
+      "severity": "CRITICAL",
+      "title": "Declared Recipe Allergen: Mustard",
+      "plain_english": "Mustard or mustard seed derivative is declared as an allergen ingredient in the packaging recipe.",
+      "hindi_explanation": "पैकेजिंग पर सरसों को एलर्जी घटक के रूप में घोषित किया गया है।",
+      "trigger_conditions": "Matched 'mustard' in label CONTAINS declaration",
+      "evidence": {
+        "title": "FSSAI Food Safety and Standards (Labelling and Display) Regulations, 2020",
+        "section": "Schedule II, Clause 5(3)",
+        "url": "https://www.fssai.gov.in/food-law/regulations/amendments/labelling-display"
+      },
+      "limitations": "Declared recipe allergen."
+    },
+    "RULE_ALLERGY_MUSTARD_MAY_CONTAIN": {
+      "id": "RULE_ALLERGY_MUSTARD_MAY_CONTAIN",
+      "category": "FOOD_ALLERGY",
+      "target_profile": "mustard",
+      "declaration_type": "MAY_CONTAIN",
+      "severity": "WARNING",
+      "title": "Precautionary Advisory: Mustard",
+      "plain_english": "The packaging notes potential cross-contact with mustard from shared processing equipment ('MAY CONTAIN MUSTARD').",
+      "hindi_explanation": "पैकेजिंग पर सरसों के संभावित क्रॉस-संपर्क की चेतावनी है।",
+      "trigger_conditions": "Matched 'mustard' in label MAY CONTAIN advisory",
+      "evidence": {
+        "title": "FSSAI Food Safety and Standards (Labelling and Display) Regulations, 2020",
+        "section": "Schedule II, Clause 5(3)",
+        "url": "https://www.fssai.gov.in/food-law/regulations/amendments/labelling-display"
+      },
+      "limitations": "Precautionary statement on shared equipment."
+    },
+    "RULE_CONDITION_CELIAC_GLUTEN_CONTAINS": {
+      "id": "RULE_CONDITION_CELIAC_GLUTEN_CONTAINS",
+      "category": "COELIAC_DISEASE",
+      "target_profile": "celiac",
+      "declaration_type": "CONTAINS",
+      "severity": "CRITICAL",
+      "title": "Gluten Source Declared (Coeliac Disease Concern)",
+      "plain_english": "The packaging explicitly declares wheat or gluten-containing cereals in its ingredients or CONTAINS statement. People diagnosed with coeliac disease must strictly avoid gluten to prevent autoimmune small-intestine mucosal damage.",
+      "hindi_explanation": "पैकेजिंग पर गेहूं या ग्लूटेन युक्त अनाज घोषित है। सीलिएक रोग वाले व्यक्तियों को आंतों की क्षति से बचने के लिए ग्लूटेन से पूरी तरह बचना चाहिए।",
+      "trigger_conditions": "Wheat or gluten declared in recipe ingredients or CONTAINS statement",
+      "evidence": {
+        "title": "Eating, Diet, & Nutrition for Celiac Disease",
+        "authority": "National Institute of Diabetes and Digestive and Kidney Diseases (NIDDK)",
+        "url": "https://www.niddk.nih.gov/health-information/digestive-diseases/celiac-disease/eating-diet-nutrition"
+      },
+      "limitations": "Distinguishes autoimmune coeliac disease from IgE wheat allergy. Does not evaluate certified gluten-free thresholds (<20 ppm) unless explicitly labeled."
+    },
+    "RULE_CONDITION_CELIAC_GLUTEN_MAY_CONTAIN": {
+      "id": "RULE_CONDITION_CELIAC_GLUTEN_MAY_CONTAIN",
+      "category": "COELIAC_DISEASE",
+      "target_profile": "celiac",
+      "declaration_type": "MAY_CONTAIN",
+      "severity": "WARNING",
+      "title": "Precautionary Gluten Cross-Contact (Coeliac Disease Caution)",
+      "plain_english": "The packaging indicates a potential cross-contact advisory ('MAY CONTAIN WHEAT / GLUTEN'). For individuals with coeliac disease, shared equipment cross-contact can trigger mucosal inflammation. Review with your healthcare provider or check for dedicated gluten-free facility certification.",
+      "hindi_explanation": "पैकेजिंग पर गेहूं/ग्लूटेन के संभावित क्रॉस-संपर्क की चेतावनी है। सीलिएक रोग में यह सूजन का कारण बन सकता है।",
+      "trigger_conditions": "Wheat or gluten in label MAY CONTAIN advisory",
+      "evidence": {
+        "title": "Eating, Diet, & Nutrition for Celiac Disease",
+        "authority": "National Institute of Diabetes and Digestive and Kidney Diseases (NIDDK)",
+        "url": "https://www.niddk.nih.gov/health-information/digestive-diseases/celiac-disease/eating-diet-nutrition"
+      },
+      "limitations": "Precautionary advisory on shared facility equipment; does not test actual parts-per-million gluten content."
+    },
+    "RULE_CONDITION_DIABETES_NUTRITION": {
+      "id": "RULE_CONDITION_DIABETES_NUTRITION",
+      "category": "DIABETIC_NUTRITION",
+      "target_profile": "diabetes",
+      "declaration_type": "NUTRITION",
+      "severity": "CAUTION",
+      "title": "Carbohydrate & Sugar Context for Blood Glucose",
+      "plain_english": "Nutrition facts were parsed: Carbohydrates and total sugars directly influence postprandial blood glucose levels. Portion size and total carbohydrate counting are key considerations in diabetes meal management.",
+      "hindi_explanation": "पोषण विवरण मिला: कार्बोहाइड्रेट और शर्करा रक्त शर्करा को प्रभावित करते हैं। मधुमेह में मात्रा और कुल कार्बोहाइड्रेट की गणना महत्वपूर्ण है।",
+      "trigger_conditions": "Carbohydrate or sugar values reliably extracted from label nutrition facts",
+      "evidence": {
+        "title": "Diabetes Meal Planning and Carbohydrate Tracking",
+        "authority": "U.S. Centers for Disease Control and Prevention (CDC)",
+        "url": "https://www.cdc.gov/diabetes/healthy-eating/diabetes-meal-planning.html"
+      },
+      "limitations": "Educational information based on detected nutrition values; does not calculate individual glycemic index, glycemic load, or insulin dosing."
+    },
+    "RULE_CONDITION_DIABETES_DATA_INSUFFICIENT": {
+      "id": "RULE_CONDITION_DIABETES_DATA_INSUFFICIENT",
+      "category": "DIABETIC_NUTRITION",
+      "target_profile": "diabetes",
+      "declaration_type": "NUTRITION",
+      "severity": "DATA_INSUFFICIENT",
+      "title": "Nutritional Data Insufficient (Carbohydrates / Sugars Unparsed)",
+      "plain_english": "Total carbohydrate and sugar amounts could not be reliably extracted from the visible label. Because portion size and total carbohydrate quantity determine glycemic impact (rather than the mere presence of sugar in the ingredient list), blood glucose impact cannot be evaluated from this scan alone.",
+      "hindi_explanation": "कुल कार्बोहाइड्रेट और चीनी की मात्रा लेबल से स्पष्ट रूप से नहीं पढ़ी जा सकी। केवल सामग्री में चीनी होने से उत्पाद को असुरक्षित नहीं कहा जा सकता।",
+      "trigger_conditions": "User selected diabetes profile, but nutrition facts could not be reliably parsed from image",
+      "evidence": {
+        "title": "Diabetes Meal Planning and Carbohydrate Tracking",
+        "authority": "U.S. Centers for Disease Control and Prevention (CDC)",
+        "url": "https://www.cdc.gov/diabetes/healthy-eating/diabetes-meal-planning.html"
+      },
+      "limitations": "Result indicates unreadable or absent nutritional table, not zero sugar."
+    },
+    "RULE_CONDITION_HYPERTENSION_SODIUM": {
+      "id": "RULE_CONDITION_HYPERTENSION_SODIUM",
+      "category": "CARDIOVASCULAR_SODIUM",
+      "target_profile": "hypertension",
+      "declaration_type": "NUTRITION",
+      "severity": "CAUTION",
+      "title": "Sodium Information for Blood Pressure Management",
+      "plain_english": "Detected sodium from label nutrition facts. The WHO recommends that adults consume less than 2,000 mg of sodium (approx 5 g salt) per day across all meals. Compare this product's detected sodium amount and portion size against your daily dietary sodium budget.",
+      "hindi_explanation": "लेबल से सोडियम की मात्रा पहचानी गई। डब्लूएचओ के अनुसार वयस्कों को दिन में 2000 मिलीग्राम से कम सोडियम लेना चाहिए।",
+      "trigger_conditions": "Sodium value and measurement basis reliably extracted from label nutrition facts",
+      "evidence": {
+        "title": "WHO Guideline: Sodium intake for adults and children",
+        "authority": "World Health Organization (WHO)",
+        "url": "https://www.who.int/news-room/fact-sheets/detail/sodium-reduction"
+      },
+      "limitations": "Reports detected sodium content on the label; does not prescribe personal sodium limits or diagnose hypertension."
+    },
+    "RULE_CONDITION_HYPERTENSION_DATA_INSUFFICIENT": {
+      "id": "RULE_CONDITION_HYPERTENSION_DATA_INSUFFICIENT",
+      "category": "CARDIOVASCULAR_SODIUM",
+      "target_profile": "hypertension",
+      "declaration_type": "NUTRITION",
+      "severity": "DATA_INSUFFICIENT",
+      "title": "Sodium Content Not Evaluated (Data Insufficient)",
+      "plain_english": "A reliable sodium value and measurement unit (per 100 g or per serving) could not be extracted from the packaging. Sodium limits for blood pressure management cannot be evaluated without legible nutrition data. Check the physical packaging for the sodium line.",
+      "hindi_explanation": "पैकेजिंग से सोडियम की मात्रा स्पष्ट रूप से नहीं पढ़ी जा सकी। पोषण तालिका की भौतिक जांच करें।",
+      "trigger_conditions": "User selected hypertension profile, but sodium value could not be reliably parsed from image",
+      "evidence": {
+        "title": "WHO Guideline: Sodium intake for adults and children",
+        "authority": "World Health Organization (WHO)",
+        "url": "https://www.who.int/news-room/fact-sheets/detail/sodium-reduction"
+      },
+      "limitations": "Result indicates unparsed or absent sodium line, not zero sodium."
+    },
+    "RULE_CONDITION_CKD_SODIUM": {
+      "id": "RULE_CONDITION_CKD_SODIUM",
+      "category": "RENAL_SODIUM",
+      "target_profile": "ckd",
+      "declaration_type": "NUTRITION",
+      "severity": "CAUTION",
+      "title": "Sodium & Renal Filtration Consideration",
+      "plain_english": "Detected sodium from label nutrition facts. In chronic kidney disease (CKD), the kidneys have reduced capacity to excrete excess sodium, which can exacerbate fluid retention and hypertension. Sodium limits in CKD are individualized based on disease stage and prescribed by a renal dietitian or nephrologist.",
+      "hindi_explanation": "सोडियम की मात्रा पाई गई। क्रोनिक किडनी रोग (CKD) में अतिरिक्त सोडियम शरीर में तरल पदार्थ बढ़ा सकता है। व्यक्तिगत सीमा डॉक्टर द्वारा तय की जाती है।",
+      "trigger_conditions": "Sodium value and measurement basis reliably extracted from label nutrition facts",
+      "evidence": {
+        "title": "Nutrition for Adults with Chronic Kidney Disease",
+        "authority": "National Institute of Diabetes and Digestive and Kidney Diseases (NIDDK)",
+        "url": "https://www.niddk.nih.gov/health-information/kidney-disease/chronic-kidney-disease/healthy-eating-adults-chronic-kidney-disease"
+      },
+      "limitations": "Identifies detected sodium amount only. Does not evaluate potassium, phosphorus, or protein stages."
+    },
+    "RULE_CONDITION_CKD_DATA_INSUFFICIENT": {
+      "id": "RULE_CONDITION_CKD_DATA_INSUFFICIENT",
+      "category": "RENAL_SODIUM",
+      "target_profile": "ckd",
+      "declaration_type": "NUTRITION",
+      "severity": "DATA_INSUFFICIENT",
+      "title": "Renal Nutrition Data Insufficient (Sodium Unparsed)",
+      "plain_english": "Sodium content could not be reliably extracted from the visible packaging. For individuals with chronic kidney disease, accurate sodium accounting is critical. Please review the physical package nutrition table or consult your renal care team.",
+      "hindi_explanation": "सोडियम की मात्रा स्पष्ट रूप से नहीं मिली। सीकेडी में सोडियम की सटीक जानकारी आवश्यक है।",
+      "trigger_conditions": "User selected CKD profile, but sodium value could not be reliably parsed from image",
+      "evidence": {
+        "title": "Nutrition for Adults with Chronic Kidney Disease",
+        "authority": "National Institute of Diabetes and Digestive and Kidney Diseases (NIDDK)",
+        "url": "https://www.niddk.nih.gov/health-information/kidney-disease/chronic-kidney-disease/healthy-eating-adults-chronic-kidney-disease"
+      },
+      "limitations": "Result indicates absent or unreadable nutrition facts, not zero sodium."
+    }
+  }
+}

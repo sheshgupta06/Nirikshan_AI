@@ -1,0 +1,809 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "description": "Curated sample dataset of Indian food ingredients, aliases, INS codes, and FSSAI mandatory allergens",
+    "last_reviewed_date": "2026-03-24",
+    "jurisdiction": "India",
+    "primary_source": {
+      "title": "Food Safety and Standards (Labelling and Display) Regulations, 2020",
+      "authority": "FSSAI (Food Safety and Standards Authority of India)",
+      "url": "https://www.fssai.gov.in/food-law/regulations/amendments/labelling-display"
+    }
+  },
+  "allergens": {
+    "gluten": {
+      "code": "gluten",
+      "canonical_name": "Cereals containing gluten",
+      "fssai_mandatory": true,
+      "source_section": "Schedule II, Clause 5(3)(i)",
+      "common_sources": [
+        "wheat",
+        "maida",
+        "atta",
+        "barley",
+        "oats",
+        "rye",
+        "spelt"
+      ]
+    },
+    "crustacean": {
+      "code": "crustacean",
+      "canonical_name": "Crustaceans and products thereof",
+      "fssai_mandatory": true,
+      "source_section": "Schedule II, Clause 5(3)(ii)",
+      "common_sources": [
+        "prawn",
+        "shrimp",
+        "crab",
+        "lobster"
+      ]
+    },
+    "egg": {
+      "code": "egg",
+      "canonical_name": "Eggs and egg products",
+      "fssai_mandatory": true,
+      "source_section": "Schedule II, Clause 5(3)(iii)",
+      "common_sources": [
+        "egg",
+        "egg albumin",
+        "egg powder",
+        "whole egg"
+      ]
+    },
+    "fish": {
+      "code": "fish",
+      "canonical_name": "Fish and fish products",
+      "fssai_mandatory": true,
+      "source_section": "Schedule II, Clause 5(3)(iv)",
+      "common_sources": [
+        "fish",
+        "fish gelatin",
+        "isinglass",
+        "anchovy"
+      ]
+    },
+    "peanut": {
+      "code": "peanut",
+      "canonical_name": "Peanuts and products thereof",
+      "fssai_mandatory": true,
+      "source_section": "Schedule II, Clause 5(3)(v)",
+      "common_sources": [
+        "peanut",
+        "groundnut",
+        "peanut oil",
+        "groundnut oil",
+        "mungfali"
+      ]
+    },
+    "soy": {
+      "code": "soy",
+      "canonical_name": "Soybeans and products thereof",
+      "fssai_mandatory": true,
+      "source_section": "Schedule II, Clause 5(3)(vi)",
+      "common_sources": [
+        "soy",
+        "soya",
+        "soy lecithin",
+        "soy protein",
+        "soybean oil"
+      ]
+    },
+    "milk": {
+      "code": "milk",
+      "canonical_name": "Milk and milk products",
+      "fssai_mandatory": true,
+      "source_section": "Schedule II, Clause 5(3)(vii)",
+      "common_sources": [
+        "milk",
+        "milk solids",
+        "whey",
+        "curd",
+        "paneer",
+        "dahi",
+        "casein",
+        "butter",
+        "ghee"
+      ]
+    },
+    "tree_nut": {
+      "code": "tree_nut",
+      "canonical_name": "Tree nuts and products thereof",
+      "fssai_mandatory": true,
+      "source_section": "Schedule II, Clause 5(3)(viii)",
+      "common_sources": [
+        "almond",
+        "cashew",
+        "walnut",
+        "badam",
+        "kaju",
+        "akhrot",
+        "pistachio",
+        "pista",
+        "nuts",
+        "nut",
+        "tree nuts"
+      ]
+    },
+    "sulphite": {
+      "code": "sulphite",
+      "canonical_name": "Sulphites in concentrations of 10mg/kg or more",
+      "fssai_mandatory": true,
+      "source_section": "Schedule II, Clause 5(3)(ix)",
+      "common_sources": [
+        "sulphur dioxide",
+        "sodium metabisulphite",
+        "sulphites"
+      ]
+    },
+    "mustard": {
+      "code": "mustard",
+      "canonical_name": "Mustard and products thereof",
+      "fssai_mandatory": true,
+      "source_section": "Schedule II, Clause 5(3)",
+      "common_sources": [
+        "mustard",
+        "mustard seeds",
+        "mustard oil",
+        "sarson",
+        "rai"
+      ]
+    }
+  },
+  "canonical_ingredients": {
+    "wheat_flour": {
+      "id": "wheat_flour",
+      "canonical_name": "Refined Wheat Flour",
+      "category": "cereal",
+      "is_vegetarian": true,
+      "allergens": [
+        "gluten"
+      ],
+      "source": {
+        "title": "FSSAI Food Safety and Standards (Food Products Standards and Food Additives) Regulations, 2011",
+        "section": "Regulation 2.4.2: Maida (Refined Wheat Flour)",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "whole_wheat_flour": {
+      "id": "whole_wheat_flour",
+      "canonical_name": "Whole Wheat Flour",
+      "category": "cereal",
+      "is_vegetarian": true,
+      "allergens": [
+        "gluten"
+      ],
+      "source": {
+        "title": "FSSAI Food Safety and Standards (Food Products Standards and Food Additives) Regulations, 2011",
+        "section": "Regulation 2.4.1: Atta",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "peanut": {
+      "id": "peanut",
+      "canonical_name": "Peanut",
+      "category": "nut_legume",
+      "is_vegetarian": true,
+      "allergens": [
+        "peanut"
+      ],
+      "source": {
+        "title": "FSSAI Labelling and Display Regulations, 2020",
+        "section": "Schedule II, Clause 5(3)(v)",
+        "url": "https://www.fssai.gov.in/food-law/regulations/amendments/labelling-display"
+      }
+    },
+    "almond": {
+      "id": "almond",
+      "canonical_name": "Almond",
+      "category": "tree_nut",
+      "is_vegetarian": true,
+      "allergens": [
+        "tree_nut"
+      ],
+      "source": {
+        "title": "FSSAI Labelling and Display Regulations, 2020",
+        "section": "Schedule II, Clause 5(3)(viii)",
+        "url": "https://www.fssai.gov.in/food-law/regulations/amendments/labelling-display"
+      }
+    },
+    "cashew": {
+      "id": "cashew",
+      "canonical_name": "Cashew Nut",
+      "category": "tree_nut",
+      "is_vegetarian": true,
+      "allergens": [
+        "tree_nut"
+      ],
+      "source": {
+        "title": "FSSAI Labelling and Display Regulations, 2020",
+        "section": "Schedule II, Clause 5(3)(viii)",
+        "url": "https://www.fssai.gov.in/food-law/regulations/amendments/labelling-display"
+      }
+    },
+    "milk_solids": {
+      "id": "milk_solids",
+      "canonical_name": "Milk Solids",
+      "category": "dairy",
+      "is_vegetarian": true,
+      "allergens": [
+        "milk"
+      ],
+      "source": {
+        "title": "FSSAI Labelling and Display Regulations, 2020",
+        "section": "Schedule II, Clause 5(3)(vii)",
+        "url": "https://www.fssai.gov.in/food-law/regulations/amendments/labelling-display"
+      }
+    },
+    "soy_lecithin": {
+      "id": "soy_lecithin",
+      "canonical_name": "Soy Lecithin",
+      "category": "additive",
+      "ins_code": "322(i)",
+      "is_vegetarian": true,
+      "allergens": [
+        "soy"
+      ],
+      "source": {
+        "title": "FSSAI Food Product Standards and Food Additives Regulations, 2011",
+        "section": "Appendix A: Emulsifying and Stabilizing Agents",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "palm_oil": {
+      "id": "palm_oil",
+      "canonical_name": "Edible Vegetable Oil (Palm Oil)",
+      "category": "oil_fat",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards (Prohibition and Restrictions on Sales) Regulations, 2011",
+        "section": "Regulation 2.2.2: Labelling of Edible Oils and Fats",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "sugar": {
+      "id": "sugar",
+      "canonical_name": "Sugar",
+      "category": "sweetener",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Product Standards and Food Additives Regulations, 2011",
+        "section": "Regulation 2.7.1: Sugar",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "iodized_salt": {
+      "id": "iodized_salt",
+      "canonical_name": "Iodized Salt",
+      "category": "mineral",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Product Standards and Food Additives Regulations, 2011",
+        "section": "Regulation 2.9.30: Iodized Salt",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "gelatin_non_veg": {
+      "id": "gelatin_non_veg",
+      "canonical_name": "Gelatin (Animal Origin)",
+      "category": "gelling_agent",
+      "is_vegetarian": false,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Labelling and Display Regulations, 2020",
+        "section": "Schedule II, Clause 5(2): Non-Vegetarian Food Declarations",
+        "url": "https://www.fssai.gov.in/food-law/regulations/amendments/labelling-display"
+      }
+    },
+    "soy_flour": {
+      "id": "soy_flour",
+      "canonical_name": "Soy Flour",
+      "category": "legume_flour",
+      "is_vegetarian": true,
+      "allergens": [
+        "soy"
+      ],
+      "source": {
+        "title": "FSSAI Food Safety and Standards (Food Products Standards and Food Additives) Regulations, 2011",
+        "section": "Regulation 2.4.16: Soya Flour",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "water": {
+      "id": "water",
+      "canonical_name": "Water",
+      "category": "solvent_liquid",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards (Food Products Standards and Food Additives) Regulations, 2011",
+        "section": "Regulation 2.10: Potable Water / Ingredients",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "mustard": {
+      "id": "mustard",
+      "canonical_name": "Mustard",
+      "category": "spice_oilseed",
+      "is_vegetarian": true,
+      "allergens": [
+        "mustard"
+      ],
+      "source": {
+        "title": "FSSAI Food Safety and Standards (Food Products Standards and Food Additives) Regulations, 2011",
+        "section": "Regulation 2.9.11: Mustard",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "maize_starch": {
+      "id": "maize_starch",
+      "canonical_name": "Maize Starch",
+      "category": "cereal_starch",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards Regulations, 2011",
+        "section": "Regulation 2.4.24: Starch",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "tapioca_starch": {
+      "id": "tapioca_starch",
+      "canonical_name": "Tapioca Starch",
+      "category": "tuber_starch",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards Regulations, 2011",
+        "section": "Regulation 2.4.24: Starch",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "semolina": {
+      "id": "semolina",
+      "canonical_name": "Semolina (Suji)",
+      "category": "cereal_derivative",
+      "is_vegetarian": true,
+      "allergens": [
+        "gluten"
+      ],
+      "source": {
+        "title": "FSSAI Food Safety and Standards Regulations, 2011",
+        "section": "Regulation 2.4.3: Semolina (Suji or Rawa)",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "tamarind": {
+      "id": "tamarind",
+      "canonical_name": "Tamarind",
+      "category": "spice_fruit",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards Regulations, 2011",
+        "section": "Regulation 2.9.22: Tamarind",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "dry_mango": {
+      "id": "dry_mango",
+      "canonical_name": "Dry Mango Powder (Amchur)",
+      "category": "spice_fruit",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards Regulations, 2011",
+        "section": "Regulation 2.9.20: Amchur",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "black_salt": {
+      "id": "black_salt",
+      "canonical_name": "Black Salt (Kala Namak)",
+      "category": "mineral_salt",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards Regulations, 2011",
+        "section": "Regulation 2.9.31: Black Salt",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "cumin": {
+      "id": "cumin",
+      "canonical_name": "Cumin (Jeera)",
+      "category": "spice_seed",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards Regulations, 2011",
+        "section": "Regulation 2.9.8: Cumin",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "coriander": {
+      "id": "coriander",
+      "canonical_name": "Coriander (Dhaniya)",
+      "category": "spice_herb",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards Regulations, 2011",
+        "section": "Regulation 2.9.7: Coriander",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "mint": {
+      "id": "mint",
+      "canonical_name": "Mint (Pudina)",
+      "category": "spice_herb",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards Regulations, 2011",
+        "section": "Spices and Condiments: Mint",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "ginger": {
+      "id": "ginger",
+      "canonical_name": "Ginger (Adrak / Sonth)",
+      "category": "spice_rhizome",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards Regulations, 2011",
+        "section": "Regulation 2.9.10: Ginger",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "turmeric": {
+      "id": "turmeric",
+      "canonical_name": "Turmeric (Haldi)",
+      "category": "spice_rhizome",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards Regulations, 2011",
+        "section": "Regulation 2.9.12: Turmeric",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "chilli": {
+      "id": "chilli",
+      "canonical_name": "Chilli Powder",
+      "category": "spice",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards Regulations, 2011",
+        "section": "Regulation 2.9.5: Chillies",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "black_pepper": {
+      "id": "black_pepper",
+      "canonical_name": "Black Pepper (Kali Mirch)",
+      "category": "spice",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards Regulations, 2011",
+        "section": "Regulation 2.9.14: Black Pepper",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "asafoetida": {
+      "id": "asafoetida",
+      "canonical_name": "Asafoetida (Hing)",
+      "category": "spice_resin",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards Regulations, 2011",
+        "section": "Regulation 2.9.2: Compounded Asafoetida",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "dates": {
+      "id": "dates",
+      "canonical_name": "Dates (Khajur)",
+      "category": "dried_fruit",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards Regulations, 2011",
+        "section": "Regulation 2.3.16: Dates",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    }
+  },
+  "aliases": {
+    "maida": "wheat_flour",
+    "refined wheat flour": "wheat_flour",
+    "refined flour": "wheat_flour",
+    "wheat flour": "wheat_flour",
+    "atta": "whole_wheat_flour",
+    "whole wheat flour": "whole_wheat_flour",
+    "wheat": "wheat_flour",
+    "groundnut": "peanut",
+    "groundnut oil": "peanut",
+    "peanut": "peanut",
+    "peanuts": "peanut",
+    "peanut oil": "peanut",
+    "mungfali": "peanut",
+    "badam": "almond",
+    "almond": "almond",
+    "almonds": "almond",
+    "kaju": "cashew",
+    "cashew": "cashew",
+    "cashews": "cashew",
+    "cashew nut": "cashew",
+    "milk solids": "milk_solids",
+    "dairy solids": "milk_solids",
+    "skimmed milk powder": "milk_solids",
+    "whey powder": "milk_solids",
+    "milk": "milk_solids",
+    "curd": "milk_solids",
+    "dahi": "milk_solids",
+    "paneer": "milk_solids",
+    "ghee": "milk_solids",
+    "butter": "milk_solids",
+    "palm oil": "palm_oil",
+    "palmolein": "palm_oil",
+    "palmolein oil": "palm_oil",
+    "refined palm oil": "palm_oil",
+    "edible vegetable oil (palm)": "palm_oil",
+    "sugar": "sugar",
+    "cane sugar": "sugar",
+    "table sugar": "sugar",
+    "salt": "iodized_salt",
+    "iodized salt": "iodized_salt",
+    "edible salt": "iodized_salt",
+    "common salt": "iodized_salt",
+    "lodized salt": "iodized_salt",
+    "lodised salt": "iodized_salt",
+    "lodized": "iodized_salt",
+    "gelatin": "gelatin_non_veg",
+    "gelatine": "gelatin_non_veg",
+    "soy flour": "soy_flour",
+    "soya flour": "soy_flour",
+    "soybean flour": "soy_flour",
+    "defatted soy flour": "soy_flour",
+    "defatted soya flour": "soy_flour",
+    "whole wheatflour": "whole_wheat_flour",
+    "wheatflour": "wheat_flour",
+    "water": "water",
+    "mustard": "mustard",
+    "mustard seeds": "mustard",
+    "nuts": "cashew",
+    "tree nuts": "cashew",
+    "maize starch": "maize_starch",
+    "corn starch": "maize_starch",
+    "cornstarch": "maize_starch",
+    "tapioca starch": "tapioca_starch",
+    "semolina": "semolina",
+    "sermolina": "semolina",
+    "suji": "semolina",
+    "sooji": "semolina",
+    "rawa": "semolina",
+    "tamarind": "tamarind",
+    "tamarind powder": "tamarind",
+    "dried tamarind": "tamarind",
+    "imli": "tamarind",
+    "dry mango powder": "dry_mango",
+    "dried mango powder": "dry_mango",
+    "amchur": "dry_mango",
+    "amchoor": "dry_mango",
+    "black salt": "black_salt",
+    "kala namak": "black_salt",
+    "cumin": "cumin",
+    "cumin powder": "cumin",
+    "jeera": "cumin",
+    "coriander": "coriander",
+    "dry coriander powder": "coriander",
+    "coriander powder": "coriander",
+    "dried coriander leaves": "coriander",
+    "dried coriander leaves powder": "coriander",
+    "dhaniya": "coriander",
+    "mint": "mint",
+    "dry mint powder": "mint",
+    "dried mint leaves powder": "mint",
+    "pudina": "mint",
+    "ginger": "ginger",
+    "ginger powder": "ginger",
+    "dried ginger": "ginger",
+    "adrak": "ginger",
+    "sonth": "ginger",
+    "turmeric": "turmeric",
+    "haldi": "turmeric",
+    "chilli": "chilli",
+    "chilli powder": "chilli",
+    "green chilli powder": "chilli",
+    "mirch": "chilli",
+    "black pepper": "black_pepper",
+    "black pepper powder": "black_pepper",
+    "kali mirch": "black_pepper",
+    "asafoetida": "asafoetida",
+    "hing": "asafoetida",
+    "dates": "dates",
+    "dried dates": "dates",
+    "khajur": "dates"
+  },
+  "ins_codes": {
+    "621": {
+      "ins_number": "621",
+      "canonical_name": "Monosodium L-Glutamate (MSG)",
+      "functional_class": "Flavour enhancer",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards (Food Products Standards and Food Additives) Regulations, 2011",
+        "section": "Appendix A: Flavour Enhancers (INS 621 permitted under GMP conditions in specified food categories)",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "102": {
+      "ins_number": "102",
+      "canonical_name": "Tartrazine",
+      "functional_class": "Synthetic food colour (Yellow)",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards (Food Products Standards and Food Additives) Regulations, 2011",
+        "section": "Regulation 2.1.2: Permitted Synthetic Food Colours",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "322": {
+      "ins_number": "322",
+      "canonical_name": "Lecithin (Commonly Soy-Derived)",
+      "functional_class": "Emulsifier",
+      "is_vegetarian": true,
+      "allergens": [
+        "soy"
+      ],
+      "source": {
+        "title": "FSSAI Food Safety and Standards (Food Products Standards and Food Additives) Regulations, 2011",
+        "section": "Appendix A: Table 3 - Food Additives Permitted in Foods (INS 322)",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "322(i)": {
+      "ins_number": "322(i)",
+      "canonical_name": "Lecithin (Soy Lecithin)",
+      "functional_class": "Emulsifier",
+      "is_vegetarian": true,
+      "allergens": [
+        "soy"
+      ],
+      "source": {
+        "title": "FSSAI Food Safety and Standards (Food Products Standards and Food Additives) Regulations, 2011",
+        "section": "Appendix A: Table 3 - Food Additives Permitted in Foods (INS 322(i))",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "500(ii)": {
+      "ins_number": "500(ii)",
+      "canonical_name": "Sodium Hydrogen Carbonate (Baking Soda)",
+      "functional_class": "Acidity regulator / Raising agent",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards (Food Products Standards and Food Additives) Regulations, 2011",
+        "section": "Appendix A: Acidity Regulators and Raising Agents (INS 500(ii))",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "500ii": {
+      "ins_number": "500(ii)",
+      "canonical_name": "Sodium Hydrogen Carbonate (Baking Soda)",
+      "functional_class": "Acidity regulator / Raising agent",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards (Food Products Standards and Food Additives) Regulations, 2011",
+        "section": "Appendix A: Acidity Regulators and Raising Agents (INS 500(ii))",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "330": {
+      "ins_number": "330",
+      "canonical_name": "Citric Acid",
+      "functional_class": "Acidity regulator / Antioxidant",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards (Food Products Standards and Food Additives) Regulations, 2011",
+        "section": "Appendix A: Acidity Regulators (INS 330)",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "211": {
+      "ins_number": "211",
+      "canonical_name": "Sodium Benzoate",
+      "functional_class": "Class II Preservative",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards (Food Products Standards and Food Additives) Regulations, 2011",
+        "section": "Appendix A: Class II Preservatives permitted in specified limits",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "951": {
+      "ins_number": "951",
+      "canonical_name": "Aspartame",
+      "functional_class": "Non-nutritive artificial sweetener",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards (Labelling and Display) Regulations, 2020",
+        "section": "Schedule II, Clause 3(2): Mandatory declaration for products containing Aspartame ('CONTAINS ASPARTAME, NOT RECOMMENDED FOR CHILDREN, PHENYLKETONURICS: CONTAINS PHENYLALANINE')",
+        "url": "https://www.fssai.gov.in/food-law/regulations/amendments/labelling-display"
+      }
+    },
+    "551": {
+      "ins_number": "551",
+      "canonical_name": "Silicon Dioxide (Amorphous)",
+      "functional_class": "Anti-caking Agent",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Additives Regulations, 2011",
+        "section": "Appendix A: Anti-caking Agents (INS 551 permitted up to 2.0%)",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "334": {
+      "ins_number": "334",
+      "canonical_name": "Tartaric Acid",
+      "functional_class": "Acidity Regulator",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Additives Regulations, 2011",
+        "section": "Appendix A: Acidity Regulators (INS 334)",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "171": {
+      "ins_number": "171",
+      "canonical_name": "Titanium Dioxide",
+      "functional_class": "Food Colour",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Additives Regulations, 2011",
+        "section": "Regulation 2.1.2: Permitted Colours (Banned in EU since 2022)",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "500(ll)": {
+      "ins_number": "500(ii)",
+      "canonical_name": "Sodium Hydrogen Carbonate (Baking Soda)",
+      "functional_class": "Acidity regulator / Raising agent",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards Regulations, 2011",
+        "section": "Appendix A: Acidity Regulators and Raising Agents (INS 500(ii))",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    },
+    "500(11)": {
+      "ins_number": "500(ii)",
+      "canonical_name": "Sodium Hydrogen Carbonate (Baking Soda)",
+      "functional_class": "Acidity regulator / Raising agent",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety and Standards Regulations, 2011",
+        "section": "Appendix A: Acidity Regulators and Raising Agents (INS 500(ii))",
+        "url": "https://www.fssai.gov.in/standards/product-standards"
+      }
+    }
+  }
+}

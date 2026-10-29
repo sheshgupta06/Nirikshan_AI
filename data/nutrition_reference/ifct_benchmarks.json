@@ -1,0 +1,93 @@
+{
+  "metadata": {
+    "title": "Indian Food Composition Tables (IFCT 2017) Nutrient Reference Benchmarks",
+    "authority": "National Institute of Nutrition (NIN) / Indian Council of Medical Research (ICMR)",
+    "publication_year": 2017,
+    "source_pdf": "data/nutrition_reference/IFCT2017.pdf",
+    "scope": "Nutrient values per 100g edible portion for staple ingredients in Indian packaged foods"
+  },
+  "staple_ingredients": {
+    "whole_wheat_flour_atta": {
+      "food_code": "A001",
+      "canonical_name": "Whole Wheat Flour (Atta)",
+      "energy_kcal": 341.0,
+      "protein_g": 12.1,
+      "carbohydrate_g": 69.4,
+      "total_fat_g": 1.7,
+      "dietary_fiber_g": 11.2,
+      "sodium_mg": 9.0
+    },
+    "refined_wheat_flour_maida": {
+      "food_code": "A002",
+      "canonical_name": "Refined Wheat Flour (Maida)",
+      "energy_kcal": 352.0,
+      "protein_g": 10.3,
+      "carbohydrate_g": 73.9,
+      "total_fat_g": 0.9,
+      "dietary_fiber_g": 2.8,
+      "sodium_mg": 5.0,
+      "health_note": "Bran removed during milling resulting in low dietary fiber and fast glycemic spike."
+    },
+    "semolina_suji": {
+      "food_code": "A003",
+      "canonical_name": "Semolina (Suji / Rava)",
+      "energy_kcal": 348.0,
+      "protein_g": 11.8,
+      "carbohydrate_g": 72.8,
+      "total_fat_g": 1.1,
+      "dietary_fiber_g": 3.9,
+      "sodium_mg": 6.0
+    },
+    "bengal_gram_flour_besan": {
+      "food_code": "B012",
+      "canonical_name": "Bengal Gram Flour (Besan)",
+      "energy_kcal": 372.0,
+      "protein_g": 20.8,
+      "carbohydrate_g": 59.8,
+      "total_fat_g": 5.6,
+      "dietary_fiber_g": 15.2,
+      "sodium_mg": 38.0
+    },
+    "palmolein_oil": {
+      "food_code": "O004",
+      "canonical_name": "Refined Palmolein Oil",
+      "energy_kcal": 900.0,
+      "protein_g": 0.0,
+      "carbohydrate_g": 0.0,
+      "total_fat_g": 100.0,
+      "saturated_fat_g": 49.3,
+      "monounsaturated_fat_g": 37.0,
+      "polyunsaturated_fat_g": 9.3,
+      "sodium_mg": 0.0,
+      "health_note": "High saturated fatty acids (~49%) compared to mustard or sunflower oil."
+    },
+    "white_sugar_sucrose": {
+      "food_code": "S001",
+      "canonical_name": "Cane Sugar (Sucrose)",
+      "energy_kcal": 398.0,
+      "protein_g": 0.0,
+      "carbohydrate_g": 99.5,
+      "total_sugars_g": 99.5,
+      "total_fat_g": 0.0,
+      "sodium_mg": 1.0
+    },
+    "iodized_table_salt": {
+      "food_code": "M001",
+      "canonical_name": "Iodized Salt (NaCl)",
+      "energy_kcal": 0.0,
+      "protein_g": 0.0,
+      "carbohydrate_g": 0.0,
+      "total_fat_g": 0.0,
+      "sodium_mg": 38758.0,
+      "health_note": "1g table salt contains approximately 390mg elemental sodium."
+    }
+  },
+  "dietary_guidelines_limits": {
+    "who_sodium_daily_limit_mg": 2000.0,
+    "who_equivalent_salt_daily_limit_g": 5.0,
+    "who_free_sugars_daily_max_energy_percent": 10.0,
+    "who_free_sugars_ideal_energy_percent": 5.0,
+    "icmr_saturated_fat_max_energy_percent": 10.0,
+    "fssai_trans_fat_oil_limit_percent": 2.0
+  }
+}
