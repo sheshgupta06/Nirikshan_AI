@@ -1,361 +1,227 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import {
-  HeartPulse,
-  ClipboardCheck,
+  Heart,
+  FileText,
   Scale,
-  Sparkles,
-  ArrowRight,
-  CheckCircle2,
-  HelpCircle,
-  ChevronRight
+  Camera,
+  Info,
+  ChevronRight,
 } from 'lucide-react'
 
 export const Home: React.FC = () => {
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Hero Section with Dark Navy Background */}
-      <section className="bg-[#123044] text-white pt-16 pb-20 lg:pt-24 lg:pb-28 relative overflow-hidden">
-        {/* Subtle geometric pattern background */}
-        <div className="absolute inset-0 opacity-5 pointer-events-none bg-[radial-gradient(#CBD5E1_1px,transparent_1px)] [background-size:16px_16px]"></div>
+    <div className="flex flex-col min-h-screen bg-white">
+      {/* Hero Section */}
+      <section className="relative pt-12 pb-16 lg:pt-16 lg:pb-20 overflow-hidden">
+        {/* Soft decorative background glow */}
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-emerald-100/40 rounded-full blur-3xl pointer-events-none -z-10" />
+        <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-teal-100/30 rounded-full blur-3xl pointer-events-none -z-10" />
 
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Left Content */}
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 text-emerald-300 text-xs sm:text-sm font-medium border border-white/15 backdrop-blur-sm">
-                <Sparkles className="w-4 h-4 text-emerald-400" />
-                <span>India-First Smart Food Label Intelligence</span>
-              </div>
-
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.15]">
-                <span className="block text-white" style={{ color: '#FFFFFF' }}>Know What's on</span>
-                <span className="block text-emerald-400 mt-1" style={{ color: '#34D399' }}>Your Food.</span>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#123044] tracking-tight leading-[1.12]">
+                Know What's <br />
+                on <span className="text-[#087F5B]">Your Food.</span>
               </h1>
 
-              <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-                Analyse packaged-food labels with computer vision. Understand complex ingredient terms, identify hidden allergens and additives, and audit mandatory declarations under FSSAI Regulations and Legal Metrology Rule 6.
+              <p className="text-base sm:text-lg text-[#64748B] leading-relaxed max-w-xl mx-auto lg:mx-0 font-normal">
+                Scan, analyse and understand packaged food labels with AI. Get ingredient insights, health information and check FSSAI labelling and legal metrology compliance.
               </p>
 
-              {/* CTAs */}
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4">
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
                 <Link
                   to="/scan"
-                  className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-white bg-[#0F766E] hover:bg-[#0D655E] transition-all shadow-lg shadow-[#0F766E]/30 flex items-center justify-center gap-2.5 text-base"
+                  className="w-full sm:w-auto px-7 py-3.5 rounded-xl font-bold text-white bg-[#0F766E] hover:bg-[#0D655E] transition-all shadow-md shadow-[#0F766E]/20 flex items-center justify-center gap-2.5 text-sm sm:text-base group"
                 >
-                  <Sparkles className="w-5 h-5 text-emerald-200" />
+                  <Camera className="w-5 h-5 text-emerald-200" />
                   <span>Scan Food Packet</span>
-                  <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
                   to="/how-it-works"
-                  className="w-full sm:w-auto px-6 py-3.5 rounded-xl font-semibold text-slate-200 hover:text-white bg-white/10 hover:bg-white/15 border border-white/20 transition-all flex items-center justify-center gap-2 text-base"
+                  className="w-full sm:w-auto px-6 py-3.5 rounded-xl font-semibold text-[#0F766E] bg-white hover:bg-emerald-50/50 border border-[#CBD5E1] transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
                 >
-                  <HelpCircle className="w-4 h-4" />
+                  <Info className="w-5 h-5 text-[#0F766E]" />
                   <span>How It Works</span>
                 </Link>
               </div>
-
-              {/* Trust Indicators */}
-              <div className="grid grid-cols-3 gap-4 pt-6 border-t border-slate-700/60 max-w-lg mx-auto lg:mx-0 text-left">
-                <div>
-                  <div className="text-xl sm:text-2xl font-bold text-white">100%</div>
-                  <div className="text-xs text-slate-400">Statutory Rule Base</div>
-                </div>
-                <div>
-                  <div className="text-xl sm:text-2xl font-bold text-emerald-400">0% Fake AI</div>
-                  <div className="text-xs text-slate-400">No Simulated Hallucinations</div>
-                </div>
-                <div>
-                  <div className="text-xl sm:text-2xl font-bold text-white">3 Engines</div>
-                  <div className="text-xs text-slate-400">Health, FSSAI & Metrology</div>
-                </div>
-              </div>
             </div>
 
-            {/* Right Product Illustration / Preview Card */}
-            <div className="lg:col-span-5">
-              <div className="relative mx-auto max-w-md bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-2xl">
-                <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-red-400 inline-block"></span>
-                    <span className="w-3 h-3 rounded-full bg-amber-400 inline-block"></span>
-                    <span className="w-3 h-3 rounded-full bg-emerald-400 inline-block"></span>
-                  </div>
-                  <span className="text-xs font-mono text-slate-300">Label Analysis Engine</span>
-                </div>
-
-                {/* Simulated Label Preview */}
-                <div className="space-y-3 bg-[#F4F8F8] rounded-xl p-4 text-[#123044]">
-                  <div className="flex items-start justify-between">
+            {/* Right Product Mockup with 3 Floating Status Cards */}
+            <div className="lg:col-span-5 relative flex items-center justify-center">
+              <div className="relative w-full max-w-md mx-auto">
+                {/* Packaged Food Product Mockup Image */}
+                <div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl border border-slate-100 bg-linear-to-b from-amber-50/50 to-orange-50/50 p-4">
+                  <img
+                    src="https://images.unsplash.com/photo-1612927601601-6638404737ce?w=800&auto=format&fit=crop&q=80"
+                    alt="Sample Packaged Food Noodle Bowl"
+                    className="w-full h-80 sm:h-96 object-cover rounded-2xl transform hover:scale-[1.02] transition-transform duration-300"
+                  />
+                  <div className="absolute bottom-6 left-6 right-6 p-3 rounded-xl bg-black/60 backdrop-blur-md text-white flex items-center justify-between">
                     <div>
-                      <span className="text-xs font-bold text-[#0F766E] uppercase tracking-wide">Sample Packaged Snack</span>
-                      <h3 className="font-bold text-base text-[#123044]">Haldiram's Bhujia Sev</h3>
+                      <p className="text-xs font-semibold text-emerald-300">Sample Scan Preview</p>
+                      <p className="text-sm font-bold truncate">2-Minute Instant Noodles</p>
                     </div>
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
-                      Vegetarian
+                    <span className="text-[11px] font-semibold bg-white/20 px-2 py-0.5 rounded-md">
+                      Verified OCR
                     </span>
                   </div>
+                </div>
 
-                  <div className="p-2.5 rounded-lg bg-white border border-[#DCE5E5] text-xs space-y-1">
-                    <span className="font-semibold text-slate-600 block">Extracted Ingredients:</span>
-                    <p className="text-slate-800 line-clamp-2">
-                      Moth Dal Flour, Gram Flour, Edible Vegetable Oil (Palmolein), Salt, Red Chilli, Citric Acid (INS 330)...
-                    </p>
+                {/* Floating Card 1: Health Analysis (Moderate) */}
+                <div className="absolute -top-4 -right-4 sm:-right-6 z-20 bg-white rounded-2xl p-3.5 shadow-xl border border-slate-100 flex items-center gap-3 animate-bounce [animation-duration:4s]">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-50 text-[#087F5B] flex items-center justify-center border border-emerald-100">
+                    <Heart className="w-5 h-5 fill-[#087F5B]/20" />
                   </div>
-
-                  {/* 3 Quick Status Indicators */}
-                  <div className="space-y-2 pt-1">
-                    <div className="flex items-center justify-between p-2 rounded-lg bg-[#EBFBEE] border border-[#C3FAE8] text-xs">
-                      <div className="flex items-center gap-1.5 text-[#087F5B] font-semibold">
-                        <HeartPulse className="w-4 h-4" />
-                        <span>Health Analysis</span>
-                      </div>
-                      <span className="text-[#087F5B] font-bold">2 Allergens • 1 Additive</span>
-                    </div>
-
-                    <div className="flex items-center justify-between p-2 rounded-lg bg-[#EBF3FF] border border-[#D0EBFF] text-xs">
-                      <div className="flex items-center gap-1.5 text-[#315DB5] font-semibold">
-                        <ClipboardCheck className="w-4 h-4" />
-                        <span>FSSAI Labelling</span>
-                      </div>
-                      <span className="text-[#315DB5] font-bold">100% Compliant</span>
-                    </div>
-
-                    <div className="flex items-center justify-between p-2 rounded-lg bg-[#FFF9DB] border border-[#FFE066] text-xs">
-                      <div className="flex items-center gap-1.5 text-[#9A6712] font-semibold">
-                        <Scale className="w-4 h-4" />
-                        <span>Legal Metrology</span>
-                      </div>
-                      <span className="text-[#9A6712] font-bold">Rule 6 Verified</span>
-                    </div>
+                  <div>
+                    <p className="text-xs font-bold text-[#123044]">Health Analysis</p>
+                    <span className="inline-block mt-0.5 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                      Moderate
+                    </span>
                   </div>
                 </div>
 
-                <div className="mt-4 text-center">
-                  <Link
-                    to="/scan"
-                    className="text-xs font-semibold text-emerald-300 hover:text-emerald-200 inline-flex items-center gap-1"
-                  >
-                    Try live scanning with your product label <ChevronRight className="w-3.5 h-3.5" />
-                  </Link>
+                {/* Floating Card 2: FSSAI Labelling (2 items missing) */}
+                <div className="absolute top-1/2 -right-4 sm:-right-8 -translate-y-1/2 z-20 bg-white rounded-2xl p-3.5 shadow-xl border border-slate-100 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#1E40AF] flex items-center justify-center border border-blue-100">
+                    <FileText className="w-5 h-5 text-[#1E40AF]" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-[#123044]">FSSAI Labelling</p>
+                    <span className="inline-block mt-0.5 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200">
+                      2 items missing
+                    </span>
+                  </div>
+                </div>
+
+                {/* Floating Card 3: Legal Metrology (Compliant) */}
+                <div className="absolute -bottom-4 -left-4 sm:-left-6 z-20 bg-white rounded-2xl p-3.5 shadow-xl border border-slate-100 flex items-center gap-3 animate-bounce [animation-duration:5s]">
+                  <div className="w-9 h-9 rounded-xl bg-amber-50 text-[#9A6712] flex items-center justify-center border border-amber-100">
+                    <Scale className="w-5 h-5 text-[#9A6712]" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-[#123044]">Legal Metrology</p>
+                    <span className="inline-block mt-0.5 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      Compliant
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* Feature Cards Section (The 3 Core Modules) */}
-      <section className="py-16 sm:py-24 bg-[#F4F8F8] w-full">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          <div className="text-center max-w-3xl mx-auto space-y-3">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#123044] tracking-tight">
-              Three Specialized Screening Engines
-            </h2>
-            <p className="text-[#64748B] text-base sm:text-lg">
-              Never mixed, never confused. Nirikshan AI strictly separates nutritional health impact from statutory labelling compliance.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Card 1: Health Analysis (Green) */}
-            <div className="bg-white rounded-2xl border-2 border-[#C3FAE8] p-8 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="w-14 h-14 rounded-2xl bg-[#EBFBEE] text-[#087F5B] flex items-center justify-center shadow-inner">
-                  <HeartPulse className="w-7 h-7" />
-                </div>
-                <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#087F5B]">Module 1</span>
-                  <h3 className="text-2xl font-bold text-[#123044] mt-1">Health & Ingredient Safety</h3>
-                </div>
-                <p className="text-sm text-[#64748B] leading-relaxed">
-                  Deciphers complex chemical names, aliases (Maida, Palmolein), INS additives, and distinguishes declared recipe allergens (CONTAINS) from cross-contamination warnings (MAY CONTAIN).
-                </p>
-                <ul className="space-y-2 text-xs text-[#123044] pt-2">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#087F5B]" />
-                    <span>WHO & ICMR evidence-backed benchmarks</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#087F5B]" />
-                    <span>Multi-jurisdiction additive status (India, EU, US)</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#087F5B]" />
-                    <span>Serving size & daily sugar/sodium thresholds</span>
-                  </li>
-                </ul>
-              </div>
-              <div className="pt-6 mt-6 border-t border-[#DCE5E5]">
-                <Link
-                  to="/scan"
-                  className="text-sm font-bold text-[#087F5B] hover:text-[#065A40] inline-flex items-center gap-1.5"
-                >
-                  Explore Health Analysis <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </div>
-
-            {/* Card 2: FSSAI Labelling (Blue) */}
-            <div className="bg-white rounded-2xl border-2 border-[#D0EBFF] p-8 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="w-14 h-14 rounded-2xl bg-[#EBF3FF] text-[#315DB5] flex items-center justify-center shadow-inner">
-                  <ClipboardCheck className="w-7 h-7" />
-                </div>
-                <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#315DB5]">Module 2</span>
-                  <h3 className="text-2xl font-bold text-[#123044] mt-1">FSSAI Labelling Compliance</h3>
-                </div>
-                <p className="text-sm text-[#64748B] leading-relaxed">
-                  Audits packaged foods against the Food Safety and Standards (Labelling and Display) Regulations, 2020. Evaluates mandatory declarations without jumping to false conclusions.
-                </p>
-                <ul className="space-y-2 text-xs text-[#123044] pt-2">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#315DB5]" />
-                    <span>FSSAI 14-digit license number and logo check</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#315DB5]" />
-                    <span>Veg / Non-Veg statutory symbol placement</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#315DB5]" />
-                    <span>Descending order ingredient listing audit</span>
-                  </li>
-                </ul>
-              </div>
-              <div className="pt-6 mt-6 border-t border-[#DCE5E5]">
-                <Link
-                  to="/scan"
-                  className="text-sm font-bold text-[#315DB5] hover:text-[#214389] inline-flex items-center gap-1.5"
-                >
-                  Explore FSSAI Labelling <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </div>
-
-            {/* Card 3: Legal Metrology (Golden) */}
-            <div className="bg-white rounded-2xl border-2 border-[#FFE066] p-8 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="w-14 h-14 rounded-2xl bg-[#FFF9DB] text-[#9A6712] flex items-center justify-center shadow-inner">
-                  <Scale className="w-7 h-7" />
-                </div>
-                <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#9A6712]">Module 3</span>
-                  <h3 className="text-2xl font-bold text-[#123044] mt-1">Legal Metrology Compliance</h3>
-                </div>
-                <p className="text-sm text-[#64748B] leading-relaxed">
-                  Verifies package declarations under Rule 6 of the Legal Metrology (Packaged Commodities) Rules, 2011. Checks MRP format, metric net quantity, and manufacturer address.
-                </p>
-                <ul className="space-y-2 text-xs text-[#123044] pt-2">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#9A6712]" />
-                    <span>Rule 6(1)(a)-(e) mandatory declarations</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#9A6712]" />
-                    <span>Standard metric unit formats (g, kg, ml, l)</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#9A6712]" />
-                    <span>Consumer grievance contact & manufacturing dates</span>
-                  </li>
-                </ul>
-              </div>
-              <div className="pt-6 mt-6 border-t border-[#DCE5E5]">
-                <Link
-                  to="/scan"
-                  className="text-sm font-bold text-[#9A6712] hover:text-[#6D490B] inline-flex items-center gap-1.5"
-                >
-                  Explore Legal Metrology <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3-Step Workflow Section */}
-      <section className="py-16 sm:py-20 bg-white border-y border-[#DCE5E5] w-full">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          <div className="text-center max-w-2xl mx-auto space-y-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#0F766E]">Simple & Transparent</span>
-            <h2 className="text-3xl font-extrabold text-[#123044]">How Nirikshan AI Works</h2>
-            <p className="text-[#64748B] text-base">
-              From camera snap to comprehensive statutory screening in three straightforward steps.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-            {/* Step 1 */}
-            <div className="p-6 rounded-2xl bg-[#F4F8F8] border border-[#DCE5E5] space-y-4 text-center sm:text-left">
-              <div className="w-12 h-12 rounded-xl bg-[#0F766E] text-white flex items-center justify-center font-bold text-lg shadow-md mx-auto sm:mx-0">
-                1
-              </div>
-              <h3 className="text-xl font-bold text-[#123044]">Upload Food Label</h3>
-              <p className="text-sm text-[#64748B] leading-relaxed">
-                Take a photo or upload an image of the ingredient list and nutritional table. OpenCV immediately validates sharpness and lighting.
-              </p>
-            </div>
-
-            {/* Step 2 */}
-            <div className="p-6 rounded-2xl bg-[#F4F8F8] border border-[#DCE5E5] space-y-4 text-center sm:text-left">
-              <div className="w-12 h-12 rounded-xl bg-[#0F766E] text-white flex items-center justify-center font-bold text-lg shadow-md mx-auto sm:mx-0">
-                2
-              </div>
-              <h3 className="text-xl font-bold text-[#123044]">Extract & Review Text</h3>
-              <p className="text-sm text-[#64748B] leading-relaxed">
-                OCR extracts text with bounding boxes. You can inspect and correct any blurred or uncertain lines before final report generation.
-              </p>
-            </div>
-
-            {/* Step 3 */}
-            <div className="p-6 rounded-2xl bg-[#F4F8F8] border border-[#DCE5E5] space-y-4 text-center sm:text-left">
-              <div className="w-12 h-12 rounded-xl bg-[#0F766E] text-white flex items-center justify-center font-bold text-lg shadow-md mx-auto sm:mx-0">
-                3
-              </div>
-              <h3 className="text-xl font-bold text-[#123044]">Review Divided Reports</h3>
-              <p className="text-sm text-[#64748B] leading-relaxed">
-                Explore separate, evidence-backed reports for Health, FSSAI Labelling, and Legal Metrology Rule 6 with cited legal sections.
-              </p>
-            </div>
-          </div>
-
-          <div className="text-center pt-4">
+          {/* 3 Core Modules Preview Bar matching Mockup Screen 1 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-16">
+            {/* Module 1: Health Analysis */}
             <Link
               to="/scan"
-              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-base font-bold text-white bg-[#0F766E] hover:bg-[#0D655E] shadow-sm transition-all"
+              className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm hover:shadow-md hover:border-[#087F5B]/40 transition-all flex items-center justify-between group"
             >
-              <Sparkles className="w-5 h-5 text-emerald-200" />
-              <span>Start Your First Scan</span>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-[#087F5B] text-white flex items-center justify-center shadow-md shadow-[#087F5B]/20 shrink-0">
+                  <Heart className="w-6 h-6 fill-white/20" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-[#123044] group-hover:text-[#087F5B] transition-colors">
+                    Health Analysis
+                  </h3>
+                  <p className="text-xs text-[#64748B] mt-0.5">
+                    Ingredients, Nutrition, Allergens & Health Insights
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-[#94A3B8] group-hover:text-[#087F5B] group-hover:translate-x-1 transition-all shrink-0 ml-2" />
+            </Link>
+
+            {/* Module 2: FSSAI Labelling */}
+            <Link
+              to="/scan"
+              className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm hover:shadow-md hover:border-[#1E40AF]/40 transition-all flex items-center justify-between group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-[#1E40AF] text-white flex items-center justify-center shadow-md shadow-[#1E40AF]/20 shrink-0">
+                  <FileText className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-[#123044] group-hover:text-[#1E40AF] transition-colors">
+                    FSSAI Labelling
+                  </h3>
+                  <p className="text-xs text-[#64748B] mt-0.5">
+                    Check mandatory declarations as per FSS (Labelling) Regulations
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-[#94A3B8] group-hover:text-[#1E40AF] group-hover:translate-x-1 transition-all shrink-0 ml-2" />
+            </Link>
+
+            {/* Module 3: Legal Metrology */}
+            <Link
+              to="/scan"
+              className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm hover:shadow-md hover:border-[#9A6712]/40 transition-all flex items-center justify-between group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-[#9A6712] text-white flex items-center justify-center shadow-md shadow-[#9A6712]/20 shrink-0">
+                  <Scale className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-[#123044] group-hover:text-[#9A6712] transition-colors">
+                    Legal Metrology
+                  </h3>
+                  <p className="text-xs text-[#64748B] mt-0.5">
+                    MRP, Net Quantity, Manufacturer details and more
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-[#94A3B8] group-hover:text-[#9A6712] group-hover:translate-x-1 transition-all shrink-0 ml-2" />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* About Section */}
-      <section className="py-16 sm:py-20 bg-[#F4F8F8] w-full">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-2xl border border-[#DCE5E5] p-8 sm:p-12 shadow-sm grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            <div className="lg:col-span-8 space-y-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#0F766E]">About Nirikshan AI</span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#123044]">
-                Built for Food Transparency in India
-              </h2>
-              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
-                Packaged food in India is governed by rigorous legal frameworks, yet consumers and small businesses often struggle to interpret chemical additives, allergen statements, and mandatory declaration rules. Nirikshan AI bridges this gap with deterministic rule engines, open nutrition databases (Open Food Facts), and statutory references from FSSAI and the Department of Consumer Affairs.
+      {/* Trust & Methodology Section */}
+      <section className="py-16 bg-[#F8FAFC] border-t border-[#E2E8F0]">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          <div className="text-center max-w-2xl mx-auto space-y-3">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#123044]">
+              How Nirikshan AI Evaluates Packaged Food
+            </h2>
+            <p className="text-sm text-[#64748B]">
+              Every assessment is deterministically backed by official statutory gazettes and ICMR clinical evidence.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-white p-6 rounded-2xl border border-[#E2E8F0] shadow-sm space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-[#087F5B] flex items-center justify-center font-bold">
+                1
+              </div>
+              <h3 className="font-bold text-[#123044]">OCR & Section Segmentation</h3>
+              <p className="text-xs text-[#64748B] leading-relaxed">
+                Separates the ingredient panel from nutrition facts, warnings, and commercial manufacturer declarations using layout-aware computer vision.
               </p>
             </div>
-            <div className="lg:col-span-4 flex flex-col gap-3">
-              <div className="p-4 rounded-xl bg-[#F4F8F8] border border-[#DCE5E5] text-xs space-y-1">
-                <span className="font-bold text-[#123044] block">Deterministic Compliance</span>
-                <span className="text-[#64748B]">Legal rulings are based on statutory rules, never hallucinated by large language models.</span>
+
+            <div className="bg-white p-6 rounded-2xl border border-[#E2E8F0] shadow-sm space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#1E40AF] flex items-center justify-center font-bold">
+                2
               </div>
-              <div className="p-4 rounded-xl bg-[#F4F8F8] border border-[#DCE5E5] text-xs space-y-1">
-                <span className="font-bold text-[#123044] block">Evidence-Backed Health</span>
-                <span className="text-[#64748B]">Health insights link directly to official WHO and ICMR published literature.</span>
+              <h3 className="font-bold text-[#123044]">Statutory Rule Engine</h3>
+              <p className="text-xs text-[#64748B] leading-relaxed">
+                Applies FSSAI Labelling Regulations 2020 and Legal Metrology Rule 6 checks without LLM hallucinations or guesswork.
+              </p>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl border border-[#E2E8F0] shadow-sm space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 text-[#9A6712] flex items-center justify-center font-bold">
+                3
               </div>
+              <h3 className="font-bold text-[#123044]">Personalized Health Report</h3>
+              <p className="text-xs text-[#64748B] leading-relaxed">
+                Matches ingredients and nutritional values against family allergy profiles, diabetic thresholds, and hypertensive sodium guidelines.
+              </p>
             </div>
           </div>
         </div>

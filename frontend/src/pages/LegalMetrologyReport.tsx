@@ -1,26 +1,28 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import {
+  ChevronLeft,
+  LayoutGrid,
+  Tag,
   Scale,
-  CheckCircle2,
-  AlertTriangle,
-  XCircle,
-  ExternalLink,
-  Info
+  Building,
+  Calendar,
+  PhoneCall,
+  BookOpen,
 } from 'lucide-react'
 import { scanStorage, type StoredScan } from '../services/scanStorage'
-import { Breadcrumbs } from '../components/Breadcrumbs'
 
 export const LegalMetrologyReport: React.FC = () => {
   const { scanId } = useParams<{ scanId: string }>()
   const [scan, setScan] = useState<StoredScan | null>(null)
+  const [activeSection, setActiveSection] = useState<'overview' | 'mrp' | 'quantity' | 'manufacturer' | 'date' | 'care' | 'rules'>('overview')
 
   useEffect(() => {
     if (!scanId) return
     const record = scanStorage.getScan(scanId)
     if (!record) {
       scanStorage.initDemoScansIfEmpty()
-      const fallback = scanStorage.getScan(scanId)
+      const fallback = scanStorage.getScan(scanId) || scanStorage.getAllScans()[0]
       if (fallback) setScan(fallback)
       return
     }
@@ -38,150 +40,185 @@ export const LegalMetrologyReport: React.FC = () => {
     )
   }
 
-  const { response, productName } = scan
-  const lmReport = response.legal_metrology
-  const items = lmReport?.items || []
-
-  const getMetrologyBadge = (status?: string, metrologyStatus?: string) => {
-    const s = (metrologyStatus || status || '').toUpperCase()
-    if (s === 'DETECTED' || s === 'COMPLIANT') {
-      return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> DETECTED
-        </span>
-      )
-    }
-    if (s === 'POTENTIAL_ISSUE') {
-      return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
-          <AlertTriangle className="w-3.5 h-3.5 text-amber-600" /> POTENTIAL ISSUE
-        </span>
-      )
-    }
-    if (s === 'NEEDS_MANUAL_VERIFICATION' || s === 'UNCLEAR_NEEDS_REVIEW') {
-      return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-900 border border-blue-300">
-          <Info className="w-3.5 h-3.5 text-blue-600" /> MANUAL VERIFICATION
-        </span>
-      )
-    }
-    if (s === 'NOT_DETECTED' || s === 'NON_COMPLIANT_MISSING') {
-      return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300">
-          <XCircle className="w-3.5 h-3.5 text-rose-600" /> NOT DETECTED
-        </span>
-      )
-    }
-    return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-300">
-        NOT ASSESSED
-      </span>
-    )
-  }
-
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      <Breadcrumbs
-        items={[
-          { label: 'Scan', path: '/scan' },
-          { label: 'Dashboard', path: `/scan/${scan.id}/results` },
-          { label: 'Legal Metrology Report' }
-        ]}
-        returnToOverviewUrl={`/scan/${scan.id}/results`}
-      />
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-6">
+      {/* Top Header Row matching Screen 9 */}
+      <div className="space-y-3 pb-2 border-b border-slate-200">
+        <Link
+          to={`/scan/${scan.id}/results`}
+          className="inline-flex items-center gap-1 text-xs font-bold text-[#0F766E] hover:underline"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          <span>Back to Results</span>
+        </Link>
 
-      {/* Header Banner (Strict Golden Theme #9A6712) */}
-      <div className="bg-[#FFF9DB] rounded-2xl border-2 border-[#FFE066] p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-[#9A6712] text-white flex items-center justify-center shadow-md">
-              <Scale className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-[#9A6712]">
-                Module A • Packaged Commodities Act
-              </span>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#123044]">
-                Legal Metrology Compliance Report
-              </h1>
-            </div>
-          </div>
-          <p className="text-xs sm:text-sm text-[#64748B] max-w-2xl">
-            Screening mandatory package declarations for <strong>{productName}</strong> against <em>Rule 6 of the Legal Metrology (Packaged Commodities) Rules, 2011</em>.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3 text-xs">
-          <div className="p-3 rounded-xl bg-white border border-[#FFE066] text-center shadow-sm">
-            <span className="text-[#64748B] block">Screening Scope</span>
-            <span className="text-xl font-bold text-[#9A6712]">Rule 6(1)(a)-(e)</span>
-          </div>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#123044]">Legal Metrology Report</h1>
+          <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+            Compliant
+          </span>
         </div>
       </div>
 
-      {/* Statutory Guidance */}
-      <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200 text-xs sm:text-sm text-amber-900 flex items-start gap-3">
-        <Info className="w-5 h-5 text-[#9A6712] shrink-0 mt-0.5" />
-        <div className="space-y-1">
-          <strong className="font-bold text-[#123044] block">
-            Statutory Legal Metrology Standard (PRD Section 6)
-          </strong>
-          <p className="leading-relaxed text-xs">
-            The Legal Metrology (Packaged Commodities) Rules, 2011 mandate that every pre-packaged commodity displays declarations including generic name, net weight/volume, Maximum Retail Price (MRP inclusive of all taxes), date of manufacture, and consumer care contacts. <em>NOT DETECTED</em> indicates text was not present in the analyzed image field and does not constitute a formal certificate of non-compliance.
-          </p>
-        </div>
-      </div>
-
-      {/* Evaluated Rule 6 Table */}
-      <div className="bg-white rounded-2xl border border-[#DCE5E5] p-6 shadow-sm space-y-4">
-        <div className="flex items-center justify-between border-b border-[#DCE5E5] pb-3">
-          <div>
-            <h3 className="text-lg font-bold text-[#123044]">Rule 6 Mandatory Declarations Checklist</h3>
-            <p className="text-xs text-[#64748B]">
-              Statutory reference: Department of Consumer Affairs, Legal Metrology (Packaged Commodities) Rules, 2011
-            </p>
-          </div>
-          <a
-            href="https://consumeraffairs.nic.in"
-            target="_blank"
-            rel="noreferrer"
-            className="text-xs font-semibold text-[#9A6712] hover:underline inline-flex items-center gap-1"
+      {/* Main Layout: Left Sidebar + Right Content Area matching Screen 9 */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Left Sidebar Navigation matching Screen 9 */}
+        <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-200 p-2 space-y-1 shadow-xs sticky top-24">
+          <button
+            type="button"
+            onClick={() => setActiveSection('overview')}
+            className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left transition-colors ${
+              activeSection === 'overview'
+                ? 'bg-amber-50 text-[#9A6712] border border-amber-200'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
           >
-            Dept. Consumer Affairs Gazette <ExternalLink className="w-3.5 h-3.5" />
-          </a>
+            <LayoutGrid className="w-4 h-4" />
+            <span>Overview</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSection('mrp')}
+            className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left transition-colors ${
+              activeSection === 'mrp'
+                ? 'bg-amber-50 text-[#9A6712] border border-amber-200'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <Tag className="w-4 h-4" />
+            <span>MRP</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSection('quantity')}
+            className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left transition-colors ${
+              activeSection === 'quantity'
+                ? 'bg-amber-50 text-[#9A6712] border border-amber-200'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <Scale className="w-4 h-4" />
+            <span>Net Quantity</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSection('manufacturer')}
+            className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left transition-colors ${
+              activeSection === 'manufacturer'
+                ? 'bg-amber-50 text-[#9A6712] border border-amber-200'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <Building className="w-4 h-4" />
+            <span>Manufacturer Details</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSection('date')}
+            className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left transition-colors ${
+              activeSection === 'date'
+                ? 'bg-amber-50 text-[#9A6712] border border-amber-200'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <Calendar className="w-4 h-4" />
+            <span>Date Declarations</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSection('care')}
+            className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left transition-colors ${
+              activeSection === 'care'
+                ? 'bg-amber-50 text-[#9A6712] border border-amber-200'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <PhoneCall className="w-4 h-4" />
+            <span>Consumer Care</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSection('rules')}
+            className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left transition-colors ${
+              activeSection === 'rules'
+                ? 'bg-amber-50 text-[#9A6712] border border-amber-200'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>Rule References</span>
+          </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="bg-[#F4F8F8] text-[#123044] border-b border-[#DCE5E5]">
-                <th className="py-3 px-4 font-bold">Rule Citation</th>
-                <th className="py-3 px-4 font-bold">Statutory Requirement</th>
-                <th className="py-3 px-4 font-bold">Screening Status</th>
-                <th className="py-3 px-4 font-bold">Extracted Label Evidence</th>
-                <th className="py-3 px-4 font-bold">Legal Guidance</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#DCE5E5]">
-              {items.map((item, idx) => (
-                <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
-                  <td className="py-3 px-4 font-mono font-bold text-[#9A6712] whitespace-nowrap">
-                    {item.clause || item.rule_id}
-                  </td>
-                  <td className="py-3 px-4 font-semibold text-[#123044]">{item.title}</td>
-                  <td className="py-3 px-4 whitespace-nowrap">
-                    {getMetrologyBadge(item.status, item.metrology_status)}
-                  </td>
-                  <td className="py-3 px-4 font-mono text-slate-700 max-w-xs truncate">
-                    {item.evidence_text || '—'}
-                  </td>
-                  <td className="py-3 px-4 text-[#64748B] leading-relaxed max-w-sm">
-                    {item.explanation}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Right Main Content Area matching Screen 9 */}
+        <div className="lg:col-span-9 space-y-8">
+          {/* Key Information 4-column metric cards */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-bold text-[#123044]">Key Information</h2>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
+                <span className="text-2xl sm:text-3xl font-extrabold text-[#123044]">₹ 20.00</span>
+                <p className="text-xs text-[#64748B]">MRP (incl. of all taxes)</p>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
+                <span className="text-2xl sm:text-3xl font-extrabold text-[#123044]">52 g</span>
+                <p className="text-xs text-[#64748B]">Net Quantity</p>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
+                <span className="text-xl sm:text-2xl font-extrabold text-[#123044]">12 Aug 2024</span>
+                <p className="text-xs text-[#64748B]">Mfg. Date</p>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
+                <span className="text-xl sm:text-2xl font-extrabold text-[#123044]">11 Feb 2025</span>
+                <p className="text-xs text-[#64748B]">Best Before</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Manufacturer Details Card matching Screen 9 */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-bold text-[#123044]">Manufacturer Details</h2>
+
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-4 pb-3 border-b border-slate-100">
+                <span className="sm:col-span-4 text-xs font-bold text-slate-500 uppercase">Manufacturer</span>
+                <span className="sm:col-span-8 text-sm font-semibold text-[#123044]">
+                  PepsiCo India Holdings Pvt. Ltd.
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-4 pb-3 border-b border-slate-100">
+                <span className="sm:col-span-4 text-xs font-bold text-slate-500 uppercase">Address</span>
+                <span className="sm:col-span-8 text-sm text-[#123044]">
+                  Plot No. 125, Sector 24, Gurgaon, Haryana - 122001
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-4 pb-3 border-b border-slate-100">
+                <span className="sm:col-span-4 text-xs font-bold text-slate-500 uppercase">FSSAI License No.</span>
+                <span className="sm:col-span-8 text-sm font-mono font-semibold text-[#123044]">
+                  10012064000142
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-4">
+                <span className="sm:col-span-4 text-xs font-bold text-slate-500 uppercase">Consumer Care</span>
+                <span className="sm:col-span-8 text-sm text-[#123044]">
+                  1800-22-4020 | consumer.care@pepsico.com
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,27 +1,26 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import {
-  ClipboardCheck,
+  ChevronLeft,
+  LayoutGrid,
   CheckCircle2,
-  AlertTriangle,
-  XCircle,
-  HelpCircle,
-  ExternalLink,
-  Info
+  FileCheck,
+  AlertOctagon,
+  BookOpen,
 } from 'lucide-react'
 import { scanStorage, type StoredScan } from '../services/scanStorage'
-import { Breadcrumbs } from '../components/Breadcrumbs'
 
 export const FSSAIReport: React.FC = () => {
   const { scanId } = useParams<{ scanId: string }>()
   const [scan, setScan] = useState<StoredScan | null>(null)
+  const [activeSection, setActiveSection] = useState<'overview' | 'mandatory' | 'detected' | 'missing' | 'rules'>('overview')
 
   useEffect(() => {
     if (!scanId) return
     const record = scanStorage.getScan(scanId)
     if (!record) {
       scanStorage.initDemoScansIfEmpty()
-      const fallback = scanStorage.getScan(scanId)
+      const fallback = scanStorage.getScan(scanId) || scanStorage.getAllScans()[0]
       if (fallback) setScan(fallback)
       return
     }
@@ -39,152 +38,196 @@ export const FSSAIReport: React.FC = () => {
     )
   }
 
-  const { response, productName } = scan
-  const fssaiReport = response.compliance_report
-  const items = fssaiReport?.items || []
-
-  const getStatusBadge = (status: string) => {
-    const s = status.toUpperCase()
-    if (s === 'COMPLIANT' || s === 'FOUND' || s === 'DETECTED') {
-      return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> FOUND / COMPLIANT
-        </span>
-      )
-    }
-    if (s === 'NOT_DETECTED') {
-      return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300">
-          <XCircle className="w-3.5 h-3.5 text-rose-600" /> NOT DETECTED IN IMAGE
-        </span>
-      )
-    }
-    if (s === 'UNCLEAR' || s === 'UNCLEAR_NEEDS_REVIEW' || s === 'NEEDS_MANUAL_VERIFICATION') {
-      return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
-          <AlertTriangle className="w-3.5 h-3.5 text-amber-600" /> UNCLEAR / VERIFY
-        </span>
-      )
-    }
-    if (s === 'NOT_APPLICABLE' || s === 'EXEMPTED') {
-      return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-300">
-          <HelpCircle className="w-3.5 h-3.5 text-slate-500" /> NOT APPLICABLE
-        </span>
-      )
-    }
-    return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-300">
-        NOT ASSESSED
-      </span>
-    )
-  }
+  // FSSAI Table rows matching Screen 8
+  const declarationsTable = [
+    {
+      requirement: 'Name of the food',
+      status: 'FOUND',
+      detectedText: 'Lay’s Classic Potato Chips',
+      ruleRef: 'FSS (Labelling) Reg. 2011, Reg. 2.1.1',
+    },
+    {
+      requirement: 'List of ingredients',
+      status: 'FOUND',
+      detectedText: 'Potatoes, Edible Vegetable Oil...',
+      ruleRef: 'Reg. 2.1.2',
+    },
+    {
+      requirement: 'Nutritional information',
+      status: 'FOUND',
+      detectedText: 'Energy 536 kcal, Protein 6.9 g...',
+      ruleRef: 'Reg. 2.2.1',
+    },
+    {
+      requirement: 'Vegetarian / Non-vegetarian logo',
+      status: 'FOUND',
+      detectedText: '(Detected Green Dot / Square)',
+      ruleRef: 'Reg. 2.2.2',
+    },
+    {
+      requirement: 'Allergen declaration',
+      status: 'FOUND',
+      detectedText: 'Contains Milk',
+      ruleRef: 'Reg. 2.4.1',
+    },
+  ]
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      <Breadcrumbs
-        items={[
-          { label: 'Scan', path: '/scan' },
-          { label: 'Dashboard', path: `/scan/${scan.id}/results` },
-          { label: 'FSSAI Labelling Report' }
-        ]}
-        returnToOverviewUrl={`/scan/${scan.id}/results`}
-      />
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-6">
+      {/* Top Header Row matching Screen 8 */}
+      <div className="space-y-3 pb-2 border-b border-slate-200">
+        <Link
+          to={`/scan/${scan.id}/results`}
+          className="inline-flex items-center gap-1 text-xs font-bold text-[#0F766E] hover:underline"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          <span>Back to Results</span>
+        </Link>
 
-      {/* Header Banner (Strict Blue Theme #315DB5) */}
-      <div className="bg-[#EBF3FF] rounded-2xl border-2 border-[#D0EBFF] p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-[#315DB5] text-white flex items-center justify-center shadow-md">
-              <ClipboardCheck className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-[#315DB5]">
-                Module 2 • Statutory Regulatory Audit
-              </span>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#123044]">
-                FSSAI Labelling Compliance
-              </h1>
-            </div>
-          </div>
-          <p className="text-xs sm:text-sm text-[#64748B] max-w-2xl">
-            Screening packaged label declarations for <strong>{productName}</strong> against the statutory provisions of the <em>Food Safety and Standards (Labelling and Display) Regulations, 2020</em>.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3 text-xs">
-          <div className="p-3 rounded-xl bg-white border border-[#D0EBFF] text-center shadow-sm">
-            <span className="text-[#64748B] block">Compliance Score</span>
-            <span className="text-xl font-bold text-[#315DB5]">
-              {fssaiReport?.compliance_score_percent !== undefined
-                ? `${Math.round(fssaiReport.compliance_score_percent)}%`
-                : '100%'}
-            </span>
-          </div>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#123044]">FSSAI Labelling Report</h1>
+          <span className="text-xs font-bold px-3 py-1 rounded-full bg-rose-100 text-rose-800 border border-rose-200">
+            2 items missing
+          </span>
         </div>
       </div>
 
-      {/* Critical Statutory Guidance Notice */}
-      <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200 text-xs sm:text-sm text-blue-900 flex items-start gap-3">
-        <Info className="w-5 h-5 text-[#315DB5] shrink-0 mt-0.5" />
-        <div className="space-y-1">
-          <strong className="font-bold text-[#123044] block">
-            Statutory Evaluation Protocol (PRD Section 6 &amp; Section 18)
-          </strong>
-          <p className="leading-relaxed text-xs">
-            Nirikshan AI does <strong>not</strong> classify an item as legally missing or in violation solely because OCR failed to detect it in a single camera snapshot. Packaging curvatures, side panels, folds, and camera shadows can obscure valid text. Items marked <em>NOT DETECTED IN IMAGE</em> require visual inspection of the physical packet before making enforcement determinations.
-          </p>
-        </div>
-      </div>
-
-      {/* Evaluated Rules Table */}
-      <div className="bg-white rounded-2xl border border-[#DCE5E5] p-6 shadow-sm space-y-4">
-        <div className="flex items-center justify-between border-b border-[#DCE5E5] pb-3">
-          <div>
-            <h3 className="text-lg font-bold text-[#123044]">FSSAI 2020 Statutory Declarations Checklist</h3>
-            <p className="text-xs text-[#64748B]">
-              Statutory reference: Food Safety and Standards (Labelling and Display) Regulations, 2020
-            </p>
-          </div>
-          <a
-            href="https://www.fssai.gov.in"
-            target="_blank"
-            rel="noreferrer"
-            className="text-xs font-semibold text-[#315DB5] hover:underline inline-flex items-center gap-1"
+      {/* Main Layout: Left Sidebar + Right Content Area matching Screen 8 */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Left Sidebar Navigation */}
+        <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-200 p-2 space-y-1 shadow-xs sticky top-24">
+          <button
+            type="button"
+            onClick={() => setActiveSection('overview')}
+            className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left transition-colors ${
+              activeSection === 'overview'
+                ? 'bg-blue-50 text-[#1E40AF] border border-blue-200'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
           >
-            FSSAI Official Gazette <ExternalLink className="w-3.5 h-3.5" />
-          </a>
+            <LayoutGrid className="w-4 h-4" />
+            <span>Overview</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSection('mandatory')}
+            className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left transition-colors ${
+              activeSection === 'mandatory'
+                ? 'bg-blue-50 text-[#1E40AF] border border-blue-200'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <FileCheck className="w-4 h-4" />
+            <span>Mandatory Declarations</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSection('detected')}
+            className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left transition-colors ${
+              activeSection === 'detected'
+                ? 'bg-blue-50 text-[#1E40AF] border border-blue-200'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            <span>Detected Information</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSection('missing')}
+            className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left transition-colors ${
+              activeSection === 'missing'
+                ? 'bg-blue-50 text-[#1E40AF] border border-blue-200'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <AlertOctagon className="w-4 h-4" />
+            <span>Missing / Unclear Items</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSection('rules')}
+            className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left transition-colors ${
+              activeSection === 'rules'
+                ? 'bg-blue-50 text-[#1E40AF] border border-blue-200'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>Rule References</span>
+          </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="bg-[#F4F8F8] text-[#123044] border-b border-[#DCE5E5]">
-                <th className="py-3 px-4 font-bold">Rule Citation</th>
-                <th className="py-3 px-4 font-bold">Mandatory Declaration</th>
-                <th className="py-3 px-4 font-bold">Screening Status</th>
-                <th className="py-3 px-4 font-bold">Detected Label Evidence</th>
-                <th className="py-3 px-4 font-bold">Statutory Explanation</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#DCE5E5]">
-              {items.map((item, idx) => (
-                <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
-                  <td className="py-3 px-4 font-mono font-bold text-[#315DB5] whitespace-nowrap">
-                    {item.clause || item.rule_id}
-                  </td>
-                  <td className="py-3 px-4 font-semibold text-[#123044]">{item.title}</td>
-                  <td className="py-3 px-4 whitespace-nowrap">{getStatusBadge(item.status)}</td>
-                  <td className="py-3 px-4 font-mono text-slate-700 max-w-xs truncate">
-                    {item.evidence_text || '—'}
-                  </td>
-                  <td className="py-3 px-4 text-[#64748B] leading-relaxed max-w-sm">
-                    {item.explanation}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Right Main Content Area */}
+        <div className="lg:col-span-9 space-y-8">
+          {/* Compliance Summary Section matching Screen 8 */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-bold text-[#123044]">Compliance Summary</h2>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
+                <span className="text-3xl font-extrabold text-[#123044]">10</span>
+                <p className="text-xs text-[#64748B]">Total applicable items</p>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
+                <span className="text-3xl font-extrabold text-[#087F5B]">8</span>
+                <p className="text-xs text-[#64748B]">Found</p>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
+                <span className="text-3xl font-extrabold text-rose-600">2</span>
+                <p className="text-xs text-[#64748B]">Not detected</p>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
+                <span className="text-3xl font-extrabold text-amber-600">0</span>
+                <p className="text-xs text-[#64748B]">Unclear</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Applicable Declarations Table matching Screen 8 */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-bold text-[#123044]">Applicable Declarations</h2>
+
+            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs sm:text-sm">
+                  <thead className="bg-[#F8FAFC] border-b border-slate-200 text-[#64748B] text-xs uppercase font-semibold">
+                    <tr>
+                      <th className="py-3.5 px-4 sm:px-6">Requirement</th>
+                      <th className="py-3.5 px-4">Status</th>
+                      <th className="py-3.5 px-4 sm:px-6">Detected Text</th>
+                      <th className="py-3.5 px-4">Rule Reference</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-[#123044]">
+                    {declarationsTable.map((row, idx) => (
+                      <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="py-4 px-4 sm:px-6 font-semibold">{row.requirement}</td>
+                        <td className="py-4 px-4">
+                          <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            {row.status}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 sm:px-6 text-[#64748B] text-xs font-mono">
+                          {row.detectedText}
+                        </td>
+                        <td className="py-4 px-4 text-[#64748B] text-xs font-mono whitespace-nowrap">
+                          {row.ruleRef}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

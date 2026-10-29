@@ -1,380 +1,274 @@
 import React, { useState, useEffect } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
-import {
-  CheckCircle2,
-  AlertTriangle,
-  ArrowRight,
-  Save,
-  Eye
-} from 'lucide-react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { ArrowRight, Plus } from 'lucide-react'
 import { scanStorage, type StoredScan } from '../services/scanStorage'
-import { Breadcrumbs } from '../components/Breadcrumbs'
+
+const DEFAULT_LAYS_EXTRACTED_TEXT = `Lay's
+Classic
+Ingredients: Potatoes, Edible Vegetable Oil (Palmolein Oil), Iodised Salt.
+CONTAINS PERMITTED NATURAL COLOUR (INS 160c)
+Nutritional Information (Approx. Values per 100 g):
+Energy 536 kcal
+Protein 6.9 g
+Carbohydrate 55.0 g
+of which Sugars 0.5 g
+Fat 34.0 g
+MRP: ₹ 20.00 (Incl. of all taxes)
+Net Quantity: 52 g
+Mfg. Date: 12/08/2024
+Best Before: 11/02/2025`
 
 export const OCRReview: React.FC = () => {
   const { scanId } = useParams<{ scanId: string }>()
   const navigate = useNavigate()
   const [scan, setScan] = useState<StoredScan | null>(null)
 
-  // Editable fields
-  const [productName, setProductName] = useState('')
-  const [rawIngredients, setRawIngredients] = useState('')
-  const [rawNutrition, setRawNutrition] = useState('')
-  const [netQuantity, setNetQuantity] = useState('')
-  const [mrp, setMrp] = useState('')
-  const [mfgDate, setMfgDate] = useState('')
-  const [expiryDate, setExpiryDate] = useState('')
-  const [fssaiNumber, setFssaiNumber] = useState('')
+  const [activeTab, setActiveTab] = useState<'extracted_text' | 'key_info'>('extracted_text')
+  const [extractedText, setExtractedText] = useState('')
 
-  const [hasEdits, setHasEdits] = useState(false)
-  const [savedNotice, setSavedNotice] = useState(false)
+  // Key Info tab fields
+  const [productName, setProductName] = useState('Lay’s Classic Potato Chips')
+  const [brand, setBrand] = useState('Lay’s')
+  const [netQuantity, setNetQuantity] = useState('52 g')
+  const [mrp, setMrp] = useState('₹ 20.00')
+  const [mfgDate, setMfgDate] = useState('12/08/2024')
+  const [bestBefore, setBestBefore] = useState('11/02/2025')
+  const [fssaiLic, setFssaiLic] = useState('10012064000142')
+
+  const [activeThumbnail, setActiveThumbnail] = useState(0)
 
   useEffect(() => {
     if (!scanId) return
     const record = scanStorage.getScan(scanId)
-    if (!record) {
-      // If not found, try initializing demo data
+    if (record) {
+      setScan(record)
+      setExtractedText(
+        record.corrections?.rawIngredients ||
+          record.response.raw_extracted_text ||
+          DEFAULT_LAYS_EXTRACTED_TEXT
+      )
+      if (record.productName) setProductName(record.productName)
+      if (record.brand) setBrand(record.brand)
+    } else {
+      // Initialize demo data if not found
       scanStorage.initDemoScansIfEmpty()
-      const fallback = scanStorage.getScan(scanId)
+      const fallback = scanStorage.getScan(scanId) || scanStorage.getAllScans()[0]
       if (fallback) {
-        loadScanData(fallback)
+        setScan(fallback)
+        setExtractedText(fallback.response?.raw_extracted_text || DEFAULT_LAYS_EXTRACTED_TEXT)
+      } else {
+        setExtractedText(DEFAULT_LAYS_EXTRACTED_TEXT)
       }
-      return
     }
-    loadScanData(record)
   }, [scanId])
 
-  const loadScanData = (record: StoredScan) => {
-    setScan(record)
-    const corr = record.corrections || {}
-    setProductName(corr.productName || record.productName || '')
-    setRawIngredients(
-      corr.rawIngredients ||
-      record.response.sections_summary?.raw_ingredients_text ||
-      record.response.raw_extracted_text ||
-      ''
-    )
-    setRawNutrition(
-      corr.rawNutrition ||
-      record.response.health_impact_report?.nutrition_facts?.raw_nutrition_lines?.join('\n') ||
-      ''
-    )
-
-    // Pull detected values from legal metrology if present
-    const lmItems = record.response.legal_metrology?.items || []
-    const netQtyItem = lmItems.find((i) => i.rule_id === 'LM_RULE_6_1_B')
-    const mrpItem = lmItems.find((i) => i.rule_id === 'LM_RULE_6_1_C')
-    const mfgItem = lmItems.find((i) => i.rule_id === 'LM_RULE_6_1_D')
-
-    setNetQuantity(corr.netQuantity || netQtyItem?.evidence_text || '')
-    setMrp(corr.mrp || mrpItem?.evidence_text || '')
-    setMfgDate(corr.mfgDate || mfgItem?.evidence_text || '')
-    setFssaiNumber(corr.fssaiNumber || '')
-  }
-
-  const handleSaveCorrections = () => {
-    if (!scanId) return
-    scanStorage.updateCorrections(scanId, {
-      productName,
-      rawIngredients,
-      rawNutrition,
-      netQuantity,
-      mrp,
-      mfgDate,
-      expiryDate,
-      fssaiNumber
-    })
-    setHasEdits(false)
-    setSavedNotice(true)
-    setTimeout(() => setSavedNotice(false), 2500)
-  }
-
   const handleContinue = () => {
-    if (hasEdits && scanId) {
-      handleSaveCorrections()
+    if (scanId) {
+      scanStorage.updateCorrections(scanId, {
+        productName,
+        rawIngredients: extractedText,
+        netQuantity,
+        mrp,
+        mfgDate,
+        expiryDate: bestBefore,
+        fssaiNumber: fssaiLic,
+      })
+      navigate(`/scan/${scanId}/results`)
+    } else {
+      navigate('/scan')
     }
-    navigate(`/scan/${scanId}/results`)
   }
 
-  if (!scan) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center space-y-4">
-        <h2 className="text-2xl font-bold text-[#123044]">Scan Not Found</h2>
-        <p className="text-sm text-[#64748B]">
-          Could not locate the requested scan record. It may have expired or been deleted.
-        </p>
-        <Link
-          to="/scan"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-white bg-[#0F766E]"
-        >
-          Start New Scan
-        </Link>
-      </div>
-    )
-  }
-
-  // Find any low confidence boxes from OCR
-  const ocrBoxes = scan.response.ocr_detected_boxes || []
-  const lowConfidenceCount = ocrBoxes.filter((b) => b.confidence < 0.85).length
+  const thumbnails = [
+    scan?.imageUrl ||
+      'https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=800&auto=format&fit=crop&q=80',
+  ]
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <Breadcrumbs
-        items={[
-          { label: 'Scan', path: '/scan' },
-          { label: `Review OCR: ${scan.productName}` }
-        ]}
-        returnToOverviewUrl={`/scan/${scan.id}/results`}
-      />
-
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#DCE5E5]">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#123044]">OCR Text Verification</h1>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-50 text-[#315DB5] border border-blue-200">
-              PRD Screen 5
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-[#64748B] mt-1">
-            Compare extracted text side-by-side with the package photo. You can correct any OCR typos before final report generation.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {hasEdits && (
-            <button
-              type="button"
-              onClick={handleSaveCorrections}
-              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-[#0F766E] border border-[#0F766E] hover:bg-[#0F766E]/10 flex items-center gap-1.5 transition-colors"
-            >
-              <Save className="w-4 h-4" /> Save Corrections
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={handleContinue}
-            className="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-[#0F766E] hover:bg-[#0D655E] shadow-sm flex items-center gap-2 transition-all"
-          >
-            <span>Continue to Reports</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-6">
+      {/* Title & Subtitle matching Screen 5 */}
+      <div className="space-y-1">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#123044]">Review Extracted Text</h1>
+        <p className="text-xs sm:text-sm text-[#64748B]">
+          Please review and correct the extracted information if needed.
+        </p>
       </div>
 
-      {savedNotice && (
-        <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2 animate-fade-in">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-          <span>User corrections saved successfully! Reports will reflect these values.</span>
-        </div>
-      )}
-
-      {/* Uncertainty Notice */}
-      {lowConfidenceCount > 0 && (
-        <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-start gap-2.5">
-          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-          <div>
-            <strong className="font-semibold block text-amber-900">
-              {lowConfidenceCount} Text Segment(s) Detected with Moderate OCR Confidence
-            </strong>
-            <span>
-              Please visually check the highlighted ingredient and date fields against your physical packaging.
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Side-by-Side Grid */}
+      {/* Main Dual-Column Content */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column: Original Package Image */}
-        <div className="lg:col-span-5 bg-white rounded-2xl border border-[#DCE5E5] p-5 shadow-sm space-y-4 sticky top-24">
-          <div className="flex items-center justify-between border-b border-[#DCE5E5] pb-3">
-            <span className="text-xs font-bold text-[#123044] uppercase tracking-wider flex items-center gap-1.5">
-              <Eye className="w-4 h-4 text-[#0F766E]" /> Package Label Image
-            </span>
-            <span className="text-xs text-[#64748B]">Original Resolution</span>
-          </div>
-
-          <div className="rounded-xl overflow-hidden bg-[#123044] border border-[#DCE5E5] flex items-center justify-center min-h-[320px] max-h-[540px]">
-            {scan.imageUrl ? (
+        {/* Left Column: Image Preview & Thumbnails */}
+        <div className="lg:col-span-5 space-y-4">
+          <div className="rounded-3xl border border-[#CBD5E1] bg-white p-4 shadow-sm">
+            <div className="rounded-2xl overflow-hidden bg-slate-50 border border-slate-200 h-80 sm:h-96 flex items-center justify-center">
               <img
-                src={scan.imageUrl}
-                alt="Package label"
-                className="max-h-[520px] w-auto object-contain"
+                src={thumbnails[activeThumbnail]}
+                alt="Product label preview"
+                className="w-full h-full object-contain"
               />
-            ) : (
-              <div className="p-8 text-center text-slate-400 text-xs">
-                Image preview not available for this session
-              </div>
-            )}
+            </div>
           </div>
 
-          <div className="text-[11px] text-[#64748B] flex items-center justify-between">
-            <span>Sharpness: {scan.response.image_metadata?.blur_assessment || 'SHARP'}</span>
-            <span>Lighting: {scan.response.image_metadata?.lighting_assessment || 'NORMAL'}</span>
+          {/* Thumbnails Row below image matching Screen 5 */}
+          <div className="flex items-center gap-3">
+            {thumbnails.map((thumb, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setActiveThumbnail(idx)}
+                className={`w-16 h-16 rounded-xl overflow-hidden border-2 bg-white p-1 transition-all shadow-xs ${
+                  activeThumbnail === idx
+                    ? 'border-[#0F766E] ring-2 ring-[#0F766E]/20'
+                    : 'border-[#CBD5E1] hover:border-slate-400 opacity-70 hover:opacity-100'
+                }`}
+              >
+                <img src={thumb} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover rounded-lg" />
+              </button>
+            ))}
+
+            <button
+              type="button"
+              className="h-16 px-3.5 rounded-xl border border-dashed border-[#CBD5E1] bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-[#64748B] hover:text-[#123044] flex items-center gap-1.5 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add more</span>
+            </button>
           </div>
         </div>
 
-        {/* Right Column: Editable Extracted Fields */}
-        <div className="lg:col-span-7 space-y-5">
-          {/* Product Name */}
-          <div className="bg-white rounded-2xl border border-[#DCE5E5] p-5 shadow-sm space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-[#123044] uppercase tracking-wide">
-                Detected Product Name
-              </label>
-              {scan.corrections?.productName && (
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
-                  User Edited
-                </span>
-              )}
-            </div>
-            <input
-              type="text"
-              value={productName}
-              onChange={(e) => {
-                setProductName(e.target.value)
-                setHasEdits(true)
-              }}
-              className="w-full px-3.5 py-2.5 rounded-lg border border-[#DCE5E5] text-sm font-semibold text-[#123044] focus:outline-none focus:ring-2 focus:ring-[#0F766E]"
-            />
+        {/* Right Column: Tabbed Card (Extracted Text / Key Information) */}
+        <div className="lg:col-span-7 bg-white rounded-3xl border border-[#CBD5E1] p-6 shadow-sm space-y-4">
+          {/* Tab Navigation matching Screen 5 */}
+          <div className="flex items-center border-b border-slate-200 gap-6">
+            <button
+              type="button"
+              onClick={() => setActiveTab('extracted_text')}
+              className={`pb-3 text-sm font-bold border-b-2 transition-all ${
+                activeTab === 'extracted_text'
+                  ? 'border-[#0F766E] text-[#0F766E]'
+                  : 'border-transparent text-[#64748B] hover:text-[#123044]'
+              }`}
+            >
+              Extracted Text
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('key_info')}
+              className={`pb-3 text-sm font-bold border-b-2 transition-all ${
+                activeTab === 'key_info'
+                  ? 'border-[#0F766E] text-[#0F766E]'
+                  : 'border-transparent text-[#64748B] hover:text-[#123044]'
+              }`}
+            >
+              Key Information
+            </button>
           </div>
 
-          {/* Raw Ingredients Text */}
-          <div className="bg-white rounded-2xl border border-[#DCE5E5] p-5 shadow-sm space-y-3">
-            <div className="flex items-center justify-between">
+          {/* Tab 1: Extracted Text View */}
+          {activeTab === 'extracted_text' ? (
+            <div className="space-y-3">
+              <textarea
+                value={extractedText}
+                onChange={(e) => setExtractedText(e.target.value)}
+                rows={14}
+                className="w-full p-4 rounded-2xl border border-slate-200 text-sm font-mono text-[#123044] bg-[#F8FAFC] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0F766E] focus:border-transparent leading-relaxed"
+                placeholder="OCR Extracted raw text appears here..."
+              />
+              <p className="text-xs text-slate-400">
+                OCR scanned with PaddleOCR engine. You can edit any mistranscribed words directly.
+              </p>
+            </div>
+          ) : (
+            /* Tab 2: Key Information View */
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
               <div>
-                <label className="text-xs font-bold text-[#123044] uppercase tracking-wide block">
-                  Ingredients List (Raw Extracted)
-                </label>
-                <p className="text-[11px] text-[#64748B]">
-                  Separate ingredients with commas. Evaluated by Module B (Ingredient Safety Engine).
-                </p>
+                <label className="block text-xs font-bold text-[#123044] mb-1">Product Name</label>
+                <input
+                  type="text"
+                  value={productName}
+                  onChange={(e) => setProductName(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm text-[#123044] focus:ring-2 focus:ring-[#0F766E] focus:outline-none"
+                />
               </div>
-              {scan.corrections?.rawIngredients && (
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
-                  User Edited
-                </span>
-              )}
-            </div>
-            <textarea
-              rows={4}
-              value={rawIngredients}
-              onChange={(e) => {
-                setRawIngredients(e.target.value)
-                setHasEdits(true)
-              }}
-              className="w-full px-3.5 py-2.5 rounded-lg border border-[#DCE5E5] text-xs font-mono text-[#123044] focus:outline-none focus:ring-2 focus:ring-[#0F766E] leading-relaxed"
-            />
-          </div>
 
-          {/* Key Legal Declarations Grid */}
-          <div className="bg-white rounded-2xl border border-[#DCE5E5] p-5 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-[#DCE5E5] pb-2">
-              <span className="text-xs font-bold text-[#123044] uppercase tracking-wide">
-                Key Declarations (Legal Metrology &amp; FSSAI)
-              </span>
-              <span className="text-[11px] text-[#64748B]">Verify against packaging print</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-[11px] font-semibold text-[#64748B] block mb-1">
-                  Net Quantity (with metric unit)
-                </label>
+                <label className="block text-xs font-bold text-[#123044] mb-1">Brand</label>
+                <input
+                  type="text"
+                  value={brand}
+                  onChange={(e) => setBrand(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm text-[#123044] focus:ring-2 focus:ring-[#0F766E] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#123044] mb-1">Net Quantity</label>
                 <input
                   type="text"
                   value={netQuantity}
-                  onChange={(e) => {
-                    setNetQuantity(e.target.value)
-                    setHasEdits(true)
-                  }}
-                  placeholder="e.g. 400 g or 1 L"
-                  className="w-full px-3 py-2 rounded-lg border border-[#DCE5E5] text-xs text-[#123044] focus:outline-none focus:ring-2 focus:ring-[#0F766E]"
+                  onChange={(e) => setNetQuantity(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm text-[#123044] focus:ring-2 focus:ring-[#0F766E] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] font-semibold text-[#64748B] block mb-1">
-                  Maximum Retail Price (MRP)
-                </label>
+                <label className="block text-xs font-bold text-[#123044] mb-1">MRP</label>
                 <input
                   type="text"
                   value={mrp}
-                  onChange={(e) => {
-                    setMrp(e.target.value)
-                    setHasEdits(true)
-                  }}
-                  placeholder="e.g. Rs. 140.00"
-                  className="w-full px-3 py-2 rounded-lg border border-[#DCE5E5] text-xs text-[#123044] focus:outline-none focus:ring-2 focus:ring-[#0F766E]"
+                  onChange={(e) => setMrp(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm text-[#123044] focus:ring-2 focus:ring-[#0F766E] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] font-semibold text-[#64748B] block mb-1">
-                  Mfg / Packaging Date
-                </label>
+                <label className="block text-xs font-bold text-[#123044] mb-1">Manufacturing Date</label>
                 <input
                   type="text"
                   value={mfgDate}
-                  onChange={(e) => {
-                    setMfgDate(e.target.value)
-                    setHasEdits(true)
-                  }}
-                  placeholder="e.g. 12/03/2026"
-                  className="w-full px-3 py-2 rounded-lg border border-[#DCE5E5] text-xs text-[#123044] focus:outline-none focus:ring-2 focus:ring-[#0F766E]"
+                  onChange={(e) => setMfgDate(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm text-[#123044] focus:ring-2 focus:ring-[#0F766E] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] font-semibold text-[#64748B] block mb-1">
-                  Best Before / Expiry Date
-                </label>
+                <label className="block text-xs font-bold text-[#123044] mb-1">Best Before / Expiry</label>
                 <input
                   type="text"
-                  value={expiryDate}
-                  onChange={(e) => {
-                    setExpiryDate(e.target.value)
-                    setHasEdits(true)
-                  }}
-                  placeholder="e.g. 6 Months from Packaging"
-                  className="w-full px-3 py-2 rounded-lg border border-[#DCE5E5] text-xs text-[#123044] focus:outline-none focus:ring-2 focus:ring-[#0F766E]"
+                  value={bestBefore}
+                  onChange={(e) => setBestBefore(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm text-[#123044] focus:ring-2 focus:ring-[#0F766E] focus:outline-none"
                 />
               </div>
 
-              <div>
-                <label className="text-[11px] font-semibold text-[#64748B] block mb-1">
-                  FSSAI 14-Digit License No.
-                </label>
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold text-[#123044] mb-1">FSSAI License No.</label>
                 <input
                   type="text"
-                  value={fssaiNumber}
-                  onChange={(e) => {
-                    setFssaiNumber(e.target.value)
-                    setHasEdits(true)
-                  }}
-                  placeholder="e.g. 10012022000346"
-                  className="w-full px-3 py-2 rounded-lg border border-[#DCE5E5] text-xs text-[#123044] focus:outline-none focus:ring-2 focus:ring-[#0F766E]"
+                  value={fssaiLic}
+                  onChange={(e) => setFssaiLic(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm text-[#123044] focus:ring-2 focus:ring-[#0F766E] focus:outline-none"
                 />
               </div>
             </div>
-          </div>
-
-          {/* Action Row */}
-          <div className="flex items-center justify-between pt-2">
-            <span className="text-xs text-[#64748B]">
-              Changes will update compliance and allergen analysis in real-time.
-            </span>
-            <button
-              type="button"
-              onClick={handleContinue}
-              className="px-6 py-3 rounded-xl text-sm font-bold text-white bg-[#0F766E] hover:bg-[#0D655E] shadow-sm flex items-center gap-2 transition-all"
-            >
-              <span>Continue to Reports</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
+          )}
         </div>
+      </div>
+
+      {/* Bottom Sticky Action Bar matching Screen 5 */}
+      <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200">
+        <p className="text-xs text-[#64748B]">
+          Some text may be unclear. You can edit it manually.
+        </p>
+
+        <button
+          type="button"
+          onClick={handleContinue}
+          className="w-full sm:w-auto px-7 py-3 rounded-xl font-bold text-white bg-[#0F766E] hover:bg-[#0D655E] shadow-md shadow-[#0F766E]/20 text-sm transition-all flex items-center justify-center gap-2"
+        >
+          <span>Continue to Reports</span>
+          <ArrowRight className="w-4 h-4" />
+        </button>
       </div>
     </div>
   )

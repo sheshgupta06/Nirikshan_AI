@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { ShieldCheck, Menu, X, History, Sparkles, LogIn, UserPlus, Database } from 'lucide-react'
+import { Leaf, Menu, X, History, Database, Sparkles } from 'lucide-react'
 import { isSupabaseConfigured } from '../services/supabaseClient'
 import { SupabaseModal } from './SupabaseModal'
 
@@ -28,25 +28,22 @@ export const Navbar: React.FC = () => {
     { label: 'Home', path: '/' },
     { label: 'How It Works', path: '/how-it-works' },
     { label: 'Scan Product', path: '/scan' },
-    { label: 'Scan History', path: '/history' },
+    { label: 'History', path: '/history' },
   ]
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-[#DCE5E5] transition-all">
+    <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-[#E2E8F0] transition-all">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
-        {/* Brand Logo */}
-        <Link to="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-xl bg-[#0F766E] flex items-center justify-center text-white shadow-md shadow-[#0F766E]/20 group-hover:scale-105 transition-transform">
-            <ShieldCheck className="w-6 h-6" />
+        {/* Brand Logo with Leaf Icon matching mockup */}
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <div className="w-9 h-9 rounded-xl bg-emerald-50 text-[#0F766E] flex items-center justify-center border border-emerald-100 group-hover:scale-105 transition-transform">
+            <Leaf className="w-5 h-5 text-[#0F766E] fill-[#0F766E]/20" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="font-bold text-xl tracking-tight text-[#123044]">Nirikshan</span>
-              <span className="text-xs font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0F766E]/10 text-[#0F766E] border border-[#0F766E]/20">
-                AI
-              </span>
+              <span className="font-extrabold text-xl tracking-tight text-[#123044]">Nirikshan AI</span>
             </div>
-            <p className="text-[10px] text-[#64748B] font-medium tracking-wide">Food Label Intelligence Platform</p>
+            <p className="text-[10px] text-[#64748B] font-medium tracking-wide">Food Label Intelligence</p>
           </div>
         </Link>
 
@@ -96,24 +93,15 @@ export const Navbar: React.FC = () => {
 
           <Link
             to="/login"
-            className="px-3.5 py-2 rounded-lg text-sm font-medium text-[#123044] hover:text-[#0F766E] hover:bg-[#F4F8F8] transition-colors flex items-center gap-1.5"
+            className="px-3.5 py-2 rounded-lg text-sm font-semibold text-[#123044] hover:text-[#0F766E] transition-colors"
           >
-            <LogIn className="w-4 h-4 text-[#64748B]" />
             Login
           </Link>
           <Link
             to="/signup"
-            className="px-3.5 py-2 rounded-lg text-sm font-medium text-[#123044] border border-[#DCE5E5] hover:border-[#0F766E] hover:text-[#0F766E] transition-colors flex items-center gap-1.5"
+            className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#0F766E] hover:bg-[#0D655E] transition-all shadow-sm hover:shadow-md"
           >
-            <UserPlus className="w-4 h-4 text-[#64748B]" />
             Sign Up
-          </Link>
-          <Link
-            to="/scan"
-            className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#0F766E] hover:bg-[#0D655E] transition-all shadow-sm hover:shadow-md flex items-center gap-2"
-          >
-            <Sparkles className="w-4 h-4 text-emerald-200" />
-            Scan Label
           </Link>
         </div>
 
