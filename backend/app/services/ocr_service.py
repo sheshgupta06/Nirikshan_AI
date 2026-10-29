@@ -73,10 +73,11 @@ class TesseractOCREngine(BaseOCREngine):
         try:
             import pytesseract
 
-            # Extract word and line level boxes with confidence
+            # Extract word and line level boxes with confidence using fast LSTM engine
             data = pytesseract.image_to_data(
                 enhanced,
                 lang=self.lang,
+                config="--psm 3 --oem 1",
                 output_type=pytesseract.Output.DICT,
             )
             n_boxes = len(data["text"])
@@ -390,6 +391,14 @@ class OCRService:
             raise ImageValidationError(
                 f"Image dimensions ({w}x{h}) are too small for OCR processing."
             )
+
+        # High-resolution image downscaling for fast, lightweight OCR processing (< 2 seconds)
+        MAX_DIM = 1600
+        if max(h, w) > MAX_DIM:
+            scale = MAX_DIM / float(max(h, w))
+            new_w, new_h = int(round(w * scale)), int(round(h * scale))
+            img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
+            h, w = img.shape[:2]
 
         # 4. Blur, Lighting & Contrast Quality Assessment (OpenCV)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)

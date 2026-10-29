@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import re
 from typing import Any, Dict, List, Optional
@@ -218,9 +219,10 @@ async def scan_food_label_image(
             ) from e
 
         try:
-            cur_boxes, cur_meta = service.extract_text_from_bytes(
-                image_bytes=image_bytes,
-                content_type=target_file.content_type,
+            cur_boxes, cur_meta = await asyncio.to_thread(
+                service.extract_text_from_bytes,
+                image_bytes,
+                target_file.content_type,
             )
             all_boxes.extend(cur_boxes)
             panel_lines = [b.text.strip() for b in cur_boxes if b.text.strip()]

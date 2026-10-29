@@ -286,11 +286,9 @@ Output strictly valid JSON with this exact schema:
         candidate_models = [
             "gemini-flash-lite-latest",
             "gemini-flash-latest",
-            "gemini-2.5-flash",
-            "gemini-2.5-flash-lite",
         ]
 
-        async with httpx.AsyncClient(timeout=4.0) as client:
+        async with httpx.AsyncClient(timeout=2.5) as client:
             for model in candidate_models:
                 endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={self.api_key}"
                 try:
@@ -318,12 +316,13 @@ Output strictly valid JSON with this exact schema:
                         )
                     else:
                         logger.warning(
-                            "Gemini model '%s' returned status %d. Trying next candidate model.",
+                            "Gemini model '%s' returned status %d. Trying fallback.",
                             model,
                             resp.status_code,
                         )
                 except Exception as exc:
-                    logger.warning("Gemini model '%s' call failed: %s", model, exc)
+                    logger.warning("Gemini model '%s' call failed or timed out: %s. Using Clinical Engine.", model, exc)
+                    break  # Do not cascade timeouts; immediately use instant clinical engine
 
             return None
 

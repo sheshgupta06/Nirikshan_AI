@@ -96,3 +96,4 @@ async def test_celiac_and_heart_evaluation():
 
     heart_advisory = next((a for a in result.patient_advisories if a.condition_key == "HEART_DISEASE"), None)
     assert heart_advisory is not None
+
