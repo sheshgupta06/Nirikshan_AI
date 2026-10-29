@@ -218,6 +218,7 @@ async def test_scan_image_falls_back_when_paddleocr_is_unavailable(monkeypatch):
     ]
     engine = RealPaddleOCREngine()
     engine._fallback_engine = MockOCREngine(mock_boxes=fallback_boxes)
+    engine._tesseract = MockOCREngine(mock_boxes=[])
     app.dependency_overrides[get_ocr_service] = lambda: OCRService(engine=engine)
     monkeypatch.setitem(sys.modules, "paddleocr", None)
 
