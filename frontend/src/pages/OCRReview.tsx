@@ -3,21 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowRight, Plus } from 'lucide-react'
 import { scanStorage, type StoredScan } from '../services/scanStorage'
 
-const DEFAULT_LAYS_EXTRACTED_TEXT = `Lay's
-Classic
-Ingredients: Potatoes, Edible Vegetable Oil (Palmolein Oil), Iodised Salt.
-CONTAINS PERMITTED NATURAL COLOUR (INS 160c)
-Nutritional Information (Approx. Values per 100 g):
-Energy 536 kcal
-Protein 6.9 g
-Carbohydrate 55.0 g
-of which Sugars 0.5 g
-Fat 34.0 g
-MRP: ₹ 20.00 (Incl. of all taxes)
-Net Quantity: 52 g
-Mfg. Date: 12/08/2024
-Best Before: 11/02/2025`
-
 export const OCRReview: React.FC = () => {
   const { scanId } = useParams<{ scanId: string }>()
   const navigate = useNavigate()
@@ -105,17 +90,9 @@ export const OCRReview: React.FC = () => {
         setFssaiLic(m ? m[1] : 'Not detected')
       }
     } else {
-      // Initialize demo data if not found
-      scanStorage.initDemoScansIfEmpty()
-      const fallback = scanStorage.getScan(scanId) || scanStorage.getAllScans()[0]
-      if (fallback) {
-        setScan(fallback)
-        setExtractedText(fallback.response?.raw_extracted_text || DEFAULT_LAYS_EXTRACTED_TEXT)
-        setProductName(fallback.productName || 'Sample Food Packet')
-        setBrand(fallback.brand || 'Sample Brand')
-      } else {
-        setExtractedText(DEFAULT_LAYS_EXTRACTED_TEXT)
-      }
+      setExtractedText('')
+      setProductName('')
+      setBrand('')
     }
   }, [scanId])
 
