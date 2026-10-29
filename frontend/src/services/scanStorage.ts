@@ -28,6 +28,8 @@ export interface StoredScan {
   productName: string
   brand?: string
   imageUrl: string
+  secondaryImageUrl?: string
+  imageUrls?: string[]
   modulesRequested: 'both' | 'legal_metrology' | 'ingredient_safety'
   response: ScanImageResponse
   corrections?: UserOCRCorrections

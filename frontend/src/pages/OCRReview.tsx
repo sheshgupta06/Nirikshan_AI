@@ -136,9 +136,13 @@ export const OCRReview: React.FC = () => {
     }
   }
 
-  const thumbnails = [
-    scan?.imageUrl || '/sample_label.png',
-  ]
+  const rawThumbnails = (
+    scan?.imageUrls && scan.imageUrls.length > 0
+      ? scan.imageUrls
+      : [scan?.imageUrl, scan?.secondaryImageUrl].filter(Boolean)
+  ) as string[]
+
+  const thumbnails = rawThumbnails.length > 0 ? rawThumbnails : (scan?.imageUrl ? [scan.imageUrl] : [])
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-6">
@@ -156,12 +160,23 @@ export const OCRReview: React.FC = () => {
         <div className="lg:col-span-5 space-y-4">
           <div className="rounded-3xl border border-[#CBD5E1] bg-white p-4 shadow-sm">
             <div className="rounded-2xl overflow-hidden bg-slate-50 border border-slate-200 h-80 sm:h-96 flex items-center justify-center">
-              <img
-                src={thumbnails[activeThumbnail]}
-                alt="Product label preview"
-                className="w-full h-full object-contain"
-              />
+              {thumbnails[activeThumbnail] ? (
+                <img
+                  src={thumbnails[activeThumbnail]}
+                  alt={`Product label panel ${activeThumbnail + 1}`}
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <div className="text-center p-6 text-slate-400">
+                  <p className="text-sm font-semibold">Packaging Image</p>
+                </div>
+              )}
             </div>
+            {thumbnails.length > 1 && (
+              <p className="text-center text-xs text-slate-500 font-medium pt-2">
+                Viewing {activeThumbnail === 0 ? 'Front Panel' : 'Back / Nutrition Panel'} ({activeThumbnail + 1} of {thumbnails.length})
+              </p>
+            )}
           </div>
 
           {/* Thumbnails Row below image matching Screen 5 */}
@@ -171,13 +186,16 @@ export const OCRReview: React.FC = () => {
                 key={idx}
                 type="button"
                 onClick={() => setActiveThumbnail(idx)}
-                className={`w-16 h-16 rounded-xl overflow-hidden border-2 bg-white p-1 transition-all shadow-xs ${
+                className={`relative w-20 h-20 rounded-xl overflow-hidden border-2 bg-white p-1 transition-all shadow-xs flex flex-col items-center justify-center ${
                   activeThumbnail === idx
                     ? 'border-[#0F766E] ring-2 ring-[#0F766E]/20'
                     : 'border-[#CBD5E1] hover:border-slate-400 opacity-70 hover:opacity-100'
                 }`}
               >
                 <img src={thumb} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover rounded-lg" />
+                <span className="absolute bottom-1 bg-black/70 text-[9px] text-white px-1.5 py-0.2 rounded font-semibold">
+                  {idx === 0 ? 'Front' : 'Back'}
+                </span>
               </button>
             ))}
 

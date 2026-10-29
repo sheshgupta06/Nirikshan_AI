@@ -558,3 +558,32 @@ async def test_scan_image_exact_real_testo_soya_chaap_pipeline():
         assert not any(forbidden.lower() in a.lower() for a in all_allergens)
 
 
+@pytest.mark.asyncio
+async def test_scan_multiple_images_front_and_back(mock_ocr_service):
+    """Verify that multiple food packaging images (e.g. Front & Back) are processed together."""
+    app.dependency_overrides[get_ocr_service] = lambda: mock_ocr_service
+
+    front_img = create_test_image_bytes("Front Panel: Testo Soya Chaap 500g")
+    back_img = create_test_image_bytes("Back Panel: Ingredients & Nutrition Facts")
+
+    files = [
+        ("files", ("front.png", front_img, "image/png")),
+        ("files", ("back.png", back_img, "image/png")),
+    ]
+    data = {"modules": "both", "jurisdiction": "IN"}
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.post("/api/v1/scan/analyze", files=files, data=data)
+
+    app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    res = response.json()
+    assert res["status"] == "SUCCESS"
+    assert "front.png" in res["filename"]
+    assert "back.png" in res["filename"]
+    assert res["image_metadata"]["total_images_processed"] == 2
+
+
+

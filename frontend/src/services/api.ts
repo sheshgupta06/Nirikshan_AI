@@ -21,10 +21,11 @@ export async function checkHealth(): Promise<{ status: string; message?: string 
 }
 
 /**
- * Uploads a food label image to POST /api/v1/analyze (PRD Section 12.3) with multipart/form-data.
+ * Uploads one or multiple food label images to POST /api/v1/analyze (PRD Section 12.3) with multipart/form-data.
+ * Supports both single file and multi-file (e.g. Front & Back packaging panels) analysis.
  */
 export async function scanFoodLabelImage(
-  imageFile: File,
+  imageInput: File | File[],
   profile: UserProfileConfig,
   modules: 'both' | 'legal_metrology' | 'ingredient_safety' = 'both',
   jurisdiction: string = 'IN'
@@ -32,8 +33,21 @@ export async function scanFoodLabelImage(
   const url = `${API_BASE_URL}/api/v1/analyze`
   const formData = new FormData()
 
-  // The backend expects the file parameter named exactly "file"
-  formData.append('file', imageFile)
+  const files = Array.isArray(imageInput) ? imageInput : [imageInput]
+  if (files.length === 1) {
+    formData.append('file', files[0])
+    formData.append('files', files[0])
+  } else {
+    // Append each file to 'files' array for multi-panel extraction
+    files.forEach((f) => {
+      formData.append('files', f)
+    })
+    // Backwards compatibility fallback with primary file
+    if (files[0]) {
+      formData.append('file', files[0])
+    }
+  }
+
   formData.append('modules', modules)
   formData.append('jurisdiction', jurisdiction)
   formData.append('profile_name', profile.profile_name || 'Default')

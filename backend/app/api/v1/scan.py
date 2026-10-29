@@ -155,7 +155,8 @@ class ScanImageResponse(BaseModel):
     description="Upload a food label image (JPEG, PNG, WebP) to extract text via OCR, parse sections, and evaluate ingredients.",
 )
 async def scan_food_label_image(
-    file: UploadFile = File(..., description="Packaged food label image file"),
+    file: Optional[UploadFile] = File(None, description="Single packaged food label image file"),
+    files: Optional[List[UploadFile]] = File(None, description="Multiple food label image files (e.g. front & back panels)"),
     modules: Optional[str] = Form(
         "both",
         description="Screening modules to run: 'both', 'legal_metrology', or 'ingredient_safety' (PRD Section 4 & 5)",
@@ -187,45 +188,78 @@ async def scan_food_label_image(
     ),
     service: OCRService = Depends(get_ocr_service),
 ) -> ScanImageResponse:
-    """Validates and processes a food label image with section-aware extraction."""
-    # 1. Read uploaded image bytes into memory
-    try:
-        image_bytes = await file.read()
-    except Exception as e:
-        logger.error("Failed to read uploaded file: %s", e)
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Failed to read uploaded file.",
-        ) from e
+    """Validates and processes one or multiple food label images (e.g. Front & Back) with section-aware extraction."""
+    # 1. Collect all valid uploaded files
+    target_files: List[UploadFile] = []
+    if files:
+        target_files.extend([f for f in files if f and f.filename])
+    if file and file.filename and file not in target_files:
+        target_files.append(file)
 
-    # 2. Validate, decode with OpenCV, and run OCR
-    try:
-        boxes, metadata = service.extract_text_from_bytes(
-            image_bytes=image_bytes,
-            content_type=file.content_type,
-        )
-    except ImageValidationError as err:
+    if not target_files:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(err),
-        ) from err
-    except OCREngineError as err:
-        logger.error("OCR Engine execution failed: %s", err)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"OCR processing failed: {err}",
-        ) from err
-    except Exception as err:
-        logger.exception("Unexpected error during OCR processing: %s", err)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal error during label image processing.",
-        ) from err
+            detail="No image files provided. Please upload at least one packaged food label image (front or back).",
+        )
+
+    # 2. Read and OCR each uploaded image in memory
+    all_boxes: List[OCRTextBox] = []
+    combined_metadata: Dict[str, Any] = {}
+    extracted_text_chunks: List[str] = []
+
+    for idx, target_file in enumerate(target_files):
+        try:
+            image_bytes = await target_file.read()
+        except Exception as e:
+            logger.error("Failed to read uploaded file %s: %s", target_file.filename, e)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Failed to read uploaded file '{target_file.filename}'.",
+            ) from e
+
+        try:
+            cur_boxes, cur_meta = service.extract_text_from_bytes(
+                image_bytes=image_bytes,
+                content_type=target_file.content_type,
+            )
+            all_boxes.extend(cur_boxes)
+            panel_lines = [b.text.strip() for b in cur_boxes if b.text.strip()]
+            if panel_lines:
+                panel_label = f"--- PANEL {idx + 1} ({target_file.filename or 'Image'}) ---"
+                extracted_text_chunks.append(f"{panel_label}\n" + "\n".join(panel_lines))
+
+            if idx == 0:
+                combined_metadata = dict(cur_meta)
+            else:
+                combined_metadata["total_images_processed"] = len(target_files)
+        except ImageValidationError as err:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(err),
+            ) from err
+        except OCREngineError as err:
+            logger.error("OCR Engine execution failed for %s: %s", target_file.filename, err)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"OCR processing failed for '{target_file.filename}': {err}",
+            ) from err
+        except Exception as err:
+            logger.exception("Unexpected error during OCR processing for %s: %s", target_file.filename, err)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Internal error during label image processing.",
+            ) from err
+
+    boxes = all_boxes
+    metadata = combined_metadata
 
     # 3. Concatenate and clean raw extracted text for traceability
     detected_lines = [b.text.strip() for b in boxes if b.text.strip()]
-    raw_text = " ".join(detected_lines)
-    logger.info("OCR raw extracted text: %s", raw_text)
+    raw_text = "\n\n".join(extracted_text_chunks) if extracted_text_chunks else " ".join(detected_lines)
+    logger.info("OCR raw extracted text across %d images: %s", len(target_files), raw_text[:300])
+
+    # Primary filename representation
+    primary_filename = ", ".join([f.filename for f in target_files if f.filename]) or "packaged_food.jpg"
 
     # 4. Parse user profile options early
     parsed_allergies = (
@@ -263,7 +297,7 @@ async def scan_food_label_image(
         empty_eval = rule_engine.evaluate([], profile)
         return ScanImageResponse(
             status=status_code,
-            filename=file.filename,
+            filename=primary_filename,
             image_metadata=metadata,
             ocr_detected_boxes=[],
             raw_extracted_text="",
@@ -406,7 +440,7 @@ async def scan_food_label_image(
 
     return ScanImageResponse(
         status="SUCCESS",
-        filename=file.filename,
+        filename=primary_filename,
         image_metadata=metadata,
         ocr_detected_boxes=boxes,
         raw_extracted_text=raw_text,

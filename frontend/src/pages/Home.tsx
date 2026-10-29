@@ -54,19 +54,22 @@ export const Home: React.FC = () => {
             <div className="lg:col-span-5 relative flex items-center justify-center">
               <div className="relative w-full max-w-md mx-auto">
                 {/* Packaged Food Product Mockup Image */}
-                <div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl border border-slate-100 bg-linear-to-b from-amber-50/50 to-orange-50/50 p-4">
+                <div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl border border-slate-100 bg-gradient-to-b from-emerald-50/40 via-amber-50/30 to-slate-50 p-4">
                   <img
-                    src="https://images.unsplash.com/photo-1612927601601-6638404737ce?w=800&auto=format&fit=crop&q=80"
-                    alt="Sample Packaged Food Noodle Bowl"
+                    src="https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=800&auto=format&fit=crop&q=80"
+                    alt="Sample Packaged Food with Nutrition Label"
                     className="w-full h-80 sm:h-96 object-cover rounded-2xl transform hover:scale-[1.02] transition-transform duration-300"
                   />
-                  <div className="absolute bottom-6 left-6 right-6 p-3 rounded-xl bg-black/60 backdrop-blur-md text-white flex items-center justify-between">
+                  <div className="absolute bottom-6 left-6 right-6 p-3 rounded-xl bg-black/75 backdrop-blur-md text-white flex items-center justify-between border border-white/10 shadow-lg">
                     <div>
-                      <p className="text-xs font-semibold text-emerald-300">Sample Scan Preview</p>
-                      <p className="text-sm font-bold truncate">2-Minute Instant Noodles</p>
+                      <p className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Packaged Food Label Scan
+                      </p>
+                      <p className="text-sm font-bold truncate">Potato Chips (Front &amp; Back Panel)</p>
                     </div>
-                    <span className="text-[11px] font-semibold bg-white/20 px-2 py-0.5 rounded-md">
-                      Verified OCR
+                    <span className="text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2.5 py-1 rounded-md">
+                      FSSAI Verified
                     </span>
                   </div>
                 </div>
