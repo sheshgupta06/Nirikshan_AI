@@ -4,8 +4,8 @@ import { ShieldCheck, HeartPulse, ClipboardCheck, Scale, ExternalLink } from 'lu
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="bg-[#123044] text-white border-t border-[#1A435E] mt-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+    <footer className="w-full bg-[#123044] text-white border-t border-[#1A435E] mt-auto">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
           {/* Brand Col */}
           <div className="lg:col-span-2 space-y-4">

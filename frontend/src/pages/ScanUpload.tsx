@@ -218,7 +218,7 @@ export const ScanUpload: React.FC = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-8">
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-8">
       {/* Header */}
       <div className="space-y-2 text-center sm:text-left">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0F766E]/10 text-[#0F766E] text-xs font-semibold">

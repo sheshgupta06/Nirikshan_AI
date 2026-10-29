@@ -19,7 +19,7 @@ export const Home: React.FC = () => {
         {/* Subtle geometric pattern background */}
         <div className="absolute inset-0 opacity-5 pointer-events-none bg-[radial-gradient(#CBD5E1_1px,transparent_1px)] [background-size:16px_16px]"></div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Left Content */}
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
@@ -29,8 +29,8 @@ export const Home: React.FC = () => {
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.15]">
-                Know What's on <br />
-                <span className="text-emerald-400">Your Food.</span>
+                <span className="block text-white" style={{ color: '#FFFFFF' }}>Know What's on</span>
+                <span className="block text-emerald-400 mt-1" style={{ color: '#34D399' }}>Your Food.</span>
               </h1>
 
               <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl mx-auto lg:mx-0">
@@ -147,8 +147,8 @@ export const Home: React.FC = () => {
       </section>
 
       {/* Feature Cards Section (The 3 Core Modules) */}
-      <section className="py-16 sm:py-24 bg-[#F4F8F8]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      <section className="py-16 sm:py-24 bg-[#F4F8F8] w-full">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <h2 className="text-3xl sm:text-4xl font-extrabold text-[#123044] tracking-tight">
               Three Specialized Screening Engines
@@ -277,8 +277,8 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 3-Step Workflow Section */}
-      <section className="py-16 sm:py-20 bg-white border-y border-[#DCE5E5]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      <section className="py-16 sm:py-20 bg-white border-y border-[#DCE5E5] w-full">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <span className="text-xs font-bold uppercase tracking-wider text-[#0F766E]">Simple & Transparent</span>
             <h2 className="text-3xl font-extrabold text-[#123044]">How Nirikshan AI Works</h2>
@@ -335,8 +335,8 @@ export const Home: React.FC = () => {
       </section>
 
       {/* About Section */}
-      <section className="py-16 sm:py-20 bg-[#F4F8F8]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 sm:py-20 bg-[#F4F8F8] w-full">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-2xl border border-[#DCE5E5] p-8 sm:p-12 shadow-sm grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-8 space-y-4">
               <span className="text-xs font-bold uppercase tracking-wider text-[#0F766E]">About Nirikshan AI</span>

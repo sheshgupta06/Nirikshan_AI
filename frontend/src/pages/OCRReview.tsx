@@ -117,7 +117,7 @@ export const OCRReview: React.FC = () => {
   const lowConfidenceCount = ocrBoxes.filter((b) => b.confidence < 0.85).length
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <Breadcrumbs
         items={[
           { label: 'Scan', path: '/scan' },
