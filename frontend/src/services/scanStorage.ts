@@ -38,44 +38,119 @@ export interface StoredScan {
 
 const STORAGE_KEY = 'nirikshan_ai_scan_history_v1'
 
+// Runtime memory cache to guarantee instant retrieval across page navigation
+const memoryScanCache = new Map<string, StoredScan>()
+
 export const scanStorage = {
   getAllScans(): StoredScan[] {
     try {
       const data = localStorage.getItem(STORAGE_KEY)
       if (!data) {
-        return []
+        return Array.from(memoryScanCache.values())
       }
-      return JSON.parse(data) as StoredScan[]
+      const parsed = JSON.parse(data) as StoredScan[]
+      // Merge in-memory active scans
+      memoryScanCache.forEach((scan, id) => {
+        if (!parsed.some((s) => s.id === id)) {
+          parsed.unshift(scan)
+        }
+      })
+      return parsed
     } catch (e) {
-      console.error('Failed to parse scan history from localStorage', e)
-      return []
+      console.warn('Failed to parse scan history from localStorage, using memory cache:', e)
+      return Array.from(memoryScanCache.values())
     }
   },
 
   getScan(id: string): StoredScan | null {
+    // 1. Check in-memory cache first for instant retrieval
+    if (memoryScanCache.has(id)) {
+      return memoryScanCache.get(id)!
+    }
+
+    // 2. Check sessionStorage
+    try {
+      const sessionData = sessionStorage.getItem(`scan_${id}`)
+      if (sessionData) {
+        const parsed = JSON.parse(sessionData) as StoredScan
+        memoryScanCache.set(id, parsed)
+        return parsed
+      }
+    } catch {
+      // Ignore session storage errors
+    }
+
+    // 3. Fallback to localStorage
     const scans = this.getAllScans()
-    return scans.find((s) => s.id === id) || null
+    const found = scans.find((s) => s.id === id) || null
+    if (found) {
+      memoryScanCache.set(id, found)
+    }
+    return found
   },
 
   saveScan(scan: StoredScan): void {
+    // 1. Always save in memory cache first so Review screen never fails
+    memoryScanCache.set(scan.id, scan)
+
+    // 2. Save in sessionStorage as reliable page-level backup
+    try {
+      sessionStorage.setItem(`scan_${scan.id}`, JSON.stringify(scan))
+    } catch {
+      // sessionStorage might also be full if base64 is huge
+    }
+
+    // 3. Save lightweight metadata in localStorage (strip large base64 data to avoid 5MB quota errors)
     try {
       const scans = this.getAllScans()
       const existingIdx = scans.findIndex((s) => s.id === scan.id)
-      if (existingIdx >= 0) {
-        scans[existingIdx] = scan
-      } else {
-        scans.unshift(scan)
-      }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(scans))
 
-      // Cloud sync to Supabase when configured
+      // Sanitize: strip large base64 data URLs (>50KB) so localStorage never throws QuotaExceededError
+      const safeScan: StoredScan = {
+        ...scan,
+        imageUrl: scan.imageUrl && scan.imageUrl.length > 50000 ? '' : scan.imageUrl,
+        secondaryImageUrl:
+          scan.secondaryImageUrl && scan.secondaryImageUrl.length > 50000
+            ? ''
+            : scan.secondaryImageUrl,
+        imageUrls: (scan.imageUrls || []).map((u) => (u.length > 50000 ? '' : u)),
+      }
+
+      if (existingIdx >= 0) {
+        scans[existingIdx] = safeScan
+      } else {
+        scans.unshift(safeScan)
+      }
+
+      // Limit localStorage to recent 10 scans to stay well within browser limits
+      const trimmedScans = scans.slice(0, 10)
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmedScans))
+      } catch (quotaError) {
+        console.warn('LocalStorage quota reached. Pruning older scans...', quotaError)
+        // Aggressive prune: keep only recent 3 without images
+        const compact = trimmedScans.slice(0, 3).map((s) => ({
+          ...s,
+          imageUrl: '',
+          secondaryImageUrl: '',
+          imageUrls: [],
+        }))
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(compact))
+        } catch {
+          localStorage.removeItem(STORAGE_KEY)
+        }
+      }
+
+      // 4. Cloud sync to Supabase when configured
       if (isSupabaseConfigured()) {
         saveScanToSupabase(scan).catch((err) => {
           console.warn('Background Supabase scan sync failed:', err)
         })
       }
     } catch (e) {
-      console.error('Failed to save scan to localStorage', e)
+      console.warn('Error during persistent storage save, scan retained in memory:', e)
     }
   },
 

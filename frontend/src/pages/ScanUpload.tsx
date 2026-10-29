@@ -64,16 +64,12 @@ export const ScanUpload: React.FC = () => {
       return
     }
 
-    const reader = new FileReader()
-    reader.onload = () => {
-      const url = reader.result as string
-      if (slot === 'front') {
-        setFrontImage({ file: selectedFile, previewUrl: url })
-      } else {
-        setBackImage({ file: selectedFile, previewUrl: url })
-      }
+    const url = URL.createObjectURL(selectedFile)
+    if (slot === 'front') {
+      setFrontImage({ file: selectedFile, previewUrl: url })
+    } else {
+      setBackImage({ file: selectedFile, previewUrl: url })
     }
-    reader.readAsDataURL(selectedFile)
   }
 
   const handleSlotDrop = (e: React.DragEvent, slot: 'front' | 'back') => {
