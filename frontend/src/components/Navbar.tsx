@@ -1,10 +1,22 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { ShieldCheck, Menu, X, History, Sparkles, LogIn, UserPlus } from 'lucide-react'
+import { ShieldCheck, Menu, X, History, Sparkles, LogIn, UserPlus, Database } from 'lucide-react'
+import { isSupabaseConfigured } from '../services/supabaseClient'
+import { SupabaseModal } from './SupabaseModal'
 
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [supabaseModalOpen, setSupabaseModalOpen] = useState(false)
+  const [supabaseConnected, setSupabaseConnected] = useState(false)
   const location = useLocation()
+
+  useEffect(() => {
+    setSupabaseConnected(isSupabaseConfigured())
+  }, [])
+
+  const refreshSupabaseStatus = () => {
+    setSupabaseConnected(isSupabaseConfigured())
+  }
 
   const isActive = (path: string) => {
     if (path === '/' && location.pathname === '/') return true
@@ -60,6 +72,28 @@ export const Navbar: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="hidden md:flex items-center gap-3">
+          {/* Supabase Cloud Database Link Button */}
+          <button
+            type="button"
+            onClick={() => setSupabaseModalOpen(true)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 border transition-all ${
+              supabaseConnected
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                : 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+            }`}
+            title="Configure Supabase Database"
+          >
+            <Database className="w-3.5 h-3.5" />
+            <span className="flex items-center gap-1.5">
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  supabaseConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
+                }`}
+              />
+              {supabaseConnected ? 'Supabase Live' : 'Link Supabase'}
+            </span>
+          </button>
+
           <Link
             to="/login"
             className="px-3.5 py-2 rounded-lg text-sm font-medium text-[#123044] hover:text-[#0F766E] hover:bg-[#F4F8F8] transition-colors flex items-center gap-1.5"
@@ -85,6 +119,16 @@ export const Navbar: React.FC = () => {
 
         {/* Mobile Hamburger Toggle */}
         <div className="flex md:hidden items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setSupabaseModalOpen(true)}
+            className={`p-2 rounded-lg text-xs border ${
+              supabaseConnected ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-amber-50 text-amber-700 border-amber-300'
+            }`}
+            title="Supabase Database Status"
+          >
+            <Database className="w-4 h-4" />
+          </button>
           <Link
             to="/history"
             aria-label="Scan History"
@@ -123,6 +167,22 @@ export const Navbar: React.FC = () => {
             )
           })}
           <div className="pt-4 border-t border-[#DCE5E5] flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setMobileMenuOpen(false)
+                setSupabaseModalOpen(true)
+              }}
+              className={`w-full text-center px-4 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 border ${
+                supabaseConnected
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                  : 'bg-amber-50 text-amber-800 border-amber-300'
+              }`}
+            >
+              <Database className="w-4 h-4" />
+              {supabaseConnected ? 'Supabase Database Connected' : 'Connect Supabase Cloud Database'}
+            </button>
+
             <Link
               to="/scan"
               onClick={() => setMobileMenuOpen(false)}
@@ -150,6 +210,13 @@ export const Navbar: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Supabase Configuration Modal */}
+      <SupabaseModal
+        isOpen={supabaseModalOpen}
+        onClose={() => setSupabaseModalOpen(false)}
+        onStatusChange={refreshSupabaseStatus}
+      />
     </header>
   )
 }

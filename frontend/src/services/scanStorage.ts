@@ -3,6 +3,12 @@
  */
 
 import type { ScanImageResponse } from '../types/scan'
+import {
+  isSupabaseConfigured,
+  saveScanToSupabase,
+  deleteScanFromSupabase,
+  fetchScansFromSupabase,
+} from './supabaseClient'
 
 export interface UserOCRCorrections {
   productName?: string
@@ -59,6 +65,13 @@ export const scanStorage = {
         scans.unshift(scan)
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(scans))
+
+      // Cloud sync to Supabase when configured
+      if (isSupabaseConfigured()) {
+        saveScanToSupabase(scan).catch((err) => {
+          console.warn('Background Supabase scan sync failed:', err)
+        })
+      }
     } catch (e) {
       console.error('Failed to save scan to localStorage', e)
     }
@@ -68,6 +81,12 @@ export const scanStorage = {
     try {
       const scans = this.getAllScans().filter((s) => s.id !== id)
       localStorage.setItem(STORAGE_KEY, JSON.stringify(scans))
+
+      if (isSupabaseConfigured()) {
+        deleteScanFromSupabase(id).catch((err) => {
+          console.warn('Background Supabase scan deletion failed:', err)
+        })
+      }
     } catch (e) {
       console.error('Failed to delete scan from localStorage', e)
     }
@@ -86,6 +105,52 @@ export const scanStorage = {
     }
     this.saveScan(scan)
     return scan
+  },
+
+  /**
+   * Synchronizes local scans with Supabase cloud database.
+   * Merges remote scans into local cache and uploads any unsynced local scans.
+   */
+  async syncWithSupabase(): Promise<{ scans: StoredScan[]; syncedCount: number }> {
+    if (!isSupabaseConfigured()) {
+      return { scans: this.getAllScans(), syncedCount: 0 }
+    }
+
+    try {
+      const remoteScans = await fetchScansFromSupabase()
+      const localScans = this.getAllScans()
+
+      // Merge maps by ID (remote wins if present, local added if not in remote)
+      const scanMap = new Map<string, StoredScan>()
+      for (const r of remoteScans) {
+        scanMap.set(r.id, r)
+      }
+
+      // Check which local scans need to be uploaded to Supabase
+      const toUpload: StoredScan[] = []
+      for (const l of localScans) {
+        if (!scanMap.has(l.id)) {
+          scanMap.set(l.id, l)
+          toUpload.push(l)
+        }
+      }
+
+      const mergedList = Array.from(scanMap.values()).sort(
+        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      )
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(mergedList))
+
+      // Upload missing local scans to Supabase
+      if (toUpload.length > 0) {
+        await Promise.all(toUpload.map((s) => saveScanToSupabase(s)))
+      }
+
+      return { scans: mergedList, syncedCount: remoteScans.length }
+    } catch (err) {
+      console.warn('Supabase sync error:', err)
+      return { scans: this.getAllScans(), syncedCount: 0 }
+    }
   },
 
   /**

@@ -41,6 +41,10 @@ lerna-debug.log*
 .env
 .env.local
 .env.*.local
+*.env
+frontend/.env
+frontend/.env.local
+backend/.env
 
 # IDE and OS
 .vscode/

@@ -1,12 +1,24 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.api.v1.health import router as health_router
 from backend.app.api.v1.scan import router as scan_router
+from backend.app.api.v1.scans_db import router as db_scans_router
+from backend.app.db.session import init_db
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initializes database tables on application startup."""
+    init_db()
+    yield
+
 
 app = FastAPI(
     title="Nirikshan AI Backend",
     description="Backend API for Nirikshan AI - India-first food label analysis",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 # Enable CORS for local development (Vite frontend on default ports)
@@ -27,6 +39,7 @@ app.add_middleware(
 # Register API v1 routes
 app.include_router(health_router, prefix="/api/v1")
 app.include_router(scan_router, prefix="/api/v1")
+app.include_router(db_scans_router, prefix="/api/v1")
 
 # PRD Section 12.3 Endpoints
 from backend.app.api.v1.scan import scan_food_label_image, ScanImageResponse

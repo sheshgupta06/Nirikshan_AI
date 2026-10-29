@@ -9,19 +9,45 @@ import {
   FileText,
   HeartPulse,
   ClipboardCheck,
-  Calendar
+  Calendar,
+  Database,
+  RefreshCw,
 } from 'lucide-react'
 import { scanStorage, type StoredScan } from '../services/scanStorage'
+import { isSupabaseConfigured } from '../services/supabaseClient'
 
 export const ScanHistory: React.FC = () => {
   const [scans, setScans] = useState<StoredScan[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'both' | 'legal_metrology' | 'ingredient_safety'>('all')
+  const [syncing, setSyncing] = useState(false)
+  const [syncMessage, setSyncMessage] = useState<string | null>(null)
+  const isCloudActive = isSupabaseConfigured()
 
   useEffect(() => {
     scanStorage.initDemoScansIfEmpty()
     setScans(scanStorage.getAllScans())
+
+    // If Supabase is connected, automatically sync on mount
+    if (isSupabaseConfigured()) {
+      handleSync()
+    }
   }, [])
+
+  const handleSync = async () => {
+    setSyncing(true)
+    setSyncMessage(null)
+    try {
+      const res = await scanStorage.syncWithSupabase()
+      setScans(res.scans)
+      setSyncMessage(`Synced ${res.scans.length} scans with Supabase Cloud`)
+      setTimeout(() => setSyncMessage(null), 3000)
+    } catch {
+      setSyncMessage('Sync failed. Please check your Supabase connection.')
+    } finally {
+      setSyncing(false)
+    }
+  }
 
   const handleDelete = (id: string, e: React.MouseEvent) => {
     e.preventDefault()
@@ -60,14 +86,37 @@ export const ScanHistory: React.FC = () => {
           </p>
         </div>
 
-        <Link
-          to="/scan"
-          className="px-5 py-2.5 rounded-xl font-bold text-white bg-[#0F766E] hover:bg-[#0D655E] shadow-sm flex items-center justify-center gap-2 text-sm transition-all"
-        >
-          <Sparkles className="w-4 h-4 text-emerald-200" />
-          <span>New Label Scan</span>
-        </Link>
+        <div className="flex items-center gap-3">
+          {isCloudActive && (
+            <button
+              type="button"
+              onClick={handleSync}
+              disabled={syncing}
+              className="px-4 py-2.5 rounded-xl font-semibold border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 flex items-center gap-2 text-sm transition-all"
+              title="Sync with Supabase Cloud Database"
+            >
+              <RefreshCw className={`w-4 h-4 text-emerald-700 ${syncing ? 'animate-spin' : ''}`} />
+              <span>{syncing ? 'Syncing...' : 'Sync with Supabase'}</span>
+            </button>
+          )}
+
+          <Link
+            to="/scan"
+            className="px-5 py-2.5 rounded-xl font-bold text-white bg-[#0F766E] hover:bg-[#0D655E] shadow-sm flex items-center justify-center gap-2 text-sm transition-all"
+          >
+            <Sparkles className="w-4 h-4 text-emerald-200" />
+            <span>New Label Scan</span>
+          </Link>
+        </div>
       </div>
+
+      {/* Sync Status Banner */}
+      {syncMessage && (
+        <div className="bg-emerald-50 border border-emerald-300 text-emerald-900 px-4 py-3 rounded-xl text-sm flex items-center gap-2 animate-in fade-in">
+          <Database className="w-4 h-4 text-emerald-600" />
+          <span>{syncMessage}</span>
+        </div>
+      )}
 
       {/* Filter and Search Bar */}
       <div className="bg-white rounded-2xl border border-[#DCE5E5] p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">

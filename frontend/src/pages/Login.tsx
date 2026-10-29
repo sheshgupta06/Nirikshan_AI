@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ShieldCheck, Eye, EyeOff, AlertCircle, Info, LogIn } from 'lucide-react'
+import { ShieldCheck, Eye, EyeOff, AlertCircle, Info, LogIn, Database } from 'lucide-react'
+import { isSupabaseConfigured, supabaseSignIn } from '../services/supabaseClient'
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('')
@@ -8,9 +9,10 @@ export const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const isCloudActive = isSupabaseConfigured()
   const navigate = useNavigate()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMessage(null)
 
@@ -21,14 +23,23 @@ export const Login: React.FC = () => {
 
     setLoading(true)
 
-    // Backend auth integration check:
-    // Backend currently operates on open public scanning; user account authentication endpoints
-    // are pending backend auth service integration.
-    setTimeout(() => {
-      setLoading(false)
-      // Allow proceeding to /scan while informing user of local session state
-      navigate('/scan')
-    }, 600)
+    if (isSupabaseConfigured()) {
+      try {
+        await supabaseSignIn(email.trim(), password)
+        navigate('/scan')
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Invalid credentials. Please verify your email and password.'
+        setErrorMessage(msg)
+      } finally {
+        setLoading(false)
+      }
+    } else {
+      // Offline / Demo mode
+      setTimeout(() => {
+        setLoading(false)
+        navigate('/scan')
+      }, 500)
+    }
   }
 
   return (
@@ -45,16 +56,28 @@ export const Login: React.FC = () => {
           </p>
         </div>
 
-        {/* Backend Auth Status Banner (Honest Architecture Notice) */}
-        <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-800 flex items-start gap-2.5">
-          <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-          <div>
-            <strong className="font-semibold block text-blue-900">Open Public Access Available</strong>
-            <span>
-              Backend user authentication service is currently pending integration. You can sign in to test the flow or proceed directly to scanning food labels without an account.
-            </span>
+        {/* Supabase Cloud Auth Status Banner */}
+        {isCloudActive ? (
+          <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 flex items-start gap-2.5">
+            <Database className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            <div>
+              <strong className="font-semibold block text-emerald-950">Supabase Cloud Auth Active</strong>
+              <span>
+                Enter your registered Supabase credentials to access your cloud scan history and synchronized user profile.
+              </span>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-2.5">
+            <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <strong className="font-semibold block text-amber-950">Local Offline Mode Active</strong>
+              <span>
+                Supabase database is not linked yet. You can sign in to test the interface locally, or click <strong>Link Supabase</strong> in the navigation bar to store your scans in the cloud.
+              </span>
+            </div>
+          </div>
+        )}
 
         {errorMessage && (
           <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">

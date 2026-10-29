@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ShieldCheck, Eye, EyeOff, AlertCircle, Info, UserPlus } from 'lucide-react'
+import { ShieldCheck, Eye, EyeOff, AlertCircle, Info, UserPlus, Database } from 'lucide-react'
+import { isSupabaseConfigured, supabaseSignUp } from '../services/supabaseClient'
 
 export const SignUp: React.FC = () => {
   const [name, setName] = useState('')
@@ -10,11 +11,14 @@ export const SignUp: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const isCloudActive = isSupabaseConfigured()
   const navigate = useNavigate()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMessage(null)
+    setSuccessMessage(null)
 
     if (!name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
       setErrorMessage('Please fill in all required fields.')
@@ -33,12 +37,26 @@ export const SignUp: React.FC = () => {
 
     setLoading(true)
 
-    // Backend auth integration check:
-    // User credentials are NOT stored in browser localStorage or frontend variables per security rules.
-    setTimeout(() => {
-      setLoading(false)
-      navigate('/scan')
-    }, 600)
+    if (isSupabaseConfigured()) {
+      try {
+        await supabaseSignUp(email.trim(), password, name.trim())
+        setSuccessMessage('Account created successfully! Redirecting...')
+        setTimeout(() => {
+          navigate('/scan')
+        }, 1200)
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Registration failed. Please check your details.'
+        setErrorMessage(msg)
+      } finally {
+        setLoading(false)
+      }
+    } else {
+      // Local demo mode
+      setTimeout(() => {
+        setLoading(false)
+        navigate('/scan')
+      }, 500)
+    }
   }
 
   return (
@@ -55,16 +73,35 @@ export const SignUp: React.FC = () => {
           </p>
         </div>
 
-        {/* Backend Auth Architecture Notice */}
-        <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-800 flex items-start gap-2.5">
-          <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-          <div>
-            <strong className="font-semibold block text-blue-900">Security Architecture Notice</strong>
-            <span>
-              Backend user authentication service is pending integration. For security, passwords are never stored in browser storage. You can register for testing or scan labels directly.
-            </span>
+        {/* Supabase Cloud Auth Status Banner */}
+        {isCloudActive ? (
+          <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 flex items-start gap-2.5">
+            <Database className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            <div>
+              <strong className="font-semibold block text-emerald-950">Supabase Cloud Registration Active</strong>
+              <span>
+                Your account and profile will be created in your Supabase database with Row Level Security (RLS) protection.
+              </span>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-2.5">
+            <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <strong className="font-semibold block text-amber-950">Local Demo Mode</strong>
+              <span>
+                Supabase database is not linked yet. You can sign up to test the interface locally, or click <strong>Link Supabase</strong> in the navigation bar to store your scans in the cloud.
+              </span>
+            </div>
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{successMessage}</span>
+          </div>
+        )}
 
         {errorMessage && (
           <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">
