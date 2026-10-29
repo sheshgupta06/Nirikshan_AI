@@ -18,10 +18,11 @@ import { scanStorage, type StoredScan } from '../services/scanStorage'
 
 // Non-ingredient instruction/packaging lines to filter out
 const NON_INGREDIENT_REGEX =
-  /\b(W\.?H\.?O|RECOMMENDED\s*FORMULA|formula\s*allows|absorption\s*of\s*Fluids|replacing|severe\s*diarrh|STORE\s*IN|KEEP\s*PROTECTED|KEEP\s*OUT|DRY\s*PLACE|Each\s*sachet|powder\s*in|DOSAGE|DIRECTIONS?|until\s*diarrhoea|PANEL\s*\d|WhatsApp\s*Image|MFG\s*DATE|BATCH\s*NO|EXPIRY|NET\s*QUANTITY|MRP\s*Rs|CONSUMER\s*CARE|STORAGE:|FSSAI\s*Lic|ALLERGEN\s*ADVICE|GREEN\s*VEG\s*EMBLEM|FiecTROLYTE|ELECTROLYTE|TION\s*:\s*OAS|Exciplents)\b/i
+  /\b(W\.?H\.?O|RECOMMENDED\s*FORMULA|formula\s*allows|absorption|Fluids|replacing|severe\s*diarrh|STORE\s*IN|KEEP\s*PROTECTED|KEEP\s*OUT|DRY\s*PLACE|Each\s*sachet|powder\s*in|DOSAGE|DIRECTIONS?|until\s*diarrhoea|PANEL\s*\d|WhatsApp\s*Image|MFG\s*DATE|BATCH\s*NO|EXPIRY|NET\s*QUANTITY|MRP\s*Rs|CONSUMER\s*CARE|STORAGE:|FSSAI\s*Lic|ALLERGEN\s*ADVICE|GREEN\s*VEG\s*EMBLEM|FiecTROLYTE|ELECTROLYTE|TION\s*:\s*OAS|Exciplents|Electrolytes\s*lost|Water\s*&\s*Electrolytes)\b/i
 
 function cleanIngredientName(raw: string): string {
   let s = raw.trim()
+  s = s.replace(/^(the|and|or)\s+/i, '')
   s = s.replace(/^[0-9]+(?:\.[0-9]+)?\s*(?:g|mg|kg|ml|l|gm)\s*(?:of\s*)?/i, '')
   s = s.replace(/\b(?:Each\s*sachet\s*of|powder\s*in\s*one\s*sachet|contains?)\b/gi, '')
   s = s.replace(/^[0-9]+(?:\.[0-9]+)?\s*/, '')
@@ -527,97 +528,97 @@ export const HealthReport: React.FC = () => {
       </div>
 
       {/* Main Layout: Left Sidebar + Right Content Area matching Screen 7 */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
         {/* Left Sidebar Navigation */}
-        <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-200 p-2 space-y-1 shadow-xs sticky top-24">
+        <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-200 p-2 shadow-xs static lg:sticky lg:top-24 z-10 flex lg:flex-col overflow-x-auto lg:overflow-visible gap-1 scrollbar-none">
           <button
             type="button"
             onClick={() => setActiveSection('overview')}
-            className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left transition-colors ${
+            className={`px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left whitespace-nowrap shrink-0 lg:shrink lg:w-full transition-colors ${
               activeSection === 'overview'
                 ? 'bg-emerald-50 text-[#0F766E] border border-emerald-200'
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
             }`}
           >
-            <LayoutGrid className="w-4 h-4" />
+            <LayoutGrid className="w-4 h-4 shrink-0" />
             <span>Overview</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveSection('patients')}
-            className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left transition-colors ${
+            className={`px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left whitespace-nowrap shrink-0 lg:shrink lg:w-full transition-colors ${
               activeSection === 'patients'
                 ? 'bg-emerald-50 text-[#0F766E] border border-emerald-200'
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
             }`}
           >
-            <Stethoscope className="w-4 h-4 text-rose-600" />
+            <Stethoscope className="w-4 h-4 text-rose-600 shrink-0" />
             <span>Patient Advisories ({patientAdvisories.length})</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveSection('ingredients')}
-            className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left transition-colors ${
+            className={`px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left whitespace-nowrap shrink-0 lg:shrink lg:w-full transition-colors ${
               activeSection === 'ingredients'
                 ? 'bg-emerald-50 text-[#0F766E] border border-emerald-200'
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
             }`}
           >
-            <List className="w-4 h-4" />
+            <List className="w-4 h-4 shrink-0" />
             <span>Ingredients ({totalIngredients})</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveSection('nutrition')}
-            className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left transition-colors ${
+            className={`px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left whitespace-nowrap shrink-0 lg:shrink lg:w-full transition-colors ${
               activeSection === 'nutrition'
                 ? 'bg-emerald-50 text-[#0F766E] border border-emerald-200'
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
             }`}
           >
-            <Activity className="w-4 h-4" />
+            <Activity className="w-4 h-4 shrink-0" />
             <span>Nutrition Information</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveSection('allergens')}
-            className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left transition-colors ${
+            className={`px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left whitespace-nowrap shrink-0 lg:shrink lg:w-full transition-colors ${
               activeSection === 'allergens'
                 ? 'bg-emerald-50 text-[#0F766E] border border-emerald-200'
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
             }`}
           >
-            <AlertTriangle className="w-4 h-4" />
+            <AlertTriangle className="w-4 h-4 shrink-0" />
             <span>Allergens ({allAllergens.length})</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveSection('insights')}
-            className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left transition-colors ${
+            className={`px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left whitespace-nowrap shrink-0 lg:shrink lg:w-full transition-colors ${
               activeSection === 'insights'
                 ? 'bg-emerald-50 text-[#0F766E] border border-emerald-200'
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
             }`}
           >
-            <Lightbulb className="w-4 h-4" />
+            <Lightbulb className="w-4 h-4 shrink-0" />
             <span>Health Insights</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveSection('references')}
-            className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left transition-colors ${
+            className={`px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left whitespace-nowrap shrink-0 lg:shrink lg:w-full transition-colors ${
               activeSection === 'references'
                 ? 'bg-emerald-50 text-[#0F766E] border border-emerald-200'
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
             }`}
           >
-            <BookOpen className="w-4 h-4" />
+            <BookOpen className="w-4 h-4 shrink-0" />
             <span>References</span>
           </button>
         </div>
