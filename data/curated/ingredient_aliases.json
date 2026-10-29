@@ -518,6 +518,54 @@
         "section": "Regulation 2.3.16: Dates",
         "url": "https://www.fssai.gov.in/standards/product-standards"
       }
+    },
+    "dextrose": {
+      "id": "dextrose",
+      "canonical_name": "Dextrose (Anhydrous)",
+      "category": "simple_sugar_carbohydrate",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "WHO / FSSAI Oral Rehydration Formulation",
+        "section": "Simple Glycemic Carbohydrates",
+        "url": "https://www.who.int"
+      }
+    },
+    "potassium_chloride": {
+      "id": "potassium_chloride",
+      "canonical_name": "Potassium Chloride",
+      "category": "essential_mineral_electrolyte",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "WHO / FSSAI Oral Rehydration Formulation",
+        "section": "Schedule II, Clause 5",
+        "url": "https://www.who.int"
+      }
+    },
+    "sodium_chloride": {
+      "id": "sodium_chloride",
+      "canonical_name": "Sodium Chloride",
+      "category": "essential_mineral_electrolyte",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Safety Standards, 2011",
+        "section": "Common Salt / Sodium Electrolyte",
+        "url": "https://www.fssai.gov.in"
+      }
+    },
+    "sodium_citrate": {
+      "id": "sodium_citrate",
+      "canonical_name": "Sodium Citrate",
+      "category": "acidity_regulator_electrolyte",
+      "is_vegetarian": true,
+      "allergens": [],
+      "source": {
+        "title": "FSSAI Food Additives & Buffering Agents",
+        "section": "INS 331 Acidity Regulator",
+        "url": "https://www.fssai.gov.in"
+      }
     }
   },
   "aliases": {
@@ -630,7 +678,16 @@
     "hing": "asafoetida",
     "dates": "dates",
     "dried dates": "dates",
-    "khajur": "dates"
+    "khajur": "dates",
+    "dextrose": "dextrose",
+    "dextrose anhydrous": "dextrose",
+    "anhydrous dextrose": "dextrose",
+    "glucose": "dextrose",
+    "potassium chloride": "potassium_chloride",
+    "potassium chlorid": "potassium_chloride",
+    "potassium": "potassium_chloride",
+    "sodium chloride": "sodium_chloride",
+    "sodium citrate": "sodium_citrate"
   },
   "ins_codes": {
     "621": {

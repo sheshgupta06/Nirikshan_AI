@@ -96,6 +96,26 @@ export interface RegulatoryAdditiveFinding {
   hindi_explanation?: string
 }
 
+export interface PatientRiskAdvisory {
+  condition_key: string
+  condition_name: string
+  severity: 'CRITICAL' | 'WARNING' | 'CAUTION' | 'INFO' | string
+  trigger_ingredients: string[]
+  warning_en: string
+  warning_hi?: string
+  clinical_recommendation: string
+}
+
+export interface IngredientPatientEvaluation {
+  ingredient_name: string
+  safety_badge: string
+  status_color: 'rose' | 'amber' | 'blue' | 'emerald' | string
+  affected_patients: string[]
+  clinical_explanation: string
+  clinical_explanation_hi?: string
+  is_safe_for_general_public: boolean
+}
+
 export interface GeneralHealthInsight {
   ingredient_name: string
   concern_type: string
@@ -153,6 +173,11 @@ export interface HealthImpactReport {
   condition_findings: HealthImpactFinding[]
   data_insufficient_notices: HealthImpactFinding[]
   nutrition_facts?: NutritionFacts
+  patient_risk_advisories?: PatientRiskAdvisory[]
+  ingredient_evaluations?: IngredientPatientEvaluation[]
+  llm_source?: string
+  llm_verdict?: string
+  llm_verdict_hi?: string
   summary_counts: Record<string, number>
   disclaimer: string
 }

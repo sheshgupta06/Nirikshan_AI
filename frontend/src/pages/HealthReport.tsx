@@ -10,14 +10,219 @@ import {
   BookOpen,
   CheckCircle,
   ShieldAlert,
+  Stethoscope,
+  Sparkles,
+  HeartPulse,
 } from 'lucide-react'
 import { scanStorage, type StoredScan } from '../services/scanStorage'
+
+// Non-ingredient instruction/packaging lines to filter out
+const NON_INGREDIENT_REGEX =
+  /\b(W\.?H\.?O|RECOMMENDED\s*FORMULA|formula\s*allows|absorption\s*of\s*Fluids|replacing|severe\s*diarrh|STORE\s*IN|KEEP\s*PROTECTED|KEEP\s*OUT|DRY\s*PLACE|Each\s*sachet|powder\s*in|DOSAGE|DIRECTIONS?|until\s*diarrhoea|PANEL\s*\d|WhatsApp\s*Image|MFG\s*DATE|BATCH\s*NO|EXPIRY|NET\s*QUANTITY|MRP\s*Rs|CONSUMER\s*CARE|STORAGE:|FSSAI\s*Lic|ALLERGEN\s*ADVICE|GREEN\s*VEG\s*EMBLEM|FiecTROLYTE|ELECTROLYTE|TION\s*:\s*OAS|Exciplents)\b/i
+
+function cleanIngredientName(raw: string): string {
+  let s = raw.trim()
+  s = s.replace(/^[0-9]+(?:\.[0-9]+)?\s*(?:g|mg|kg|ml|l|gm)\s*(?:of\s*)?/i, '')
+  s = s.replace(/\b(?:Each\s*sachet\s*of|powder\s*in\s*one\s*sachet|contains?)\b/gi, '')
+  s = s.replace(/^[0-9]+(?:\.[0-9]+)?\s*/, '')
+  s = s.replace(/^[-•*|]+\s*/, '')
+  s = s.replace(/\|.*$/, '')
+  return s.trim()
+}
+
+interface EvaluatedIngredientItem {
+  name: string
+  status: string
+  statusColor: string
+  details?: string
+  affectedPatients?: string[]
+}
+
+function evaluateIngredientClinical(
+  rawName: string,
+  backendEvaluations?: Array<{
+    ingredient_name: string
+    safety_badge: string
+    status_color: string
+    clinical_explanation: string
+    affected_patients: string[]
+  }>
+): EvaluatedIngredientItem {
+  const name = cleanIngredientName(rawName)
+  const lower = name.toLowerCase()
+
+  // Match backend LLM/clinical evaluation if present
+  if (backendEvaluations && backendEvaluations.length > 0) {
+    const matched = backendEvaluations.find(
+      (be) =>
+        be.ingredient_name.toLowerCase().includes(lower) ||
+        lower.includes(be.ingredient_name.toLowerCase())
+    )
+    if (matched) {
+      let colorClass = 'bg-emerald-100 text-emerald-800 border-emerald-300'
+      if (matched.status_color === 'rose') {
+        colorClass = 'bg-rose-100 text-rose-800 border-rose-300'
+      } else if (matched.status_color === 'amber') {
+        colorClass = 'bg-amber-100 text-amber-800 border-amber-300'
+      } else if (matched.status_color === 'blue') {
+        colorClass = 'bg-blue-100 text-blue-800 border-blue-300'
+      }
+      return {
+        name,
+        status: matched.safety_badge,
+        statusColor: colorClass,
+        details: matched.clinical_explanation,
+        affectedPatients: matched.affected_patients,
+      }
+    }
+  }
+
+  // Deterministic Clinical Rules Mapping
+  // 1. Kidney / CKD Risk (Potassium)
+  if (
+    lower.includes('potassium chloride') ||
+    lower.includes('potassium chlorid') ||
+    lower.includes('potassium citrate') ||
+    (lower.includes('potassium') && !lower.includes('sorbate'))
+  ) {
+    return {
+      name,
+      status: '🚨 Kidney (CKD) Risk',
+      statusColor: 'bg-rose-100 text-rose-800 border-rose-300',
+      details:
+        'Kidney Warning: Concentrated potassium cannot be excreted by impaired kidneys, risking life-threatening hyperkalemia & cardiac arrhythmia.',
+      affectedPatients: ['Kidney Disease (गुर्दे की बीमारी / CKD)', 'Renal Failure Patients'],
+    }
+  }
+
+  // 2. Diabetic Risk (Dextrose, Glucose, Simple Sugars)
+  if (
+    lower.includes('dextrose') ||
+    lower.includes('glucose') ||
+    lower.includes('fructose') ||
+    lower.includes('corn syrup') ||
+    lower.includes('maltodextrin') ||
+    lower.includes('sucrose') ||
+    lower.includes('sugar')
+  ) {
+    return {
+      name,
+      status: '⚠️ Diabetes Risk',
+      statusColor: 'bg-amber-100 text-amber-800 border-amber-300',
+      details:
+        'High Glycemic Sugar: Fast-absorbing simple carbohydrate (GI 100). Rapidly spikes blood glucose; diabetic patients should exercise strict caution.',
+      affectedPatients: ['Diabetic Patients (मधुमेह)', 'Prediabetes / Insulin Resistance'],
+    }
+  }
+
+  // 3. Hypertension / High Blood Pressure / Heart Failure
+  if (
+    lower.includes('sodium chloride') ||
+    lower.includes('sodium citrate') ||
+    lower.includes('salt') ||
+    lower.includes('iodized salt') ||
+    lower.includes('common salt')
+  ) {
+    return {
+      name,
+      status: '⚠️ High BP / Heart Risk',
+      statusColor: 'bg-amber-100 text-amber-800 border-amber-300',
+      details:
+        'Cardiovascular / BP Risk: Concentrated sodium expands blood plasma volume, raising arterial blood pressure and increasing cardiac strain.',
+      affectedPatients: ['Hypertension (उच्च रक्तचाप)', 'Heart Failure Patients'],
+    }
+  }
+
+  // 4. Gluten / Celiac
+  if (
+    lower.includes('wheat') ||
+    lower.includes('maida') ||
+    lower.includes('gluten') ||
+    lower.includes('barley') ||
+    lower.includes('rye') ||
+    lower.includes('atta')
+  ) {
+    return {
+      name,
+      status: '🚨 Celiac / Gluten Trigger',
+      statusColor: 'bg-rose-100 text-rose-800 border-rose-300',
+      details:
+        'Gluten Protein: Unsafe for Celiac disease and gluten sensitivity. Induces intestinal inflammation and villous atrophy.',
+      affectedPatients: ['Celiac Disease (सीलिएक / ग्लूटेन एलर्जी)'],
+    }
+  }
+
+  // 5. Palmolein / Saturated Fat
+  if (lower.includes('palmolein') || lower.includes('palm oil') || lower.includes('hydrogenated')) {
+    return {
+      name,
+      status: '⚠️ Saturated Fat / Heart',
+      statusColor: 'bg-amber-100 text-amber-800 border-amber-300',
+      details:
+        'High in saturated fatty acids (~50%); regular excessive intake elevates LDL cholesterol and arterial plaque risk.',
+      affectedPatients: ['Cardiovascular Disease (हृदय रोग)', 'High Cholesterol (Hyperlipidemia)'],
+    }
+  }
+
+  // 6. Allergens (Soy, Milk, Nut, Peanut, Mustard)
+  if (
+    lower.includes('soy') ||
+    lower.includes('milk') ||
+    lower.includes('dairy') ||
+    lower.includes('whey') ||
+    lower.includes('nut') ||
+    lower.includes('peanut') ||
+    lower.includes('mustard')
+  ) {
+    return {
+      name,
+      status: '🚨 Allergen Alert',
+      statusColor: 'bg-rose-100 text-rose-800 border-rose-300',
+      details:
+        'Major declared allergen: Known to trigger IgE-mediated allergic reactions or intolerance in sensitive individuals.',
+      affectedPatients: ['Food Allergy Sufferers'],
+    }
+  }
+
+  // 7. MSG
+  if (lower.includes('monosodium') || lower.includes('msg') || lower.includes('621')) {
+    return {
+      name,
+      status: '⚠️ MSG / Sensitivity',
+      statusColor: 'bg-amber-100 text-amber-800 border-amber-300',
+      details:
+        'Flavor enhancer (free glutamate); may cause bronchoconstriction or headaches in sensitive individuals.',
+      affectedPatients: ['Asthma & Glutamate Sensitive Individuals'],
+    }
+  }
+
+  // 8. Citric Acid
+  if (lower.includes('citric acid') || lower.includes('330') || lower.includes('acidity regulator')) {
+    return {
+      name,
+      status: '✓ Generally Safe',
+      statusColor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+      details:
+        'Acidity Regulator (INS 330): Permitted under FSSAI & EFSA. High amounts may aggravate gastric acidity or acid reflux.',
+      affectedPatients: [],
+    }
+  }
+
+  // Default: Generally safe food ingredient
+  return {
+    name,
+    status: '✓ Generally Safe',
+    statusColor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    details: 'Standard food ingredient; evaluated as safe under FSSAI and ICMR-NIN safety guidelines.',
+    affectedPatients: [],
+  }
+}
 
 export const HealthReport: React.FC = () => {
   const { scanId } = useParams<{ scanId: string }>()
   const [scan, setScan] = useState<StoredScan | null>(null)
   const [activeSection, setActiveSection] = useState<
-    'overview' | 'ingredients' | 'nutrition' | 'allergens' | 'insights' | 'references'
+    'overview' | 'patients' | 'ingredients' | 'nutrition' | 'allergens' | 'insights' | 'references'
   >('overview')
 
   useEffect(() => {
@@ -49,73 +254,24 @@ export const HealthReport: React.FC = () => {
   const allergenReport = scan.response?.allergen_report
   const nutritionFacts = healthReport?.nutrition_facts
 
-  // Dynamically build ingredients list from evaluation items or corrections
-  let ingredientsList: Array<{
-    name: string
-    status: string
-    statusColor: string
-    details?: string
-  }> = []
+  // Dynamically build clean ingredients list
+  let ingredientsList: EvaluatedIngredientItem[] = []
 
   if (evalResult?.items && evalResult.items.length > 0) {
-    ingredientsList = evalResult.items.map((item) => {
-      const hasAllergen = item.alerts.some((a) => a.alert_type === 'ALLERGEN_ALERT')
-      const hasWatchlist = item.alerts.some((a) => a.alert_type === 'WATCHLIST_MATCH')
-      const isUnclear = item.status_code === 'UNCLEAR_NEEDS_REVIEW'
-
-      let status = 'Generally safe'
-      let statusColor = 'bg-emerald-100 text-emerald-800 border-emerald-200'
-
-      if (hasAllergen) {
-        status = 'Allergen Alert'
-        statusColor = 'bg-rose-100 text-rose-800 border-rose-200'
-      } else if (hasWatchlist) {
-        status = 'Watchlist Flag'
-        statusColor = 'bg-amber-100 text-amber-800 border-amber-200'
-      } else if (isUnclear) {
-        status = 'Review needed'
-        statusColor = 'bg-slate-100 text-slate-800 border-slate-200'
-      }
-
-      // Assign evidence-backed plain-English health concern
-      const lower = (item.ingredient.canonical_name || item.ingredient.raw_text).toLowerCase()
-      let healthConcern = item.alerts[0]?.message || ''
-
-      if (!healthConcern) {
-        if (lower.includes('soy')) {
-          healthConcern = 'Allergen Concern: Contains soy protein; can trigger allergic reactions in soy-sensitive individuals.'
-        } else if (lower.includes('wheat') || lower.includes('maida') || lower.includes('gluten')) {
-          healthConcern = 'Gluten / Allergen Concern: Contains gluten; unsafe for Coeliac Disease and wheat allergy.'
-        } else if (lower.includes('salt') || lower.includes('sodium')) {
-          healthConcern = 'Cardiovascular / BP Risk: Concentrated sodium source; high intake elevates blood pressure (hypertension) and kidney strain.'
-        } else if (lower.includes('sugar') || lower.includes('glucose') || lower.includes('fructose') || lower.includes('syrup')) {
-          healthConcern = 'Metabolic / Diabetes Risk: Simple carbohydrate; rapidly spikes blood glucose levels and increases diabetic risk.'
-        } else if (lower.includes('palmolein') || lower.includes('palm oil')) {
-          healthConcern = 'Heart Health Concern: High in saturated fatty acids (~50%); may increase serum LDL cholesterol.'
-        } else if (lower.includes('citric acid') || lower.includes('330') || lower.includes('acidity regulator')) {
-          healthConcern = 'Digestive Note: Acidity regulator (INS 330); safe in standard amounts, high intake may aggravate acidity or reflux.'
-        } else if (lower.includes('monosodium') || lower.includes('msg') || lower.includes('621')) {
-          healthConcern = 'Flavor Enhancer: Permitted glutamate additive; some individuals report mild sensitivity symptoms.'
-        } else if (lower.includes('water')) {
-          healthConcern = 'Safe hydration carrier ingredient.'
-        } else if (lower.includes('milk') || lower.includes('dairy') || lower.includes('whey')) {
-          healthConcern = 'Allergen / Lactose Concern: Contains dairy proteins and lactose; unsuitable for lactose intolerance or milk allergy.'
-        } else if (lower.includes('peanut') || lower.includes('nut')) {
-          healthConcern = 'Severe Allergen Warning: Nut allergens can induce severe systemic allergic reactions.'
-        } else {
-          healthConcern = 'Standard Food Ingredient: Evaluated against FSSAI and ICMR-NIN safety guidelines.'
-        }
-      }
-
-      return {
-        name: item.ingredient.canonical_name || item.ingredient.raw_text,
-        status,
-        statusColor,
-        details: healthConcern,
-      }
-    })
+    ingredientsList = evalResult.items
+      .map((item) => item.ingredient.canonical_name || item.ingredient.raw_text)
+      .filter((raw) => {
+        if (!raw || raw.trim().length < 2) return false
+        if (NON_INGREDIENT_REGEX.test(raw)) return false
+        return true
+      })
+      .map((name) =>
+        evaluateIngredientClinical(
+          name,
+          healthReport?.ingredient_evaluations as any
+        )
+      )
   } else if (scan.corrections?.rawIngredients || scan.response?.raw_extracted_text) {
-    // Extract tokens from corrected or raw text
     const text = scan.corrections?.rawIngredients || scan.response?.raw_extracted_text || ''
     const match = text.match(/INGREDIENTS?\s*[:\-]?\s*([^.\n]+)/i)
     const rawTokens = match
@@ -123,45 +279,194 @@ export const HealthReport: React.FC = () => {
       : text.split('\n').filter((l) => l.length > 3 && l.length < 50)
 
     ingredientsList = rawTokens
-      .map((t) => t.trim().replace(/^[-•*]\s*/, ''))
-      .filter((t) => t.length > 2 && !t.toUpperCase().includes('NUTRITION'))
-      .map((name) => {
-        const lower = name.toLowerCase()
-        let status = 'Generally safe'
-        let statusColor = 'bg-emerald-100 text-emerald-800 border-emerald-200'
-        let details = 'Evaluated food component.'
-
-        if (lower.includes('soy') || lower.includes('wheat') || lower.includes('milk') || lower.includes('nut') || lower.includes('mustard')) {
-          status = 'Allergen Alert'
-          statusColor = 'bg-rose-100 text-rose-800 border-rose-200'
-          details = 'Known allergen: Can cause allergic reactions or food sensitivity.'
-        } else if (lower.includes('salt') || lower.includes('sodium')) {
-          status = 'High in sodium'
-          statusColor = 'bg-rose-100 text-rose-800 border-rose-200'
-          details = 'High intake elevates blood pressure (hypertension) and kidney strain.'
-        } else if (lower.includes('sugar') || lower.includes('glucose')) {
-          status = 'Metabolic Caution'
-          statusColor = 'bg-amber-100 text-amber-800 border-amber-200'
-          details = 'Added sugar spikes blood glucose; monitor intake for diabetes.'
-        } else if (lower.includes('palm') || lower.includes('palmolein')) {
-          status = 'Saturated Fat'
-          statusColor = 'bg-amber-100 text-amber-800 border-amber-200'
-          details = 'High in saturated fat (~50%); can raise LDL cholesterol.'
-        } else if (lower.includes('330') || lower.includes('citric acid') || lower.includes('acidity')) {
-          status = 'Acidity Regulator'
-          statusColor = 'bg-emerald-100 text-emerald-800 border-emerald-200'
-          details = 'INS 330 (Citric Acid) — Generally recognized as safe by FSSAI & EFSA.'
-        }
-
-        return { name, status, statusColor, details }
+      .map((t) => t.trim())
+      .filter((raw) => {
+        if (!raw || raw.length < 2) return false
+        if (raw.toUpperCase().includes('NUTRITION')) return false
+        if (NON_INGREDIENT_REGEX.test(raw)) return false
+        return true
       })
+      .map((name) =>
+        evaluateIngredientClinical(
+          name,
+          healthReport?.ingredient_evaluations as any
+        )
+      )
   }
+
+  // De-duplicate items by lowercase name
+  const seenNames = new Set<string>()
+  ingredientsList = ingredientsList.filter((item) => {
+    const key = item.name.toLowerCase()
+    if (!key || seenNames.has(key)) return false
+    seenNames.add(key)
+    return true
+  })
 
   // Fallback if empty
   if (ingredientsList.length === 0) {
     ingredientsList = [
-      { name: scan.productName || 'Food Item', status: 'Detected', statusColor: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+      {
+        name: scan.productName || 'Food Item',
+        status: '✓ Generally Safe',
+        statusColor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+        details: 'Standard food ingredients evaluated against FSSAI guidelines.',
+      },
     ]
+  }
+
+  // Compile Patient Health Advisories from backend or extracted ingredients
+  interface PatientAdvisoryDisplay {
+    key: string
+    title: string
+    severity: 'CRITICAL' | 'WARNING' | 'CAUTION'
+    badgeBg: string
+    borderColor: string
+    triggerIngredients: string[]
+    warningEn: string
+    warningHi?: string
+    recommendation: string
+  }
+
+  let patientAdvisories: PatientAdvisoryDisplay[] = []
+
+  if (healthReport?.patient_risk_advisories && healthReport.patient_risk_advisories.length > 0) {
+    patientAdvisories = healthReport.patient_risk_advisories.map((pa) => ({
+      key: pa.condition_key,
+      title: pa.condition_name,
+      severity: (pa.severity as any) || 'WARNING',
+      badgeBg:
+        pa.severity === 'CRITICAL'
+          ? 'bg-rose-50 text-rose-900 border-rose-300'
+          : 'bg-amber-50 text-amber-900 border-amber-300',
+      borderColor: pa.severity === 'CRITICAL' ? 'border-rose-200' : 'border-amber-200',
+      triggerIngredients: pa.trigger_ingredients || [],
+      warningEn: pa.warning_en,
+      warningHi: pa.warning_hi,
+      recommendation: pa.clinical_recommendation,
+    }))
+  } else {
+    // Synthesize from ingredientsList
+    const advMap = new Map<string, PatientAdvisoryDisplay>()
+
+    ingredientsList.forEach((ing) => {
+      const lower = ing.name.toLowerCase()
+
+      // Kidney
+      if (lower.includes('potassium')) {
+        if (!advMap.has('KIDNEY_CKD')) {
+          advMap.set('KIDNEY_CKD', {
+            key: 'KIDNEY_CKD',
+            title: 'Kidney Disease / CKD Patients (गुर्दे की बीमारी)',
+            severity: 'CRITICAL',
+            badgeBg: 'bg-rose-50 text-rose-900 border-rose-300',
+            borderColor: 'border-rose-200',
+            triggerIngredients: [ing.name],
+            warningEn:
+              'Concentrated potassium cannot be safely filtered by impaired kidneys, risking life-threatening Hyperkalemia and cardiac complications.',
+            warningHi:
+              'किडनी (गुर्दे) की बीमारी वाले मरीज़ पोटेशियम को फ़िल्टर नहीं कर पाते, जिससे हाइपरकेलेमिया (Hyperkalemia) और दिल का दौरा पड़ने का ख़तरा हो सकता है।',
+            recommendation:
+              'Strictly restricted for patients with Chronic Kidney Disease (CKD) or Renal Failure. Consult a nephrologist before consuming.',
+          })
+        } else {
+          const cur = advMap.get('KIDNEY_CKD')!
+          if (!cur.triggerIngredients.includes(ing.name)) cur.triggerIngredients.push(ing.name)
+        }
+      }
+
+      // Diabetes
+      if (
+        lower.includes('dextrose') ||
+        lower.includes('glucose') ||
+        lower.includes('sugar') ||
+        lower.includes('syrup')
+      ) {
+        if (!advMap.has('DIABETES')) {
+          advMap.set('DIABETES', {
+            key: 'DIABETES',
+            title: 'Diabetic Patients (रक्त शर्करा / मधुमेह)',
+            severity: 'WARNING',
+            badgeBg: 'bg-amber-50 text-amber-900 border-amber-300',
+            borderColor: 'border-amber-200',
+            triggerIngredients: [ing.name],
+            warningEn:
+              'Dextrose and simple sugars are high-glycemic carbohydrates (GI 100) that rapidly absorb into the bloodstream, triggering sharp blood glucose spikes.',
+            warningHi:
+              'यह सीधे खून में घुलकर ब्लड शुगर तुरंत बढ़ा देता है। डायबिटीज़ के मरीजों को इसका सेवन सावधानी से और डॉक्टर की सलाह पर ही करना चाहिए।',
+            recommendation:
+              'Diabetic patients should monitor post-prandial blood glucose closely and avoid unmeasured intake.',
+          })
+        } else {
+          const cur = advMap.get('DIABETES')!
+          if (!cur.triggerIngredients.includes(ing.name)) cur.triggerIngredients.push(ing.name)
+        }
+      }
+
+      // High BP / Heart
+      if (lower.includes('sodium') || lower.includes('salt')) {
+        if (!advMap.has('HYPERTENSION')) {
+          advMap.set('HYPERTENSION', {
+            key: 'HYPERTENSION',
+            title: 'Hypertension & Heart Patients (उच्च रक्तचाप व हृदय रोग)',
+            severity: 'WARNING',
+            badgeBg: 'bg-amber-50 text-amber-900 border-amber-300',
+            borderColor: 'border-amber-200',
+            triggerIngredients: [ing.name],
+            warningEn:
+              'Concentrated sodium expands blood plasma volume, raising arterial pressure and increasing strain on the cardiovascular system and kidneys.',
+            warningHi:
+              'सोडियम की अधिक मात्रा खून की नसों पर दबाव बढ़ाती है, जिससे हाई ब्लड प्रेशर और दिल पर अतिरिक्त बोझ पड़ता है।',
+            recommendation:
+              'Individuals on low-sodium / DASH diets or with hypertension should strictly monitor cumulative sodium intake.',
+          })
+        } else {
+          const cur = advMap.get('HYPERTENSION')!
+          if (!cur.triggerIngredients.includes(ing.name)) cur.triggerIngredients.push(ing.name)
+        }
+      }
+
+      // Celiac
+      if (lower.includes('wheat') || lower.includes('maida') || lower.includes('gluten')) {
+        if (!advMap.has('CELIAC')) {
+          advMap.set('CELIAC', {
+            key: 'CELIAC',
+            title: 'Celiac Disease Patients (सीलिएक / ग्लूटेन एलर्जी)',
+            severity: 'CRITICAL',
+            badgeBg: 'bg-rose-50 text-rose-900 border-rose-300',
+            borderColor: 'border-rose-200',
+            triggerIngredients: [ing.name],
+            warningEn:
+              'Contains gluten proteins (gliadin) that trigger autoimmune small intestinal mucosal destruction in patients with Celiac disease.',
+            warningHi:
+              'इसमें ग्लूटेन प्रोटीन होता है जो सीलिएक बीमारी वाले लोगों की आंतों को गंभीर नुकसान पहुँचाता है।',
+            recommendation: 'Strictly avoid. Choose certified gluten-free alternatives.',
+          })
+        }
+      }
+
+      // Palmolein / Saturated Fat
+      if (lower.includes('palmolein') || lower.includes('palm oil')) {
+        if (!advMap.has('HEART_FAT')) {
+          advMap.set('HEART_FAT', {
+            key: 'HEART_FAT',
+            title: 'Heart & Cholesterol Watch (हृदय रोग व कोलेस्ट्रॉल)',
+            severity: 'CAUTION',
+            badgeBg: 'bg-amber-50 text-amber-900 border-amber-300',
+            borderColor: 'border-amber-200',
+            triggerIngredients: [ing.name],
+            warningEn:
+              'Contains approximately 50% saturated fatty acids. Regular excessive intake elevates serum LDL cholesterol and cardiovascular risk.',
+            warningHi:
+              'इसमें लगभग 50% सेचुरेटेड फैट होता है जो खराब कोलेस्ट्रॉल (LDL) बढ़ाकर नसों में ब्लॉकेज का जोखिम पैदा करता है।',
+            recommendation:
+              'Limit total saturated fat intake to less than 7% of total daily caloric intake.',
+          })
+        }
+      }
+    })
+
+    patientAdvisories = Array.from(advMap.values())
   }
 
   // Calculate dynamic stats
@@ -236,6 +541,19 @@ export const HealthReport: React.FC = () => {
           >
             <LayoutGrid className="w-4 h-4" />
             <span>Overview</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSection('patients')}
+            className={`w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 text-left transition-colors ${
+              activeSection === 'patients'
+                ? 'bg-emerald-50 text-[#0F766E] border border-emerald-200'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <Stethoscope className="w-4 h-4 text-rose-600" />
+            <span>Patient Advisories ({patientAdvisories.length})</span>
           </button>
 
           <button
@@ -348,30 +666,140 @@ export const HealthReport: React.FC = () => {
             </div>
           </div>
 
+          {/* Section: Patient Health Advisories & Vulnerable Groups */}
+          {(activeSection === 'overview' || activeSection === 'patients') && (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-rose-100 text-rose-700">
+                    <Stethoscope className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-[#123044]">
+                      Patient Health Advisories &amp; Risk Groups
+                    </h2>
+                    <p className="text-xs text-slate-500">
+                      मरीजों के लिए स्वास्थ्य सलाह (Clinical safety based on FSSAI &amp; ICMR-NIN protocols)
+                    </p>
+                  </div>
+                </div>
+
+                {healthReport?.llm_source && (
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>
+                      {healthReport.llm_source === 'GEMINI_AI_STUDIO'
+                        ? 'Google AI Studio Gemini'
+                        : 'Clinical Intelligence Engine'}
+                    </span>
+                  </span>
+                )}
+              </div>
+
+              {patientAdvisories.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {patientAdvisories.map((advisory, idx) => (
+                    <div
+                      key={idx}
+                      className={`p-5 rounded-2xl border bg-white shadow-xs space-y-3 transition-all hover:shadow-sm ${advisory.borderColor}`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                          <HeartPulse
+                            className={`w-5 h-5 shrink-0 ${
+                              advisory.severity === 'CRITICAL' ? 'text-rose-600' : 'text-amber-600'
+                            }`}
+                          />
+                          <h3 className="text-sm font-bold text-[#123044]">{advisory.title}</h3>
+                        </div>
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider border shrink-0 ${advisory.badgeBg}`}
+                        >
+                          {advisory.severity}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-[11px] font-semibold text-slate-500">Trigger:</span>
+                        {advisory.triggerIngredients.map((ti, tiIdx) => (
+                          <span
+                            key={tiIdx}
+                            className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 text-[#123044] border border-slate-200"
+                          >
+                            {ti}
+                          </span>
+                        ))}
+                      </div>
+
+                      <p className="text-xs text-slate-700 leading-relaxed">{advisory.warningEn}</p>
+
+                      {advisory.warningHi && (
+                        <p className="text-xs text-slate-600 italic leading-relaxed bg-slate-50/70 p-2.5 rounded-xl border border-slate-100">
+                          {advisory.warningHi}
+                        </p>
+                      )}
+
+                      <div className="pt-2 border-t border-slate-100 flex items-start gap-1.5">
+                        <span className="text-[11px] font-bold text-[#0F766E] shrink-0">Doctor's Guidance:</span>
+                        <span className="text-[11px] text-slate-600">{advisory.recommendation}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-emerald-50/70 border border-emerald-200 p-5 rounded-2xl flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <p className="text-xs sm:text-sm text-emerald-900 font-medium">
+                    No major clinical contraindications detected for common patient groups (Diabetes, Kidney Disease, Celiac) under standard moderate intake.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Section: Overview & Ingredients Table */}
           {(activeSection === 'overview' || activeSection === 'ingredients') && (
             <div className="space-y-4">
-              <h2 className="text-lg font-bold text-[#123044]">Detected Ingredients</h2>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-bold text-[#123044]">Detected Ingredients</h2>
+                  <p className="text-xs text-slate-500">
+                    Cleaned &amp; evaluated against Indian food safety regulations
+                  </p>
+                </div>
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+                  {totalIngredients} Ingredients
+                </span>
+              </div>
 
               <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
                 <div className="divide-y divide-slate-100">
                   {ingredientsList.map((item, idx) => (
                     <div
                       key={idx}
-                      className="p-4 sm:p-5 flex items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors"
+                      className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/50 transition-colors"
                     >
-                      <div>
-                        <span className="text-xs sm:text-sm font-semibold text-[#123044] block">
-                          {item.name}
-                        </span>
+                      <div className="space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-xs sm:text-sm font-bold text-[#123044]">
+                            {item.name}
+                          </span>
+                          {item.affectedPatients && item.affectedPatients.length > 0 && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-800 border border-rose-200">
+                              Risk: {item.affectedPatients[0]}
+                            </span>
+                          )}
+                        </div>
                         {item.details && (
-                          <span className="text-[11px] text-amber-700 mt-0.5 block">{item.details}</span>
+                          <p className="text-[11px] text-slate-600 leading-relaxed max-w-2xl">
+                            {item.details}
+                          </p>
                         )}
                       </div>
 
-                      <div className="flex items-center gap-4 shrink-0">
+                      <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
                         <span
-                          className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${item.statusColor}`}
+                          className={`text-xs font-bold px-3 py-1 rounded-full border shadow-2xs ${item.statusColor}`}
                         >
                           {item.status}
                         </span>

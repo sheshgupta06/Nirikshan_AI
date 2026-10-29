@@ -418,6 +418,29 @@ async def scan_food_label_image(
             health_conditions=parsed_conditions,
         )
 
+        # 10b. Patient Risk Intelligence & Google AI Studio Gemini LLM
+        try:
+            from backend.app.services.llm_health_advisor import llm_health_advisor
+            llm_result = await llm_health_advisor.analyze_patient_risks(
+                candidate_ingredients=candidate_tokens,
+                nutrition_text=raw_text[:1200],
+                product_title=primary_filename,
+            )
+            if llm_result:
+                health_impact_report.patient_risk_advisories = [
+                    a.model_dump() if hasattr(a, "model_dump") else a.dict()
+                    for a in llm_result.patient_advisories
+                ]
+                health_impact_report.ingredient_evaluations = [
+                    ie.model_dump() if hasattr(ie, "model_dump") else ie.dict()
+                    for ie in llm_result.ingredient_evaluations
+                ]
+                health_impact_report.llm_source = llm_result.source
+                health_impact_report.llm_verdict = llm_result.overall_health_verdict
+                health_impact_report.llm_verdict_hi = llm_result.overall_health_verdict_hi
+        except Exception as err:
+            logger.warning("LLM patient risk evaluation error: %s", err)
+
     # 11. Module A: Legal Metrology Compliance (PRD Section 6)
     compliance_report = None
     if "legal_metrology" in req_modules:
