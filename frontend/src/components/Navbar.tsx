@@ -48,7 +48,7 @@ export const Navbar: React.FC = () => {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-1 lg:gap-2">
+        <nav className="hidden lg:flex items-center gap-1 lg:gap-2">
           {navLinks.map((link) => {
             const active = isActive(link.path)
             return (
@@ -68,7 +68,7 @@ export const Navbar: React.FC = () => {
         </nav>
 
         {/* Action Buttons */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden lg:flex items-center gap-3">
           {/* Supabase Cloud Database Link Button */}
           <button
             type="button"
@@ -106,7 +106,7 @@ export const Navbar: React.FC = () => {
         </div>
 
         {/* Mobile Hamburger Toggle */}
-        <div className="flex md:hidden items-center gap-2">
+        <div className="flex lg:hidden items-center gap-2">
           <button
             type="button"
             onClick={() => setSupabaseModalOpen(true)}
@@ -136,7 +136,7 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-[#DCE5E5] bg-white px-4 pt-3 pb-6 space-y-2 shadow-xl animate-fade-in">
+        <div className="lg:hidden border-t border-[#DCE5E5] bg-white px-4 pt-3 pb-6 space-y-2 shadow-xl animate-fade-in">
           {navLinks.map((link) => {
             const active = isActive(link.path)
             return (
