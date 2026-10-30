@@ -13,6 +13,7 @@ async def health_check():
     return {
         "status": "ok",
         "service": "Nirikshan AI Backend",
+        "build_version": "v2.1-gemini-vision",
         "database": db_status,
     }
 
