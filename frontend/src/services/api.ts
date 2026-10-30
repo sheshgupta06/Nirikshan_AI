@@ -4,9 +4,16 @@
 
 import type { ScanImageResponse, UserProfileConfig } from '../types/scan'
 
+// Production Render Cloud Gateway for Nirikshan AI
+const DEFAULT_PRODUCTION_BACKEND = 'https://nirikshan-ai-a9bj.onrender.com'
+
 // Base URL is configurable via environment variable VITE_API_BASE_URL.
-// Defaults to empty string to use Vite dev server proxy (/api -> http://127.0.0.1:8000).
-export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '')
+// In development, defaults to empty string to use Vite proxy (/api -> http://127.0.0.1:8000).
+// In production (Vercel/mobile), defaults to the live Render backend so mobile preview always works seamlessly.
+export const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.DEV ? '' : DEFAULT_PRODUCTION_BACKEND)
+).replace(/\/+$/, '')
 
 /**
  * Checks the status of the FastAPI backend health gateway.
@@ -65,10 +72,32 @@ export async function scanFoodLabelImage(
     formData.append('watchlist', profile.watchlist.trim())
   }
 
-  const res = await fetch(url, {
-    method: 'POST',
-    body: formData,
-  })
+  let res: Response
+  try {
+    res = await fetch(url, {
+      method: 'POST',
+      body: formData,
+    })
+  } catch (netErr: unknown) {
+    // If relative path failed (e.g. static host without rewrite), retry directly against production Render backend
+    if (!API_BASE_URL && DEFAULT_PRODUCTION_BACKEND) {
+      try {
+        const directUrl = `${DEFAULT_PRODUCTION_BACKEND}/api/v1/analyze`
+        res = await fetch(directUrl, {
+          method: 'POST',
+          body: formData,
+        })
+      } catch {
+        throw new Error(
+          'Network connection error: Unable to reach Nirikshan AI server. Please verify your internet connection and try again.'
+        )
+      }
+    } else {
+      throw new Error(
+        'Network connection error: Unable to reach Nirikshan AI server. Please verify your internet connection and try again.'
+      )
+    }
+  }
 
   if (!res.ok) {
     let errorDetail = `HTTP ${res.status}: ${res.statusText}`

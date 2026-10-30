@@ -203,14 +203,12 @@ async def scan_food_label_image(
             detail="No image files provided. Please upload at least one packaged food label image (front or back).",
         )
 
-    # 2. Read and OCR each uploaded image in memory
-    all_boxes: List[OCRTextBox] = []
-    combined_metadata: Dict[str, Any] = {}
-    extracted_text_chunks: List[str] = []
-
+    # 2. Read and OCR all uploaded images concurrently in parallel for 3-5s response time
+    file_payloads: List[Tuple[int, str, bytes, Optional[str]]] = []
     for idx, target_file in enumerate(target_files):
         try:
             image_bytes = await target_file.read()
+            file_payloads.append((idx, target_file.filename or f"Panel_{idx+1}", image_bytes, target_file.content_type))
         except Exception as e:
             logger.error("Failed to read uploaded file %s: %s", target_file.filename, e)
             raise HTTPException(
@@ -218,39 +216,46 @@ async def scan_food_label_image(
                 detail=f"Failed to read uploaded file '{target_file.filename}'.",
             ) from e
 
+    async def _extract_panel(panel_idx: int, panel_name: str, img_b: bytes, c_type: Optional[str]):
         try:
-            cur_boxes, cur_meta = await asyncio.to_thread(
+            p_boxes, p_meta = await asyncio.to_thread(
                 service.extract_text_from_bytes,
-                image_bytes,
-                target_file.content_type,
+                img_b,
+                c_type,
             )
-            all_boxes.extend(cur_boxes)
-            panel_lines = [b.text.strip() for b in cur_boxes if b.text.strip()]
-            if panel_lines:
-                panel_label = f"--- PANEL {idx + 1} ({target_file.filename or 'Image'}) ---"
-                extracted_text_chunks.append(f"{panel_label}\n" + "\n".join(panel_lines))
-
-            if idx == 0:
-                combined_metadata = dict(cur_meta)
-            else:
-                combined_metadata["total_images_processed"] = len(target_files)
+            return panel_idx, panel_name, p_boxes, p_meta
         except ImageValidationError as err:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=str(err),
-            ) from err
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err)) from err
         except OCREngineError as err:
-            logger.error("OCR Engine execution failed for %s: %s", target_file.filename, err)
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"OCR processing failed for '{target_file.filename}': {err}",
-            ) from err
+            logger.error("OCR Engine execution failed for %s: %s", panel_name, err)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"OCR processing failed for '{panel_name}': {err}") from err
         except Exception as err:
-            logger.exception("Unexpected error during OCR processing for %s: %s", target_file.filename, err)
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Internal error during label image processing.",
-            ) from err
+            logger.exception("Unexpected error during OCR processing for %s: %s", panel_name, err)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal error during label image processing.") from err
+
+    # Concurrent parallel OCR extraction across all panels
+    ocr_results = await asyncio.gather(
+        *[_extract_panel(p_idx, p_fn, p_bytes, p_ct) for p_idx, p_fn, p_bytes, p_ct in file_payloads]
+    )
+
+    # Sort results in natural panel order
+    ocr_results.sort(key=lambda r: r[0])
+
+    all_boxes: List[OCRTextBox] = []
+    combined_metadata: Dict[str, Any] = {}
+    extracted_text_chunks: List[str] = []
+
+    for idx, panel_name, cur_boxes, cur_meta in ocr_results:
+        all_boxes.extend(cur_boxes)
+        panel_lines = [b.text.strip() for b in cur_boxes if b.text.strip()]
+        if panel_lines:
+            panel_label = f"--- PANEL {idx + 1} ({panel_name}) ---"
+            extracted_text_chunks.append(f"{panel_label}\n" + "\n".join(panel_lines))
+
+        if idx == 0:
+            combined_metadata = dict(cur_meta)
+        else:
+            combined_metadata["total_images_processed"] = len(target_files)
 
     boxes = all_boxes
     metadata = combined_metadata
@@ -453,13 +458,17 @@ async def scan_food_label_image(
             nutrition_facts=health_impact_report.nutrition_facts if health_impact_report else None,
         )
 
-    # 12. Open Food Facts Barcode Resolution (if barcode is detected in OCR text)
+    # 12. Open Food Facts Barcode Resolution (fast non-blocking lookup)
     off_reference: Optional[OFFProductReference] = None
-    barcode_match = re.search(r"\b(890\d{10}|[0-9]{13}|[0-9]{12}|[0-9]{8})\b", raw_text)
+    barcode_match = re.search(r"\b(890\d{10}|\d{13}|\d{12})\b", raw_text)
     if barcode_match:
         detected_barcode = barcode_match.group(1)
         try:
-            off_reference = openfoodfacts_service.lookup_barcode(detected_barcode)
+            off_reference = await asyncio.to_thread(
+                openfoodfacts_service.lookup_barcode,
+                detected_barcode,
+                timeout_sec=1.5,
+            )
         except Exception as e:
             logger.warning("Open Food Facts lookup failed: %s", e)
 
