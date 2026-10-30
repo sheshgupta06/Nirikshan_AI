@@ -142,7 +142,7 @@ class GeminiVisionOCREngine(BaseOCREngine):
             ],
             "generationConfig": {
                 "temperature": 0.1,
-                "maxOutputTokens": 2048,
+                "maxOutputTokens": 700,
             },
         }
 
@@ -151,7 +151,7 @@ class GeminiVisionOCREngine(BaseOCREngine):
         ]
 
         try:
-            with httpx.Client(timeout=12.0) as client:
+            with httpx.Client(timeout=25.0) as client:
                 for model in candidate_models:
                     endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
                     try:

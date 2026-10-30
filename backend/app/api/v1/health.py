@@ -56,16 +56,18 @@ async def vision_debug_upload(file: UploadFile = File(...)):
     }
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key={key}"
-    async with httpx.AsyncClient(timeout=10.0) as client:
+    async with httpx.AsyncClient(timeout=30.0) as client:
         try:
             r = await client.post(url, json=payload)
+            data = r.json() if r.status_code == 200 else {}
+            reply = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
             return {
                 "http_status": r.status_code,
-                "response_json": r.json() if r.status_code == 200 else None,
-                "raw_text": r.text[:500] if r.status_code != 200 else None,
+                "extracted_text": reply,
+                "raw_error": r.text[:500] if r.status_code != 200 else None,
             }
         except Exception as e:
-            return {"exception": str(e)}
+            return {"exception": repr(e)}
 
 
 @router.get("/health/vision", summary="Gemini Vision Test")

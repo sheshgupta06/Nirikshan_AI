@@ -218,14 +218,14 @@ async def scan_food_label_image(
 
     async def _extract_panel(panel_idx: int, panel_name: str, img_b: bytes, c_type: Optional[str]):
         try:
-            # 18.0s timeout per panel: Gemini Vision responds in 3-5s on packaging photos
+            # 30.0s timeout per panel: gives plenty of headroom for vision inference
             p_boxes, p_meta = await asyncio.wait_for(
                 asyncio.to_thread(
                     service.extract_text_from_bytes,
                     img_b,
                     c_type,
                 ),
-                timeout=18.0,
+                timeout=30.0,
             )
             return panel_idx, panel_name, p_boxes, p_meta
         except asyncio.TimeoutError:
