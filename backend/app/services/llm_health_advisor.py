@@ -213,8 +213,8 @@ class LLMHealthAdvisorService:
         """Evaluates ingredients for patient risks using Gemini API when available, or clinical rules."""
         genuine_tokens = self.filter_genuine_ingredients(candidate_ingredients)
 
-        # 1. If Gemini API key is configured, query Google AI Studio
-        if self.api_key:
+        # 1. If genuine Gemini API key is configured, query Google AI Studio
+        if self.api_key and len(self.api_key) >= 30 and not self.api_key.startswith("AQ."):
             try:
                 llm_result = await self._query_gemini_api(genuine_tokens, nutrition_text, product_title)
                 if llm_result:
