@@ -18,6 +18,47 @@ async def health_check():
     }
 
 
+@router.get("/health/vision", summary="Gemini Vision Test")
+async def vision_test():
+    import base64
+    import cv2
+    import numpy as np
+    key = os.getenv("GEMINI_API_KEY", "").strip()
+    img = np.ones((50, 150, 3), dtype=np.uint8) * 255
+    cv2.putText(img, "MAGGI NOODLES", (5, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
+    _, enc = cv2.imencode(".jpg", img)
+    b64 = base64.b64encode(enc.tobytes()).decode("utf-8")
+
+    results = {}
+    candidate_models = [
+        "gemini-2.5-flash",
+        "gemini-2.0-flash",
+        "gemini-1.5-flash",
+        "gemini-flash-latest",
+        "gemini-flash-lite-latest",
+    ]
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": "Extract all text verbatim:"},
+                    {"inline_data": {"mime_type": "image/jpeg", "data": b64}},
+                ]
+            }
+        ],
+        "generationConfig": {"temperature": 0.1, "maxOutputTokens": 30},
+    }
+    async with httpx.AsyncClient(timeout=4.0) as client:
+        for m in candidate_models:
+            ep = f"https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent?key={key}"
+            try:
+                r = await client.post(ep, json=payload)
+                results[m] = {"status": r.status_code, "text": r.text[:120]}
+            except Exception as e:
+                results[m] = {"error": str(e)}
+    return results
+
+
 @router.get("/health/gemini", summary="Gemini AI Health Check")
 async def gemini_health_check():
     """Tests the Google AI Studio Gemini API connection and model availability."""
