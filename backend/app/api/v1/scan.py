@@ -263,7 +263,7 @@ async def scan_food_label_image(
         }
 
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key={key}"
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with httpx.AsyncClient(timeout=25.0) as client:
             try:
                 r = await client.post(url, json=payload)
                 if r.status_code == 200:
@@ -282,6 +282,8 @@ async def scan_food_label_image(
                                 poly = [[int(w * 0.05), y_top], [int(w * 0.95), y_top], [int(w * 0.95), y_bot], [int(w * 0.05), y_bot]]
                                 boxes.append(OCRTextBox(text=clean_l, confidence=0.98, bounding_box=poly))
                         return boxes
+                else:
+                    logger.warning("Gemini Vision returned non-200 (%d): %s", r.status_code, r.text[:300])
             except Exception as e:
                 logger.warning("Direct Gemini Vision extraction error for %s: %s", panel_name, e)
         return None
@@ -304,7 +306,7 @@ async def scan_food_label_image(
                     img_b,
                     c_type,
                 ),
-                timeout=15.0,
+                timeout=25.0,
             )
             return panel_idx, panel_name, p_boxes, p_meta
         except asyncio.TimeoutError:
