@@ -51,47 +51,71 @@ export const LegalMetrologyReport: React.FC = () => {
   const mfgDetailsItem = complianceItems.find((i) => i.rule_id === 'LM-04-MFG_NAME' || i.title.toLowerCase().includes('manufacturer'))
   const consumerCareItem = complianceItems.find((i) => i.rule_id === 'LM-05-CONSUMER_CARE' || i.title.toLowerCase().includes('consumer'))
 
-  // Dynamic values with priority: User Corrections -> Compliance Report -> Extracted Regex
+  // Helper to extract clean evidence without backend boilerplate
+  const cleanEvidenceText = (text: string | undefined): string => {
+    if (!text) return ''
+    return text
+      .replace(/^Detected:\s*/i, '')
+      .replace(/\s*\(Consumer feedback \/ Price line\)/i, '')
+      .replace(/^(?:Metric weight|Product title|Nutrition table|14-digit|No explicit).*$/i, '')
+      .trim()
+  }
+
+  // Dynamic values with priority: User Corrections -> Regex from Scanned Text -> Compliance Report
+  const mrpMatch = rawText.match(/(?:MRP|PRICE|Rs\.?|₹)\s*[:\-]?\s*(?:₹|Rs\.?|INR)?\s*([0-9]+(?:\.[0-9]{1,2})?)/i)
   const displayMrp =
     scan.corrections?.mrp && scan.corrections.mrp !== 'Not specified'
       ? scan.corrections.mrp
-      : mrpItem?.evidence_text || 'Not detected on panel'
+      : mrpMatch
+      ? `₹ ${mrpMatch[1]}`
+      : cleanEvidenceText(mrpItem?.evidence_text) || 'Not detected'
 
+  const netQtyMatch = rawText.match(/(?:NET\s*(?:WEIGHT|WT|QTY|QUANTITY)|DRAINED\s*WEIGHT)\s*[:\-]?\s*([0-9]+(?:\.[0-9]+)?\s*(?:g|kg|ml|l)(?:\s*\+\s*[0-9]+\s*(?:g|kg|ml|l)\s*FREE)?)/i)
   const displayNetQty =
     scan.corrections?.netQuantity && scan.corrections.netQuantity !== 'Not specified'
       ? scan.corrections.netQuantity
-      : netQtyItem?.evidence_text ||
-        rawText.match(/(?:NET\s*(?:WEIGHT|QTY)|DRAINED\s*WEIGHT)\s*[:\-]?\s*([0-9]+\s*(?:g|kg|ml|l))/i)?.[0] ||
-        'Not detected on panel'
+      : netQtyMatch
+      ? netQtyMatch[1].trim()
+      : cleanEvidenceText(netQtyItem?.evidence_text) || 'Not detected'
 
+  const mfgDateMatch = rawText.match(/(?:PKD|MFG|MFD|PACKED|PACKAGING|MANUFACTURE)\s*(?:DATE|ON)?\s*[:\.]?\s*([A-Za-z0-9\/\-\.\s]{3,12})/i)
   const displayMfgDate =
     scan.corrections?.mfgDate && scan.corrections.mfgDate !== 'Not specified'
       ? scan.corrections.mfgDate
-      : mfgDateItem?.evidence_text || 'Check package panel'
+      : mfgDateMatch
+      ? mfgDateMatch[1].trim().replace(/^[\:\.\s]+/, '')
+      : cleanEvidenceText(mfgDateItem?.evidence_text) || 'Check package'
 
+  const expDateMatch = rawText.match(/(?:USE\s*BY|EXP|EXPIRY|BEST\s*BEFORE)\s*(?:DATE|ON)?\s*[:\.]?\s*([A-Za-z0-9\/\-\.\s]{3,12})/i)
   const displayBestBefore =
     scan.corrections?.expiryDate && scan.corrections.expiryDate !== 'Not specified'
       ? scan.corrections.expiryDate
-      : rawText.match(/(?:BEST\s*BEFORE|EXP|USE\s*BY)\s*[:\-]?\s*([^\n\r]+)/i)?.[1]?.trim().slice(0, 30) ||
-        'Check package stamp'
+      : expDateMatch
+      ? expDateMatch[1].trim().replace(/^[\:\.\s]+/, '')
+      : 'Check package'
 
+  const mfrMatch = rawText.match(/(?:Manufactured\s*(?:&|AND)?\s*Packed\s*by|Manufacturer|Marketed\s*by|Packed\s*by)\s*[:\-]?\s*([^\n\r,]+)/i)
   const displayManufacturer =
-    mfgDetailsItem?.evidence_text ||
-    scan.brand ||
-    scan.productName ||
-    'Packer / Brand Holder'
+    mfrMatch
+      ? mfrMatch[1].trim()
+      : cleanEvidenceText(mfgDetailsItem?.evidence_text) ||
+        scan.brand ||
+        scan.productName ||
+        'Packer / Brand Holder'
 
+  const fssaiMatch = rawText.match(/\b(1[0-9]{13})\b/)
   const displayFssai =
     scan.corrections?.fssaiNumber && scan.corrections.fssaiNumber !== 'Not detected'
       ? scan.corrections.fssaiNumber
-      : fssaiItem?.evidence_text ||
-        rawText.match(/\b(1[0-9]{13})\b/)?.[1] ||
-        'Check license panel'
+      : fssaiMatch
+      ? fssaiMatch[1]
+      : cleanEvidenceText(fssaiItem?.evidence_text) || 'Check license panel'
 
+  const careMatch = rawText.match(/(?:(?:Ph(?:one)?|Tel)\.?\s*No\.?|Consumer\s*Care|Help(?:line)?|Customer\s*Care)\s*[:\-]?\s*([^\n\r]+)/i)
   const displayCare =
-    consumerCareItem?.evidence_text ||
-    rawText.match(/(?:care|contact|feedback|email|tel)\s*[:\-]?\s*([^\n\r]+)/i)?.[0] ||
-    'Refer to consumer address on package'
+    careMatch
+      ? careMatch[1].trim()
+      : cleanEvidenceText(consumerCareItem?.evidence_text) || 'Refer to package contact'
 
   const isCompliant = displayNetQty !== 'Not detected on panel'
 
@@ -228,24 +252,24 @@ export const LegalMetrologyReport: React.FC = () => {
           <div className="space-y-4">
             <h2 className="text-lg font-bold text-[#123044]">Key Information</h2>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
-                <span className="text-xl sm:text-2xl font-extrabold text-[#123044] truncate block">{displayMrp}</span>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
+                <span className="text-base sm:text-2xl font-extrabold text-[#123044] block break-words">{displayMrp}</span>
                 <p className="text-xs text-[#64748B]">MRP (incl. of all taxes)</p>
               </div>
 
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
-                <span className="text-xl sm:text-2xl font-extrabold text-[#123044] truncate block">{displayNetQty}</span>
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
+                <span className="text-base sm:text-2xl font-extrabold text-[#123044] block break-words">{displayNetQty}</span>
                 <p className="text-xs text-[#64748B]">Net / Drained Weight</p>
               </div>
 
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
-                <span className="text-lg sm:text-xl font-extrabold text-[#123044] truncate block">{displayMfgDate}</span>
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
+                <span className="text-base sm:text-xl font-extrabold text-[#123044] block break-words">{displayMfgDate}</span>
                 <p className="text-xs text-[#64748B]">Mfg. Date</p>
               </div>
 
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
-                <span className="text-lg sm:text-xl font-extrabold text-[#123044] truncate block">{displayBestBefore}</span>
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
+                <span className="text-base sm:text-xl font-extrabold text-[#123044] block break-words">{displayBestBefore}</span>
                 <p className="text-xs text-[#64748B]">Best Before / Use By</p>
               </div>
             </div>

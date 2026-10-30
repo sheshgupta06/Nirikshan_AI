@@ -308,20 +308,19 @@ class SectionAwareLabelParser:
             if re.search(r"\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}", t):
                 continue
 
-            t_lower = t.lower()
-            # If token contains non-allergen sub-product/spice keywords alongside an allergen, isolate the allergen
-            if re.search(r"\b(?:powder|pani|chutney|puris|pellets|50g|snacks)\b", t_lower):
-                matched_canonical = None
-                for kw in ("gluten", "wheat", "soy", "soya", "milk", "peanut", "mustard", "tree nut", "nuts", "sesame"):
-                    if re.search(rf"\b{kw}\b", t_lower):
-                        matched_canonical = kw.capitalize()
-                        break
-                if matched_canonical and matched_canonical not in tokens:
-                    tokens.append(matched_canonical)
-            else:
-                title_token = t.title()
-                if title_token not in tokens:
-                    tokens.append(title_token)
+            # Strip trailing manufacturing / company boilerplate (e.g. "Mustard Manufactured & Packed by ...")
+            t = re.sub(
+                r"\b(?:manufactured(?:\s*(?:&|and)?\s*packed)?|packed|marketed|mfg|producer|food\s*products|pvt|ltd|regd|office)\b.*$",
+                "",
+                t,
+                flags=re.IGNORECASE,
+            ).strip()
+            if not t or len(t) < 2:
+                continue
+
+            title_token = t.title()
+            if title_token not in tokens:
+                tokens.append(title_token)
 
         return tokens
 
