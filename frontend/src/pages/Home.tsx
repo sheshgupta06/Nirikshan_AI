@@ -20,10 +20,10 @@ export const Home: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen bg-white overflow-x-hidden">
       {/* Hero Section */}
-      <section className="relative pt-8 pb-12 sm:pt-12 sm:pb-16 lg:pt-16 lg:pb-20 overflow-hidden">
+      <section className="relative pt-6 pb-10 sm:pt-12 sm:pb-16 lg:pt-16 lg:pb-20 overflow-hidden bg-gradient-to-b from-emerald-50/50 via-slate-50/40 to-white border-b border-slate-100">
         {/* Soft decorative background glow */}
-        <div className="absolute top-0 right-1/4 w-72 sm:w-96 h-72 sm:h-96 bg-emerald-100/40 rounded-full blur-3xl pointer-events-none -z-10" />
-        <div className="absolute bottom-0 left-1/4 w-64 sm:w-80 h-64 sm:h-80 bg-teal-100/30 rounded-full blur-3xl pointer-events-none -z-10" />
+        <div className="absolute top-0 right-1/4 w-72 sm:w-96 h-72 sm:h-96 bg-emerald-200/25 rounded-full blur-3xl pointer-events-none -z-10" />
+        <div className="absolute bottom-0 left-1/4 w-64 sm:w-80 h-64 sm:h-80 bg-teal-200/20 rounded-full blur-3xl pointer-events-none -z-10" />
 
         <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-6 sm:space-y-10">
           {/* Main Hero: Side-by-side horizontal on both phone and desktop */}
@@ -66,65 +66,29 @@ export const Home: React.FC = () => {
               </div>
             </div>
 
-            {/* Right Product Mockup with Safe Responsive Floating Cards */}
+            {/* Right Product Mockup */}
             <div className="col-span-5 lg:col-span-5 relative flex items-center justify-center">
-              <div className="relative w-full max-w-[190px] xs:max-w-[230px] sm:max-w-md mx-auto">
+              <div className="relative w-full max-w-[210px] xs:max-w-[260px] sm:max-w-md mx-auto">
+                {/* Ambient soft glow */}
+                <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-tr from-emerald-400/20 via-teal-400/15 to-transparent rounded-3xl blur-xl -z-10" />
+
                 {/* Packaged Food Product Mockup Image */}
-                <div className="relative z-10 rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg sm:shadow-xl border border-slate-200 bg-gradient-to-b from-emerald-50/40 via-amber-50/30 to-slate-50 p-1.5 sm:p-4">
+                <div className="relative z-10 rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg sm:shadow-2xl border border-slate-200/90 bg-white group">
                   <img
                     src="https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=800&auto=format&fit=crop&q=80"
                     alt="Sample Packaged Food with Nutrition Label"
-                    className="w-full h-40 xs:h-52 sm:h-80 object-cover rounded-xl sm:rounded-2xl"
+                    className="w-full h-44 xs:h-56 sm:h-80 object-cover transform group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute bottom-2.5 left-2.5 right-2.5 sm:bottom-5 sm:left-5 sm:right-5 p-1.5 sm:p-3 rounded-lg sm:rounded-xl bg-black/85 backdrop-blur-md text-white flex items-center justify-between border border-white/10 shadow-lg">
+                  <div className="absolute bottom-2.5 left-2.5 right-2.5 sm:bottom-4 sm:left-4 sm:right-4 p-2 sm:p-3 rounded-xl bg-slate-900/85 backdrop-blur-md text-white flex items-center justify-between border border-white/10 shadow-lg">
                     <div className="min-w-0 pr-1">
-                      <p className="text-[8px] sm:text-[11px] font-semibold text-emerald-400 flex items-center gap-1 truncate">
+                      <p className="text-[9px] sm:text-[11px] font-semibold text-emerald-400 flex items-center gap-1.5 truncate">
                         <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                         Food Scan
                       </p>
-                      <p className="text-[10px] sm:text-sm font-bold truncate">Packaged Label</p>
+                      <p className="text-[11px] sm:text-sm font-bold truncate">Packaged Label</p>
                     </div>
-                    <span className="text-[8px] sm:text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-1.5 py-0.5 rounded shrink-0">
+                    <span className="text-[9px] sm:text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-md shrink-0">
                       FSSAI Verified
-                    </span>
-                  </div>
-                </div>
-
-                {/* Floating Card 1: Health Analysis */}
-                <div className="absolute -top-1.5 -right-1.5 sm:-top-3 sm:-right-4 z-20 bg-white/95 backdrop-blur-sm rounded-lg sm:rounded-xl p-1 sm:p-3 shadow-md sm:shadow-lg border border-slate-200 flex items-center gap-1 sm:gap-2 scale-[0.78] xs:scale-85 sm:scale-100 origin-top-right">
-                  <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-md sm:rounded-lg bg-emerald-50 text-[#087F5B] flex items-center justify-center border border-emerald-100 shrink-0">
-                    <Heart className="w-3 h-3 sm:w-4 sm:h-4 fill-[#087F5B]/20" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] sm:text-xs font-bold text-[#123044] leading-tight">Health Analysis</p>
-                    <span className="text-[8px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-200">
-                      High Sodium
-                    </span>
-                  </div>
-                </div>
-
-                {/* Floating Card 2: Patient Alert */}
-                <div className="absolute top-1/2 -right-2 sm:-right-4 -translate-y-1/2 z-20 bg-white/95 backdrop-blur-sm rounded-lg sm:rounded-xl p-1 sm:p-3 shadow-md sm:shadow-lg border border-slate-200 flex items-center gap-1 sm:gap-2 scale-[0.78] xs:scale-85 sm:scale-100 origin-right">
-                  <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center border border-rose-100 shrink-0">
-                    <Stethoscope className="w-3 h-3 sm:w-4 sm:h-4" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] sm:text-xs font-bold text-[#123044] leading-tight">Patient Warning</p>
-                    <span className="text-[8px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded bg-rose-100 text-rose-800 border border-rose-200">
-                      Kidney Alert
-                    </span>
-                  </div>
-                </div>
-
-                {/* Floating Card 3: Legal Metrology */}
-                <div className="absolute -bottom-1.5 -left-1.5 sm:-bottom-3 sm:-left-4 z-20 bg-white/95 backdrop-blur-sm rounded-lg sm:rounded-xl p-1 sm:p-3 shadow-md sm:shadow-lg border border-slate-200 flex items-center gap-1 sm:gap-2 scale-[0.78] xs:scale-85 sm:scale-100 origin-bottom-left">
-                  <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-lg bg-amber-50 text-[#9A6712] flex items-center justify-center border border-amber-100 shrink-0">
-                    <Scale className="w-3 h-3 sm:w-4 sm:h-4" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] sm:text-xs font-bold text-[#123044] leading-tight">Legal Metrology</p>
-                    <span className="text-[8px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
-                      Compliant
                     </span>
                   </div>
                 </div>
