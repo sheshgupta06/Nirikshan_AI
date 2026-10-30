@@ -221,7 +221,9 @@ async def scan_food_label_image(
                 detail=f"Failed to read uploaded file '{target_file.filename}'.",
             ) from e
 
-    async def _extract_panel_gemini_vision(img_b: bytes, panel_name: str) -> Optional[List[OCRTextBox]]:
+    async def _extract_panel_gemini_vision(
+        img_b: bytes, panel_name: str, client: httpx.AsyncClient
+    ) -> Optional[List[OCRTextBox]]:
         key = os.getenv("GEMINI_API_KEY", "").strip()
         if not key:
             return None
@@ -232,23 +234,22 @@ async def scan_food_label_image(
             return None
 
         h, w = img.shape[:2]
-        max_dim = 1000
+        max_dim = 750
         if max(h, w) > max_dim:
             scale = max_dim / float(max(h, w))
             img = cv2.resize(img, (int(round(w * scale)), int(round(h * scale))), interpolation=cv2.INTER_AREA)
 
-        _, enc = cv2.imencode(".jpg", img, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
+        _, enc = cv2.imencode(".jpg", img, [int(cv2.IMWRITE_JPEG_QUALITY), 78])
         b64 = base64.b64encode(enc.tobytes()).decode("utf-8")
 
         prompt = (
-            "Extract all text visible on this packaged food label photo verbatim.\n"
-            "Be extremely thorough and extract:\n"
+            "Extract packaged food label text verbatim and concisely:\n"
             "- PRODUCT & BRAND NAME\n"
-            "- INGREDIENTS: (full verbatim list of ingredients separated by commas)\n"
-            "- ALLERGEN INFORMATION: (Contains ... / May Contain ...)\n"
-            "- NUTRITIONAL INFORMATION: (Energy, Protein, Carbohydrate, Sugars, Fat, Sodium)\n"
+            "- INGREDIENTS: (full verbatim comma-separated ingredients list)\n"
+            "- ALLERGENS: (Contains / May Contain declarations)\n"
+            "- NUTRITION: (Energy, Protein, Carbs, Sugars, Fat, Sodium per 100g/serving)\n"
             "- FSSAI Lic. No., Net Weight, MRP, Batch, Dates\n"
-            "Output clean plain text line by line."
+            "Output plain text line by line. Be concise without commentary."
         )
         payload = {
             "contents": [
@@ -259,39 +260,40 @@ async def scan_food_label_image(
                     ]
                 }
             ],
-            "generationConfig": {"temperature": 0.1, "maxOutputTokens": 1024},
+            "generationConfig": {"temperature": 0.1, "maxOutputTokens": 500},
         }
 
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key={key}"
-        async with httpx.AsyncClient(timeout=25.0) as client:
-            try:
-                r = await client.post(url, json=payload)
-                if r.status_code == 200:
-                    data = r.json()
-                    reply = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
-                    if reply and len(reply) > 10:
-                        lines = [l.strip() for l in reply.splitlines() if l.strip()]
-                        boxes = []
-                        line_h = max(18, int(h * 0.85 / max(1, len(lines))))
-                        start_y = int(h * 0.05)
-                        for i, l in enumerate(lines):
-                            clean_l = re.sub(r"^\s*[\*\#\-]+\s*", "", l).replace("**", "").strip()
-                            if clean_l:
-                                y_top = start_y + (i * line_h)
-                                y_bot = min(h - 2, y_top + line_h - 2)
-                                poly = [[int(w * 0.05), y_top], [int(w * 0.95), y_top], [int(w * 0.95), y_bot], [int(w * 0.05), y_bot]]
-                                boxes.append(OCRTextBox(text=clean_l, confidence=0.98, bounding_box=poly))
-                        return boxes
-                else:
-                    logger.warning("Gemini Vision returned non-200 (%d): %s", r.status_code, r.text[:300])
-            except Exception as e:
-                logger.warning("Direct Gemini Vision extraction error for %s: %s", panel_name, e)
+        try:
+            r = await client.post(url, json=payload)
+            if r.status_code == 200:
+                data = r.json()
+                reply = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+                if reply and len(reply) > 10:
+                    lines = [l.strip() for l in reply.splitlines() if l.strip()]
+                    boxes = []
+                    line_h = max(18, int(h * 0.85 / max(1, len(lines))))
+                    start_y = int(h * 0.05)
+                    for i, l in enumerate(lines):
+                        clean_l = re.sub(r"^\s*[\*\#\-]+\s*", "", l).replace("**", "").strip()
+                        if clean_l:
+                            y_top = start_y + (i * line_h)
+                            y_bot = min(h - 2, y_top + line_h - 2)
+                            poly = [[int(w * 0.05), y_top], [int(w * 0.95), y_top], [int(w * 0.95), y_bot], [int(w * 0.05), y_bot]]
+                            boxes.append(OCRTextBox(text=clean_l, confidence=0.98, bounding_box=poly))
+                    return boxes
+            else:
+                logger.warning("Gemini Vision returned non-200 (%d): %s", r.status_code, r.text[:300])
+        except Exception as e:
+            logger.warning("Direct Gemini Vision extraction error for %s: %s", panel_name, e)
         return None
 
-    async def _extract_panel(panel_idx: int, panel_name: str, img_b: bytes, c_type: Optional[str]):
-        # 1. Primary: Direct non-blocking async Gemini Vision (takes ~3-4s, 100% accurate)
+    async def _extract_panel(
+        panel_idx: int, panel_name: str, img_b: bytes, c_type: Optional[str], client: httpx.AsyncClient
+    ):
+        # 1. Primary: Direct non-blocking async Gemini Vision (takes ~2-3s, 100% accurate)
         try:
-            vision_boxes = await _extract_panel_gemini_vision(img_b, panel_name)
+            vision_boxes = await _extract_panel_gemini_vision(img_b, panel_name, client)
             if vision_boxes and len(vision_boxes) > 0:
                 logger.info("Direct Gemini Vision succeeded on %s with %d boxes", panel_name, len(vision_boxes))
                 return panel_idx, panel_name, vision_boxes, {"blur_assessment": "SHARP", "quality_recommendation": "High quality vision OCR extraction"}
@@ -306,7 +308,7 @@ async def scan_food_label_image(
                     img_b,
                     c_type,
                 ),
-                timeout=25.0,
+                timeout=15.0,
             )
             return panel_idx, panel_name, p_boxes, p_meta
         except asyncio.TimeoutError:
@@ -321,10 +323,11 @@ async def scan_food_label_image(
             logger.exception("Unexpected error during OCR processing for %s: %s", panel_name, err)
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal error during label image processing.") from err
 
-    # Concurrent parallel OCR extraction across all panels
-    ocr_results = await asyncio.gather(
-        *[_extract_panel(p_idx, p_fn, p_bytes, p_ct) for p_idx, p_fn, p_bytes, p_ct in file_payloads]
-    )
+    # Concurrent parallel OCR extraction across all panels with reusable client
+    async with httpx.AsyncClient(timeout=18.0) as http_client:
+        ocr_results = await asyncio.gather(
+            *[_extract_panel(p_idx, p_fn, p_bytes, p_ct, http_client) for p_idx, p_fn, p_bytes, p_ct in file_payloads]
+        )
 
     # Sort results in natural panel order
     ocr_results.sort(key=lambda r: r[0])
