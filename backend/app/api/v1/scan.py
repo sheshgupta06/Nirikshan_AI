@@ -223,7 +223,7 @@ async def scan_food_label_image(
 
     async def _extract_panel_gemini_vision(img_b: bytes, panel_name: str) -> Optional[List[OCRTextBox]]:
         key = os.getenv("GEMINI_API_KEY", "").strip()
-        if not key or len(key) < 20 or key.startswith("AQ."):
+        if not key:
             return None
 
         np_arr = np.frombuffer(img_b, np.uint8)

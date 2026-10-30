@@ -1,9 +1,30 @@
+import collections
+import logging
 import os
 import httpx
 from fastapi import APIRouter, File, UploadFile
 from backend.app.db.session import is_database_connected
 
+_LOG_BUFFER = collections.deque(maxlen=100)
+
+class BufferHandler(logging.Handler):
+    def emit(self, record):
+        try:
+            _LOG_BUFFER.append(self.format(record))
+        except Exception:
+            pass
+
+_buffer_handler = BufferHandler()
+_buffer_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s"))
+logging.getLogger().addHandler(_buffer_handler)
+logging.getLogger("backend").setLevel(logging.DEBUG)
+
 router = APIRouter()
+
+
+@router.get("/health/logs", summary="Get recent server logs")
+async def get_recent_logs():
+    return {"logs": list(_LOG_BUFFER)}
 
 
 @router.get("/health", summary="Health Check")

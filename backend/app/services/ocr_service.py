@@ -56,11 +56,11 @@ class BaseOCREngine(ABC):
 
 
 def _is_valid_gemini_key(key: str) -> bool:
-    """Validates that key is a genuine Google AI Studio API key (avoids invalid internal AQ. tokens)."""
+    """Validates that key is a configured Google AI Studio / Gemini API key."""
     if not key:
         return False
     k = key.strip()
-    return len(k) >= 30 and not k.startswith("AQ.")
+    return len(k) >= 10
 
 
 class GeminiVisionOCREngine(BaseOCREngine):
