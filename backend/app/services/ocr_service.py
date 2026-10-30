@@ -101,14 +101,14 @@ class GeminiVisionOCREngine(BaseOCREngine):
             return []
 
         h, w = image.shape[:2]
-        max_dim = 1024
+        max_dim = 800
         if max(h, w) > max_dim:
             scale = max_dim / float(max(h, w))
             img_small = cv2.resize(image, (int(round(w * scale)), int(round(h * scale))), interpolation=cv2.INTER_AREA)
         else:
             img_small = image
 
-        success, enc = cv2.imencode(".jpg", img_small, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
+        success, enc = cv2.imencode(".jpg", img_small, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
         if not success:
             return []
 
@@ -151,7 +151,7 @@ class GeminiVisionOCREngine(BaseOCREngine):
         ]
 
         try:
-            with httpx.Client(timeout=4.0) as client:
+            with httpx.Client(timeout=12.0) as client:
                 for model in candidate_models:
                     endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
                     try:
