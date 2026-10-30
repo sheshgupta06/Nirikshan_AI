@@ -1,6 +1,6 @@
 import os
 import httpx
-from fastapi import APIRouter
+from fastapi import APIRouter, File, UploadFile
 from backend.app.db.session import is_database_connected
 
 router = APIRouter()
@@ -16,6 +16,56 @@ async def health_check():
         "build_version": "v2.1-gemini-vision",
         "database": db_status,
     }
+
+
+@router.post("/health/vision-debug", summary="Debug Gemini Vision with Real Uploaded File")
+async def vision_debug_upload(file: UploadFile = File(...)):
+    import base64
+    import cv2
+    import numpy as np
+    key = os.getenv("GEMINI_API_KEY", "").strip()
+    contents = await file.read()
+    np_arr = np.frombuffer(contents, np.uint8)
+    img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+    if img is None:
+        return {"error": "Failed to decode image bytes"}
+
+    h, w = img.shape[:2]
+    max_dim = 1024
+    if max(h, w) > max_dim:
+        scale = max_dim / float(max(h, w))
+        img = cv2.resize(img, (int(round(w * scale)), int(round(h * scale))), interpolation=cv2.INTER_AREA)
+
+    _, enc = cv2.imencode(".jpg", img, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
+    b64 = base64.b64encode(enc.tobytes()).decode("utf-8")
+
+    prompt = (
+        "Extract all text visible on this packaged food label verbatim. "
+        "List all ingredients, nutrition facts, allergens, FSSAI lic no, MRP, and dates clearly line by line."
+    )
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": prompt},
+                    {"inline_data": {"mime_type": "image/jpeg", "data": b64}},
+                ]
+            }
+        ],
+        "generationConfig": {"temperature": 0.1, "maxOutputTokens": 2048},
+    }
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key={key}"
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        try:
+            r = await client.post(url, json=payload)
+            return {
+                "http_status": r.status_code,
+                "response_json": r.json() if r.status_code == 200 else None,
+                "raw_text": r.text[:500] if r.status_code != 200 else None,
+            }
+        except Exception as e:
+            return {"exception": str(e)}
 
 
 @router.get("/health/vision", summary="Gemini Vision Test")
