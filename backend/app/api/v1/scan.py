@@ -218,14 +218,14 @@ async def scan_food_label_image(
 
     async def _extract_panel(panel_idx: int, panel_name: str, img_b: bytes, c_type: Optional[str]):
         try:
-            # Enforce strict 6.0s timeout per panel so requests never hang indefinitely
+            # Enforce 20.0s timeout per panel so OCR is never prematurely aborted on shared CPU
             p_boxes, p_meta = await asyncio.wait_for(
                 asyncio.to_thread(
                     service.extract_text_from_bytes,
                     img_b,
                     c_type,
                 ),
-                timeout=6.0,
+                timeout=20.0,
             )
             return panel_idx, panel_name, p_boxes, p_meta
         except asyncio.TimeoutError:

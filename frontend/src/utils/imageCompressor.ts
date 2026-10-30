@@ -9,8 +9,8 @@
 
 export async function compressImageForOCR(
   file: File,
-  maxDimension = 1200,
-  quality = 0.85
+  maxDimension = 1400,
+  quality = 0.88
 ): Promise<File> {
   // If file is already small (e.g. < 300KB) and not a huge canvas, return as is
   if (file.size < 300 * 1024 && !file.type.includes('png')) {

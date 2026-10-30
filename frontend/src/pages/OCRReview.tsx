@@ -225,7 +225,7 @@ export const OCRReview: React.FC = () => {
                 placeholder="OCR Extracted raw text appears here..."
               />
               <p className="text-xs text-slate-400">
-                OCR scanned with PaddleOCR engine. You can edit any mistranscribed words directly.
+                OCR scanned with Nirikshan Vision Engine. You can edit any mistranscribed words directly.
               </p>
             </div>
           ) : (

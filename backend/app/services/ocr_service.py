@@ -118,63 +118,52 @@ class TesseractOCREngine(BaseOCREngine):
         if float(np.mean(gray)) < 100.0:
             gray = cv2.bitwise_not(gray)
 
-        # Adaptive contrast enhancement
+        # Adaptive contrast enhancement (CLAHE) for crisp text edges
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
         enhanced = clahe.apply(gray)
 
         try:
             import pytesseract
 
-            # Pass 1: Fast Standard Layout (--psm 3, ~0.15s)
-            data1 = pytesseract.image_to_data(
+            # Primary: Sparse Packaging Layout (--psm 11, recognizes both sparse labels & ingredient blocks in ~0.2s)
+            data = pytesseract.image_to_data(
+                enhanced,
+                lang=self.lang,
+                config="--psm 11 --oem 1 -c tessedit_do_invert=0",
+                output_type=pytesseract.Output.DICT,
+            )
+            boxes = self._parse_tess_dict(data)
+            if boxes and len(boxes) > 0:
+                return boxes
+
+            # Secondary fallback: standard page layout (--psm 3)
+            data_std = pytesseract.image_to_data(
                 enhanced,
                 lang=self.lang,
                 config="--psm 3 --oem 1 -c tessedit_do_invert=0",
                 output_type=pytesseract.Output.DICT,
             )
-            boxes1 = self._parse_tess_dict(data1)
-            if len(boxes1) >= 4:
-                return boxes1
+            boxes_std = self._parse_tess_dict(data_std)
+            if boxes_std and len(boxes_std) > 0:
+                return boxes_std
 
-            # Pass 2: Sparse Packaging Layout (--psm 11, specifically tuned for spice & snack labels)
-            data2 = pytesseract.image_to_data(
+            # Direct plain string extraction fallback
+            full_text = pytesseract.image_to_string(
                 enhanced,
                 lang=self.lang,
                 config="--psm 11 --oem 1 -c tessedit_do_invert=0",
-                output_type=pytesseract.Output.DICT,
-            )
-            boxes2 = self._parse_tess_dict(data2)
-            if len(boxes2) >= len(boxes1) and len(boxes2) > 0:
-                return boxes2
-
-            if boxes1:
-                return boxes1
-
-            # Pass 3: Adaptive Gaussian Thresholding for low-contrast/glossy reflective packaging
-            thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 21, 10)
-            data3 = pytesseract.image_to_data(
-                thresh,
-                lang=self.lang,
-                config="--psm 11 --oem 1 -c tessedit_do_invert=0",
-                output_type=pytesseract.Output.DICT,
-            )
-            boxes3 = self._parse_tess_dict(data3)
-            if boxes3:
-                return boxes3
-
-            # Final fallback: image_to_string
-            full_text = pytesseract.image_to_string(enhanced, lang=self.lang, config="--psm 11 -c tessedit_do_invert=0").strip()
+            ).strip()
             if full_text:
-                boxes: List[OCRTextBox] = []
+                res_boxes: List[OCRTextBox] = []
                 for line in full_text.splitlines():
                     clean_l = line.strip()
                     if clean_l:
-                        boxes.append(OCRTextBox(text=clean_l, confidence=0.85, bounding_box=[]))
-                return boxes
+                        res_boxes.append(OCRTextBox(text=clean_l, confidence=0.85, bounding_box=[]))
+                return res_boxes
 
             return []
         except Exception as e:
-            logger.debug("Tesseract multi-pass OCR error: %s", e)
+            logger.debug("Tesseract OCR execution error: %s", e)
             return []
 
 
@@ -427,8 +416,8 @@ class OCRService:
                 f"Image dimensions ({w}x{h}) are too small for OCR processing."
             )
 
-        # High-resolution image downscaling for ultra-fast, lightweight OCR processing (< 1.5 seconds)
-        MAX_DIM = 1200
+        # High-resolution image downscaling for ultra-fast, sharp OCR processing (< 1.5 seconds)
+        MAX_DIM = 1400
         if max(h, w) > MAX_DIM:
             scale = MAX_DIM / float(max(h, w))
             new_w, new_h = int(round(w * scale)), int(round(h * scale))
