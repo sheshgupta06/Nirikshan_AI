@@ -356,14 +356,18 @@ class FSSAIComplianceEngine:
         # 7. Net Quantity Declaration (Regulation 5(6))
         # -------------------------------------------------------------
         net_qty_match = re.search(
-            r"\b(?:net\s*(?:weight|wt|qty|quantity)|net\s*contents?|pack\s*contents?|pack\s*size)[\s\:\-]*(\d+(?:\.\d+)?\s*(?:g|kg|ml|l|ltr|pcs))\b",
+            r"\b(?:net\s*(?:weight|wt|qty|quantity)|net\s*contents?|pack\s*contents?|pack\s*size|drained\s*weight)[\s\:\-]*"
+            r"(\d+(?:\.\d+)?\s*(?:g(?:ms?|rams?)?|kg(?:s)?|ml|l(?:tr|itre?s?)?|pcs|units?|n)\b(?:\s*[\+\&]\s*\d+(?:\.\d+)?\s*(?:g(?:ms?|rams?)?|kg(?:s)?|ml|l(?:tr|itre?s?)?)\s*(?:free)?)?)",
             full_text_lower,
         )
         if not net_qty_match:
-            # Direct metric weight pattern (e.g., 270g, 50g, 70 g)
-            net_qty_match = re.search(r"\b(\d+(?:\.\d+)?\s*(?:g|kg|ml|l|ltr))\b", full_text_lower)
+            net_qty_match = re.search(
+                r"\b(\d+(?:\.\d+)?\s*(?:g(?:ms?|rams?)?|kg(?:s)?|ml|l(?:tr|itre?s?)?|pcs|units?|n)\b(?:\s*[\+\&]\s*\d+(?:\.\d+)?\s*(?:g(?:ms?|rams?)?|kg(?:s)?|ml|l(?:tr|itre?s?)?)\s*(?:free)?)?)",
+                full_text_lower,
+            )
 
         if net_qty_match:
+            qty_str = net_qty_match.group(1).upper() if net_qty_match.groups() and net_qty_match.group(1) else net_qty_match.group(0).upper()
             results.append(
                 ComplianceItem(
                     rule_id="FSSAI_REQ_07_NET_QUANTITY",
@@ -372,7 +376,7 @@ class FSSAIComplianceEngine:
                     title_hi="शुद्ध मात्रा की घोषणा (Net Quantity)",
                     category="METROLOGY",
                     status="COMPLIANT",
-                    evidence_text=f"Detected: {net_qty_match.group(0).upper()}",
+                    evidence_text=f"Detected: {qty_str}",
                     explanation="Net quantity declared in standard metric units as required by Legal Metrology.",
                     explanation_hi="मानक मीट्रिक इकाइयों (g/kg/ml) में शुद्ध मात्रा घोषित है।",
                 )
@@ -429,11 +433,27 @@ class FSSAIComplianceEngine:
         # -------------------------------------------------------------
         # 9. Date Marking (Regulation 5(8))
         # -------------------------------------------------------------
-        date_match = re.search(
+        mfg_d = re.search(
+            r"(?:date\s*of\s*(?:mfg|pack(?:ing|aging)?)|(?:pkd|mfg|mfd|packed|packaging|manufacture(?:d)?)\.?\s*(?:date|on)?)\s*[:\.\-]*\s*"
+            r"(\d{1,2}[\/\-\.\s](?:[a-z]{3,9}|\d{1,2})[\/\-\.\s]\d{2,4}|\d{1,2}[\/\-\.]\d{2,4}|[a-z]{3,9}\.?[\'\’\s\.\-]?\d{2,4})",
+            full_text_lower,
+        )
+        exp_d = re.search(
+            r"(?:use\s*by|exp(?:iry)?|exp\.?\s*date|best\s*before)\.?\s*(?:date|on)?\s*[:\.\-]*\s*"
+            r"(\d{1,2}[\/\-\.\s](?:[a-z]{3,9}|\d{1,2})[\/\-\.\s]\d{2,4}|\d{1,2}[\/\-\.]\d{2,4}|[a-z]{3,9}\.?[\'\’\s\.\-]?\d{2,4}|[0-9]+\s*(?:months?|days?|weeks?|years?)(?:\s*(?:from|of)\s*(?:the\s*date\s*of\s*)?[a-z\s]+)?)",
+            full_text_lower,
+        )
+        date_match = mfg_d or exp_d or re.search(
             r"\b(?:date\s*of\s*(?:mfg|manuf|pkd|packing)|(?:mfg|mfd|pkd|packed)\s*(?:date|on)?|use\s*by|expiry|exp\s*date|best\s*before)\b",
             full_text_lower,
         )
         if date_match:
+            parts = []
+            if mfg_d:
+                parts.append(f"PKD: {mfg_d.group(1).upper()}")
+            if exp_d:
+                parts.append(f"EXP: {exp_d.group(1).upper()}")
+            date_ev = ", ".join(parts) if parts else date_match.group(0).upper()
             results.append(
                 ComplianceItem(
                     rule_id="FSSAI_REQ_09_DATE_MARKING",
@@ -442,7 +462,7 @@ class FSSAIComplianceEngine:
                     title_hi="निर्माण और समाप्ति / सर्वश्रेष्ठ तिथि",
                     category="SHELF_LIFE",
                     status="COMPLIANT",
-                    evidence_text=f"Detected: {date_match.group(0).upper()}",
+                    evidence_text=f"Detected: {date_ev}",
                     explanation="Date of manufacture / packaging or Best Before / Expiry declaration present.",
                     explanation_hi="निर्माण तिथि या एक्सपायरी / बेस्ट बिफोर घोषणा पाई गई।",
                 )
@@ -501,11 +521,22 @@ class FSSAIComplianceEngine:
         # -------------------------------------------------------------
         # 11. MRP & Consumer Care Details (Regulation 5(10))
         # -------------------------------------------------------------
+        mrp_m = re.search(r"\b(?:mrp|price|rs\.?|₹)[\s\:\.]*(?:₹|rs\.?)?[\s]*([0-9]+(?:\.[0-9]{1,2})?)", full_text_lower)
         care_match = re.search(
             r"\b(?:mrp|retail\s*price|toll\s*free|customer\s*care|consumer\s*care|feedback@|email|e-mail|1800\d{6,7})\b",
             full_text_lower,
         )
-        if care_match:
+        if mrp_m or care_match:
+            ev_parts = []
+            if mrp_m:
+                ev_parts.append(f"MRP ₹ {mrp_m.group(1)}")
+            phone_m = re.search(r"\b(1800[\s\-]?\d{3}[\s\-]?\d{3,4}|[6-9]\d{9}|0[1-9]\d{1,3}[\s\-]?\d{6,8})\b", full_text_lower)
+            if phone_m:
+                ev_parts.append(f"Helpline: {phone_m.group(0)}")
+            email_m = re.search(r"\b([a-z0-9_.+-]+@[a-z0-9-]+\.[a-z0-9-.]+)\b", full_text_lower)
+            if email_m:
+                ev_parts.append(f"Email: {email_m.group(1)}")
+            ev_str = ", ".join(ev_parts) if ev_parts else (care_match.group(0).upper() if care_match else "Consumer care declared")
             results.append(
                 ComplianceItem(
                     rule_id="FSSAI_REQ_11_MRP_AND_CONSUMER_CARE",
@@ -514,7 +545,7 @@ class FSSAIComplianceEngine:
                     title_hi="MRP और ग्राहक सेवा संपर्क",
                     category="CONSUMER_PROTECTION",
                     status="COMPLIANT",
-                    evidence_text=f"Detected: {care_match.group(0).upper()} (Consumer feedback / Price line)",
+                    evidence_text=f"Detected: {ev_str}",
                     explanation="Maximum Retail Price (MRP) or Consumer Care contact (Phone/Email) declared.",
                     explanation_hi="अधिकतम खुदरा मूल्य (MRP) या उपभोक्ता हेल्पलाइन संपर्क उपलब्ध है।",
                 )
