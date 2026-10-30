@@ -84,3 +84,4 @@ export async function compressImageForOCR(
     img.src = url
   })
 }
+

@@ -53,17 +53,65 @@ class BaseOCREngine(ABC):
 class TesseractOCREngine(BaseOCREngine):
     """Production-grade, lightweight OCR engine using Tesseract and OpenCV preprocessing.
     Extracts authentic text directly from packaging images with low memory footprint (<50MB RAM).
+    Uses a multi-pass layout pipeline (PSM 3 standard -> PSM 11 sparse packaging -> Adaptive thresholding).
     """
 
     def __init__(self, lang: str = "eng") -> None:
         self.lang = lang
+
+    def _parse_tess_dict(self, data: Dict[str, Any]) -> List[OCRTextBox]:
+        n_boxes = len(data["text"])
+        lines_dict: Dict[Tuple[int, int, int], Dict[str, Any]] = {}
+        for i in range(n_boxes):
+            text = data["text"][i].strip()
+            try:
+                conf = float(data["conf"][i])
+            except (ValueError, TypeError):
+                conf = -1.0
+
+            if not text or conf < 15.0:
+                continue
+
+            key = (data["block_num"][i], data["par_num"][i], data["line_num"][i])
+            x, y, bw, bh = data["left"][i], data["top"][i], data["width"][i], data["height"][i]
+
+            if key not in lines_dict:
+                lines_dict[key] = {
+                    "words": [text],
+                    "confidences": [conf],
+                    "x1": x,
+                    "y1": y,
+                    "x2": x + bw,
+                    "y2": y + bh,
+                }
+            else:
+                lines_dict[key]["words"].append(text)
+                lines_dict[key]["confidences"].append(conf)
+                lines_dict[key]["x1"] = min(lines_dict[key]["x1"], x)
+                lines_dict[key]["y1"] = min(lines_dict[key]["y1"], y)
+                lines_dict[key]["x2"] = max(lines_dict[key]["x2"], x + bw)
+                lines_dict[key]["y2"] = max(lines_dict[key]["y2"], y + bh)
+
+        boxes: List[OCRTextBox] = []
+        for item in lines_dict.values():
+            line_text = " ".join(item["words"]).strip()
+            if not line_text:
+                continue
+            avg_conf = round(sum(item["confidences"]) / (len(item["confidences"]) * 100.0), 4)
+            poly = [
+                [item["x1"], item["y1"]],
+                [item["x2"], item["y1"]],
+                [item["x2"], item["y2"]],
+                [item["x1"], item["y2"]],
+            ]
+            boxes.append(OCRTextBox(text=line_text, confidence=avg_conf, bounding_box=poly))
+        return boxes
 
     def run_ocr(self, image: np.ndarray) -> List[OCRTextBox]:
         if image is None or image.size == 0:
             return []
 
         h, w = image.shape[:2]
-        # Preprocessing: convert to grayscale
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) if len(image.shape) == 3 else image
 
         # If dark background (mean brightness < 100), invert to light background for rapid OCR
@@ -77,75 +125,56 @@ class TesseractOCREngine(BaseOCREngine):
         try:
             import pytesseract
 
-            # Extract word and line level boxes with confidence using fast LSTM engine
-            # Disabling redundant inversion check (tessedit_do_invert=0) yields up to 7x faster processing
-            data = pytesseract.image_to_data(
+            # Pass 1: Fast Standard Layout (--psm 3, ~0.15s)
+            data1 = pytesseract.image_to_data(
                 enhanced,
                 lang=self.lang,
                 config="--psm 3 --oem 1 -c tessedit_do_invert=0",
                 output_type=pytesseract.Output.DICT,
             )
-            n_boxes = len(data["text"])
+            boxes1 = self._parse_tess_dict(data1)
+            if len(boxes1) >= 4:
+                return boxes1
 
-            # Group into lines by (block_num, par_num, line_num)
-            lines_dict: Dict[Tuple[int, int, int], Dict[str, Any]] = {}
-            for i in range(n_boxes):
-                text = data["text"][i].strip()
-                try:
-                    conf = float(data["conf"][i])
-                except (ValueError, TypeError):
-                    conf = -1.0
+            # Pass 2: Sparse Packaging Layout (--psm 11, specifically tuned for spice & snack labels)
+            data2 = pytesseract.image_to_data(
+                enhanced,
+                lang=self.lang,
+                config="--psm 11 --oem 1 -c tessedit_do_invert=0",
+                output_type=pytesseract.Output.DICT,
+            )
+            boxes2 = self._parse_tess_dict(data2)
+            if len(boxes2) >= len(boxes1) and len(boxes2) > 0:
+                return boxes2
 
-                if not text or conf < 15.0:
-                    continue
+            if boxes1:
+                return boxes1
 
-                key = (data["block_num"][i], data["par_num"][i], data["line_num"][i])
-                x, y, bw, bh = data["left"][i], data["top"][i], data["width"][i], data["height"][i]
+            # Pass 3: Adaptive Gaussian Thresholding for low-contrast/glossy reflective packaging
+            thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 21, 10)
+            data3 = pytesseract.image_to_data(
+                thresh,
+                lang=self.lang,
+                config="--psm 11 --oem 1 -c tessedit_do_invert=0",
+                output_type=pytesseract.Output.DICT,
+            )
+            boxes3 = self._parse_tess_dict(data3)
+            if boxes3:
+                return boxes3
 
-                if key not in lines_dict:
-                    lines_dict[key] = {
-                        "words": [text],
-                        "confidences": [conf],
-                        "x1": x,
-                        "y1": y,
-                        "x2": x + bw,
-                        "y2": y + bh,
-                    }
-                else:
-                    lines_dict[key]["words"].append(text)
-                    lines_dict[key]["confidences"].append(conf)
-                    lines_dict[key]["x1"] = min(lines_dict[key]["x1"], x)
-                    lines_dict[key]["y1"] = min(lines_dict[key]["y1"], y)
-                    lines_dict[key]["x2"] = max(lines_dict[key]["x2"], x + bw)
-                    lines_dict[key]["y2"] = max(lines_dict[key]["y2"], y + bh)
-
-            boxes: List[OCRTextBox] = []
-            for item in lines_dict.values():
-                line_text = " ".join(item["words"]).strip()
-                if not line_text:
-                    continue
-                avg_conf = round(sum(item["confidences"]) / (len(item["confidences"]) * 100.0), 4)
-                poly = [
-                    [item["x1"], item["y1"]],
-                    [item["x2"], item["y1"]],
-                    [item["x2"], item["y2"]],
-                    [item["x1"], item["y2"]],
-                ]
-                boxes.append(OCRTextBox(text=line_text, confidence=avg_conf, bounding_box=poly))
-
-            if boxes:
-                return boxes
-
-            # Fallback to simple image_to_string if image_to_data returned nothing
-            full_text = pytesseract.image_to_string(enhanced, lang=self.lang).strip()
+            # Final fallback: image_to_string
+            full_text = pytesseract.image_to_string(enhanced, lang=self.lang, config="--psm 11 -c tessedit_do_invert=0").strip()
             if full_text:
+                boxes: List[OCRTextBox] = []
                 for line in full_text.splitlines():
                     clean_l = line.strip()
                     if clean_l:
                         boxes.append(OCRTextBox(text=clean_l, confidence=0.85, bounding_box=[]))
-            return boxes
+                return boxes
+
+            return []
         except Exception as e:
-            logger.debug("Tesseract OCR execution error: %s", e)
+            logger.debug("Tesseract multi-pass OCR error: %s", e)
             return []
 
 
@@ -231,7 +260,8 @@ class RealPaddleOCREngine(BaseOCREngine):
         self._tesseract = TesseractOCREngine(lang="eng")
         self._ocr: Any = None
         self._fallback_engine = IntelligentFallbackOCREngine()
-        self._use_fallback = False
+        # On CPU server environments, disable heavy PaddleOCR to prevent multi-minute freezing & RAM spikes
+        self._use_fallback = True
 
     def _get_ocr(self) -> Any:
         """Lazy initialization of the PaddleOCR model."""
