@@ -1,3 +1,5 @@
+import asyncio
+import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,11 +8,16 @@ from backend.app.api.v1.scan import router as scan_router
 from backend.app.api.v1.scans_db import router as db_scans_router
 from backend.app.db.session import init_db
 
+logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Initializes database tables on application startup."""
-    init_db()
+    """Initializes database tables asynchronously without blocking server port binding."""
+    try:
+        asyncio.create_task(asyncio.to_thread(init_db))
+    except Exception as exc:
+        logger.warning("Background database initialization notice: %s", exc)
     yield
 
 
