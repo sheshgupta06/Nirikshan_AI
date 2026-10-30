@@ -190,6 +190,13 @@ export async function supabaseSignIn(email: string, password: string) {
   const client = getSupabaseClient()
   if (!client) throw new Error('Supabase is not configured.')
 
+  // Cleanly clear any stale or expired token from previous session before authenticating
+  try {
+    await client.auth.signOut({ scope: 'local' })
+  } catch {
+    // ignore
+  }
+
   const { data, error } = await client.auth.signInWithPassword({
     email,
     password,
@@ -202,22 +209,52 @@ export async function supabaseSignIn(email: string, password: string) {
 export async function supabaseSignOut() {
   const client = getSupabaseClient()
   if (!client) return
-  const { error } = await client.auth.signOut()
-  if (error) throw error
+  try {
+    await client.auth.signOut({ scope: 'local' })
+  } catch (err) {
+    // If server-side signout fails, forcefully remove local token keys
+    try {
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
+          localStorage.removeItem(key)
+        }
+      })
+    } catch {
+      // ignore
+    }
+    throw err
+  }
 }
 
 export async function supabaseGetCurrentUser(): Promise<User | null> {
   const client = getSupabaseClient()
   if (!client) return null
-  const { data } = await client.auth.getUser()
-  return data.user
+  try {
+    const { data, error } = await client.auth.getUser()
+    if (error) {
+      return null
+    }
+    return data.user
+  } catch {
+    return null
+  }
 }
 
 export async function supabaseGetSession(): Promise<Session | null> {
   const client = getSupabaseClient()
   if (!client) return null
-  const { data } = await client.auth.getSession()
-  return data.session
+  try {
+    const { data, error } = await client.auth.getSession()
+    if (error) {
+      // If refresh token has expired or is invalid, wipe local stale auth state
+      await client.auth.signOut({ scope: 'local' }).catch(() => {})
+      return null
+    }
+    return data.session
+  } catch {
+    await client.auth.signOut({ scope: 'local' }).catch(() => {})
+    return null
+  }
 }
 
 /**
@@ -230,7 +267,11 @@ export function onSupabaseAuthStateChange(
   if (!client) {
     return { unsubscribe: () => {} }
   }
-  const { data } = client.auth.onAuthStateChange((event, session) => {
+  const { data } = client.auth.onAuthStateChange(async (event, session) => {
+    // Automatically purge stale tokens if session refresh failed
+    if (event === 'TOKEN_REFRESHED' && !session) {
+      await client.auth.signOut({ scope: 'local' }).catch(() => {})
+    }
     callback(event, session)
   })
   return {
