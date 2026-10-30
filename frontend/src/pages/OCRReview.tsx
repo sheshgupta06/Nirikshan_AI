@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowRight, Plus } from 'lucide-react'
 import { scanStorage, type StoredScan } from '../services/scanStorage'
+import { extractPackagingDetails, isCleanValue } from '../utils/packagingExtractor'
 
 export const OCRReview: React.FC = () => {
   const { scanId } = useParams<{ scanId: string }>()
@@ -35,60 +36,29 @@ export const OCRReview: React.FC = () => {
       if (record.productName) setProductName(record.productName)
       if (record.brand) setBrand(record.brand)
 
-      // Extract dynamic key values from compliance report or regex from text
+      // Extract dynamic key values using clean packaging extractor
       const items = record.response?.compliance_report?.items || []
-      const netQtyItem = items.find((i) => i.rule_id === 'LM-01-NET_QTY' || i.title.toLowerCase().includes('net quantity'))
-      const mrpItem = items.find((i) => i.rule_id === 'LM-02-MRP' || i.title.toLowerCase().includes('mrp') || i.title.toLowerCase().includes('price'))
-      const dateItem = items.find((i) => i.rule_id === 'LM-03-MFG_DATE' || i.title.toLowerCase().includes('date'))
-      const fssaiItem = items.find((i) => i.rule_id === 'FSSAI-06-LIC' || i.title.toLowerCase().includes('license') || i.title.toLowerCase().includes('fssai'))
+      const netQtyItem = items.find((i) => i.rule_id === 'LM-01-NET_QTY' || i.rule_id === 'FSSAI_REQ_07_NET_QUANTITY' || i.title.toLowerCase().includes('net quantity'))
+      const mrpItem = items.find((i) => i.rule_id === 'LM-02-MRP' || i.rule_id === 'FSSAI_REQ_11_MRP_AND_CONSUMER_CARE' || i.title.toLowerCase().includes('mrp') || i.title.toLowerCase().includes('price'))
+      const dateItem = items.find((i) => i.rule_id === 'LM-03-MFG_DATE' || i.rule_id === 'FSSAI_REQ_09_DATE_MARKING' || i.title.toLowerCase().includes('date'))
+      const fssaiItem = items.find((i) => i.rule_id === 'FSSAI-06-LIC' || i.rule_id === 'FSSAI_REQ_06_FSSAI_LOGO_AND_LICENSE' || i.title.toLowerCase().includes('license') || i.title.toLowerCase().includes('fssai'))
 
-      // Net Quantity
-      if (record.corrections?.netQuantity) {
-        setNetQuantity(record.corrections.netQuantity)
-      } else if (netQtyItem?.evidence_text) {
-        setNetQuantity(netQtyItem.evidence_text)
-      } else {
-        const m = text.match(/(?:NET\s*(?:WEIGHT|QTY|QUANTITY)|DRAINED\s*WEIGHT)\s*[:\-]?\s*([0-9]+\s*(?:g|kg|ml|l))/i)
-        setNetQuantity(m ? m[1] : 'Not specified')
-      }
+      const details = extractPackagingDetails(
+        text,
+        record.corrections,
+        {
+          mrp: mrpItem?.evidence_text,
+          netQuantity: netQtyItem?.evidence_text,
+          mfgDate: dateItem?.evidence_text,
+          fssai: fssaiItem?.evidence_text,
+        }
+      )
 
-      // MRP
-      if (record.corrections?.mrp) {
-        setMrp(record.corrections.mrp)
-      } else if (mrpItem?.evidence_text) {
-        setMrp(mrpItem.evidence_text)
-      } else {
-        const m = text.match(/(?:MRP|RS\.?|PRICE)\s*[:\-]?\s*(?:₹|RS\.?)?\s*([0-9]+(?:\.[0-9]{2})?)/i)
-        setMrp(m ? `₹ ${m[1]}` : 'Not specified')
-      }
-
-      // Mfg Date
-      if (record.corrections?.mfgDate) {
-        setMfgDate(record.corrections.mfgDate)
-      } else if (dateItem?.evidence_text) {
-        setMfgDate(dateItem.evidence_text)
-      } else {
-        const m = text.match(/(?:MFG|DATE\s*OF\s*MFG|PKD)\s*[:\-]?\s*([0-9]{1,2}[/-][0-9]{1,2}[/-][0-9]{2,4})/i)
-        setMfgDate(m ? m[1] : 'Not specified')
-      }
-
-      // Best Before / Expiry
-      if (record.corrections?.expiryDate) {
-        setBestBefore(record.corrections.expiryDate)
-      } else {
-        const m = text.match(/(?:BEST\s*BEFORE|EXP|EXPIRY|USE\s*BY)\s*[:\-]?\s*([^\n\r]+)/i)
-        setBestBefore(m ? m[1].trim().slice(0, 35) : 'Not specified')
-      }
-
-      // FSSAI License
-      if (record.corrections?.fssaiNumber) {
-        setFssaiLic(record.corrections.fssaiNumber)
-      } else if (fssaiItem?.evidence_text) {
-        setFssaiLic(fssaiItem.evidence_text)
-      } else {
-        const m = text.match(/\b(1[0-9]{13})\b/)
-        setFssaiLic(m ? m[1] : 'Not detected')
-      }
+      setNetQuantity(details.netQuantity !== 'Check package' ? details.netQuantity : '')
+      setMrp(details.mrp !== 'Check package' ? details.mrp : '')
+      setMfgDate(details.mfgDate !== 'Check package' ? details.mfgDate : '')
+      setBestBefore(details.expiryDate !== 'Check package' ? details.expiryDate : '')
+      setFssaiLic(details.fssaiNumber !== 'Check package' ? details.fssaiNumber : '')
     } else {
       setExtractedText('')
       setProductName('')
@@ -203,7 +173,22 @@ export const OCRReview: React.FC = () => {
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab('key_info')}
+              onClick={() => {
+                setActiveTab('key_info')
+                // Sync any blank fields from latest edited extractedText
+                const d = extractPackagingDetails(extractedText, {
+                  netQuantity: isCleanValue(netQuantity) ? netQuantity : undefined,
+                  mrp: isCleanValue(mrp) ? mrp : undefined,
+                  mfgDate: isCleanValue(mfgDate) ? mfgDate : undefined,
+                  expiryDate: isCleanValue(bestBefore) ? bestBefore : undefined,
+                  fssaiNumber: isCleanValue(fssaiLic) ? fssaiLic : undefined,
+                })
+                if (!isCleanValue(netQuantity) && d.netQuantity !== 'Check package') setNetQuantity(d.netQuantity)
+                if (!isCleanValue(mrp) && d.mrp !== 'Check package') setMrp(d.mrp)
+                if (!isCleanValue(mfgDate) && d.mfgDate !== 'Check package') setMfgDate(d.mfgDate)
+                if (!isCleanValue(bestBefore) && d.expiryDate !== 'Check package') setBestBefore(d.expiryDate)
+                if (!isCleanValue(fssaiLic) && d.fssaiNumber !== 'Check package') setFssaiLic(d.fssaiNumber)
+              }}
               className={`pb-3 text-sm font-bold border-b-2 transition-all ${
                 activeTab === 'key_info'
                   ? 'border-[#0F766E] text-[#0F766E]'

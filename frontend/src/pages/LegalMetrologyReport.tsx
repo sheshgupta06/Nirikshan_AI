@@ -11,6 +11,7 @@ import {
   BookOpen,
 } from 'lucide-react'
 import { scanStorage, type StoredScan } from '../services/scanStorage'
+import { extractPackagingDetails } from '../utils/packagingExtractor'
 
 export const LegalMetrologyReport: React.FC = () => {
   const { scanId } = useParams<{ scanId: string }>()
@@ -44,80 +45,36 @@ export const LegalMetrologyReport: React.FC = () => {
   const complianceItems = scan.response?.compliance_report?.items || []
   const rawText = scan.corrections?.rawIngredients || scan.response?.raw_extracted_text || ''
 
-  const mrpItem = complianceItems.find((i) => i.rule_id === 'LM-02-MRP' || i.title.toLowerCase().includes('mrp'))
-  const netQtyItem = complianceItems.find((i) => i.rule_id === 'LM-01-NET_QTY' || i.title.toLowerCase().includes('quantity'))
-  const mfgDateItem = complianceItems.find((i) => i.rule_id === 'LM-03-MFG_DATE' || i.title.toLowerCase().includes('date'))
-  const fssaiItem = complianceItems.find((i) => i.rule_id === 'FSSAI-06-LIC' || i.title.toLowerCase().includes('license'))
-  const mfgDetailsItem = complianceItems.find((i) => i.rule_id === 'LM-04-MFG_NAME' || i.title.toLowerCase().includes('manufacturer'))
-  const consumerCareItem = complianceItems.find((i) => i.rule_id === 'LM-05-CONSUMER_CARE' || i.title.toLowerCase().includes('consumer'))
+  const mrpItem = complianceItems.find((i) => i.rule_id === 'LM-02-MRP' || i.rule_id === 'FSSAI_REQ_11_MRP_AND_CONSUMER_CARE' || i.title.toLowerCase().includes('mrp'))
+  const netQtyItem = complianceItems.find((i) => i.rule_id === 'LM-01-NET_QTY' || i.rule_id === 'FSSAI_REQ_07_NET_QUANTITY' || i.title.toLowerCase().includes('quantity'))
+  const mfgDateItem = complianceItems.find((i) => i.rule_id === 'LM-03-MFG_DATE' || i.rule_id === 'FSSAI_REQ_09_DATE_MARKING' || i.title.toLowerCase().includes('date'))
+  const fssaiItem = complianceItems.find((i) => i.rule_id === 'FSSAI-06-LIC' || i.rule_id === 'FSSAI_REQ_06_FSSAI_LOGO_AND_LICENSE' || i.title.toLowerCase().includes('license'))
+  const mfgDetailsItem = complianceItems.find((i) => i.rule_id === 'LM-04-MFG_NAME' || i.rule_id === 'FSSAI_REQ_10_MANUFACTURER_DETAILS' || i.title.toLowerCase().includes('manufacturer'))
+  const consumerCareItem = complianceItems.find((i) => i.rule_id === 'LM-05-CONSUMER_CARE' || i.rule_id === 'FSSAI_REQ_11_MRP_AND_CONSUMER_CARE' || i.title.toLowerCase().includes('consumer'))
 
-  // Helper to extract clean evidence without backend boilerplate
-  const cleanEvidenceText = (text: string | undefined): string => {
-    if (!text) return ''
-    return text
-      .replace(/^Detected:\s*/i, '')
-      .replace(/\s*\(Consumer feedback \/ Price line\)/i, '')
-      .replace(/^(?:Metric weight|Product title|Nutrition table|14-digit|No explicit).*$/i, '')
-      .trim()
-  }
+  // Robust extraction of clean packaging details
+  const details = extractPackagingDetails(
+    rawText,
+    scan.corrections,
+    {
+      mrp: mrpItem?.evidence_text,
+      netQuantity: netQtyItem?.evidence_text,
+      mfgDate: mfgDateItem?.evidence_text,
+      fssai: fssaiItem?.evidence_text,
+      manufacturer: mfgDetailsItem?.evidence_text,
+      consumerCare: consumerCareItem?.evidence_text,
+    }
+  )
 
-  // Dynamic values with priority: User Corrections -> Regex from Scanned Text -> Compliance Report
-  const mrpMatch = rawText.match(/(?:MRP|PRICE|Rs\.?|₹)\s*[:\-]?\s*(?:₹|Rs\.?|INR)?\s*([0-9]+(?:\.[0-9]{1,2})?)/i)
-  const displayMrp =
-    scan.corrections?.mrp && scan.corrections.mrp !== 'Not specified'
-      ? scan.corrections.mrp
-      : mrpMatch
-      ? `₹ ${mrpMatch[1]}`
-      : cleanEvidenceText(mrpItem?.evidence_text) || 'Not detected'
+  const displayMrp = details.mrp
+  const displayNetQty = details.netQuantity
+  const displayMfgDate = details.mfgDate
+  const displayBestBefore = details.expiryDate
+  const displayManufacturer = details.manufacturer
+  const displayFssai = details.fssaiNumber
+  const displayCare = details.consumerCare
 
-  const netQtyMatch = rawText.match(/(?:NET\s*(?:WEIGHT|WT|QTY|QUANTITY)|DRAINED\s*WEIGHT)\s*[:\-]?\s*([0-9]+(?:\.[0-9]+)?\s*(?:g|kg|ml|l)(?:\s*\+\s*[0-9]+\s*(?:g|kg|ml|l)\s*FREE)?)/i)
-  const displayNetQty =
-    scan.corrections?.netQuantity && scan.corrections.netQuantity !== 'Not specified'
-      ? scan.corrections.netQuantity
-      : netQtyMatch
-      ? netQtyMatch[1].trim()
-      : cleanEvidenceText(netQtyItem?.evidence_text) || 'Not detected'
-
-  const mfgDateMatch = rawText.match(/(?:PKD|MFG|MFD|PACKED|PACKAGING|MANUFACTURE)\s*(?:DATE|ON)?\s*[:\.]?\s*([A-Za-z0-9\/\-\.\s]{3,12})/i)
-  const displayMfgDate =
-    scan.corrections?.mfgDate && scan.corrections.mfgDate !== 'Not specified'
-      ? scan.corrections.mfgDate
-      : mfgDateMatch
-      ? mfgDateMatch[1].trim().replace(/^[\:\.\s]+/, '')
-      : cleanEvidenceText(mfgDateItem?.evidence_text) || 'Check package'
-
-  const expDateMatch = rawText.match(/(?:USE\s*BY|EXP|EXPIRY|BEST\s*BEFORE)\s*(?:DATE|ON)?\s*[:\.]?\s*([A-Za-z0-9\/\-\.\s]{3,12})/i)
-  const displayBestBefore =
-    scan.corrections?.expiryDate && scan.corrections.expiryDate !== 'Not specified'
-      ? scan.corrections.expiryDate
-      : expDateMatch
-      ? expDateMatch[1].trim().replace(/^[\:\.\s]+/, '')
-      : 'Check package'
-
-  const mfrMatch = rawText.match(/(?:Manufactured\s*(?:&|AND)?\s*Packed\s*by|Manufacturer|Marketed\s*by|Packed\s*by)\s*[:\-]?\s*([^\n\r,]+)/i)
-  const displayManufacturer =
-    mfrMatch
-      ? mfrMatch[1].trim()
-      : cleanEvidenceText(mfgDetailsItem?.evidence_text) ||
-        scan.brand ||
-        scan.productName ||
-        'Packer / Brand Holder'
-
-  const fssaiMatch = rawText.match(/\b(1[0-9]{13})\b/)
-  const displayFssai =
-    scan.corrections?.fssaiNumber && scan.corrections.fssaiNumber !== 'Not detected'
-      ? scan.corrections.fssaiNumber
-      : fssaiMatch
-      ? fssaiMatch[1]
-      : cleanEvidenceText(fssaiItem?.evidence_text) || 'Check license panel'
-
-  const careMatch = rawText.match(/(?:(?:Ph(?:one)?|Tel)\.?\s*No\.?|Consumer\s*Care|Help(?:line)?|Customer\s*Care)\s*[:\-]?\s*([^\n\r]+)/i)
-  const displayCare =
-    careMatch
-      ? careMatch[1].trim()
-      : cleanEvidenceText(consumerCareItem?.evidence_text) || 'Refer to package contact'
-
-  const isCompliant = displayNetQty !== 'Not detected on panel'
+  const isCompliant = displayNetQty !== 'Check package' || displayMrp !== 'Check package'
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-6">
