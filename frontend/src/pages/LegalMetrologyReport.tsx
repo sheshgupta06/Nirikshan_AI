@@ -50,7 +50,9 @@ export const LegalMetrologyReport: React.FC = () => {
   const mfgDateItem = complianceItems.find((i) => i.rule_id === 'LM-03-MFG_DATE' || i.rule_id === 'FSSAI_REQ_09_DATE_MARKING' || i.title.toLowerCase().includes('date'))
   const fssaiItem = complianceItems.find((i) => i.rule_id === 'FSSAI-06-LIC' || i.rule_id === 'FSSAI_REQ_06_FSSAI_LOGO_AND_LICENSE' || i.title.toLowerCase().includes('license'))
   const mfgDetailsItem = complianceItems.find((i) => i.rule_id === 'LM-04-MFG_NAME' || i.rule_id === 'FSSAI_REQ_10_MANUFACTURER_DETAILS' || i.title.toLowerCase().includes('manufacturer'))
-  const consumerCareItem = complianceItems.find((i) => i.rule_id === 'LM-05-CONSUMER_CARE' || i.rule_id === 'FSSAI_REQ_11_MRP_AND_CONSUMER_CARE' || i.title.toLowerCase().includes('consumer'))
+  const consumerCareItem = complianceItems.find(
+    (i) => i.rule_id === 'LM-05-CONSUMER_CARE' || (i.title.toLowerCase().includes('consumer') && !i.title.toLowerCase().includes('mrp'))
+  )
 
   // Robust extraction of clean packaging details
   const details = extractPackagingDetails(
@@ -74,7 +76,7 @@ export const LegalMetrologyReport: React.FC = () => {
   const displayFssai = details.fssaiNumber
   const displayCare = details.consumerCare
 
-  const isCompliant = displayNetQty !== 'Check package' || displayMrp !== 'Check package'
+  const isCompliant = displayNetQty !== 'Not declared on panel' || displayMrp !== 'Not declared on panel'
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-6">
@@ -211,22 +213,30 @@ export const LegalMetrologyReport: React.FC = () => {
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
               <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
-                <span className="text-base sm:text-2xl font-extrabold text-[#123044] block break-words">{displayMrp}</span>
+                <span className={`block break-words ${displayMrp === 'Not declared on panel' ? 'text-xs sm:text-sm font-semibold text-slate-400' : 'text-base sm:text-2xl font-extrabold text-[#123044]'}`}>
+                  {displayMrp}
+                </span>
                 <p className="text-xs text-[#64748B]">MRP (incl. of all taxes)</p>
               </div>
 
               <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
-                <span className="text-base sm:text-2xl font-extrabold text-[#123044] block break-words">{displayNetQty}</span>
+                <span className={`block break-words ${displayNetQty === 'Not declared on panel' ? 'text-xs sm:text-sm font-semibold text-slate-400' : 'text-base sm:text-2xl font-extrabold text-[#123044]'}`}>
+                  {displayNetQty}
+                </span>
                 <p className="text-xs text-[#64748B]">Net / Drained Weight</p>
               </div>
 
               <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
-                <span className="text-base sm:text-xl font-extrabold text-[#123044] block break-words">{displayMfgDate}</span>
+                <span className={`block break-words ${displayMfgDate === 'Not declared on panel' ? 'text-xs sm:text-sm font-semibold text-slate-400' : 'text-base sm:text-xl font-extrabold text-[#123044]'}`}>
+                  {displayMfgDate}
+                </span>
                 <p className="text-xs text-[#64748B]">Mfg. Date</p>
               </div>
 
               <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
-                <span className="text-base sm:text-xl font-extrabold text-[#123044] block break-words">{displayBestBefore}</span>
+                <span className={`block break-words ${displayBestBefore === 'Not declared on panel' ? 'text-xs sm:text-sm font-semibold text-slate-400' : 'text-base sm:text-xl font-extrabold text-[#123044]'}`}>
+                  {displayBestBefore}
+                </span>
                 <p className="text-xs text-[#64748B]">Best Before / Use By</p>
               </div>
             </div>

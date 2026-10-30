@@ -453,7 +453,7 @@ class FSSAIComplianceEngine:
                 parts.append(f"PKD: {mfg_d.group(1).upper()}")
             if exp_d:
                 parts.append(f"EXP: {exp_d.group(1).upper()}")
-            date_ev = ", ".join(parts) if parts else date_match.group(0).upper()
+            date_ev = ", ".join(parts) if parts else "Date marker present on packaging"
             results.append(
                 ComplianceItem(
                     rule_id="FSSAI_REQ_09_DATE_MARKING",
@@ -461,7 +461,7 @@ class FSSAIComplianceEngine:
                     title="Date of Manufacture & Best Before / Expiry",
                     title_hi="निर्माण और समाप्ति / सर्वश्रेष्ठ तिथि",
                     category="SHELF_LIFE",
-                    status="COMPLIANT",
+                    status="COMPLIANT" if parts else "UNCLEAR_NEEDS_REVIEW",
                     evidence_text=f"Detected: {date_ev}",
                     explanation="Date of manufacture / packaging or Best Before / Expiry declaration present.",
                     explanation_hi="निर्माण तिथि या एक्सपायरी / बेस्ट बिफोर घोषणा पाई गई।",

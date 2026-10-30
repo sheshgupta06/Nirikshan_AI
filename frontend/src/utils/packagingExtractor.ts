@@ -18,8 +18,15 @@ export function isCleanValue(val?: string | null): boolean {
     lower === 'check package' ||
     lower === 'check package stamp' ||
     lower === 'check package crimp' ||
+    lower === 'not declared on panel' ||
     lower === 'mrp' ||
     lower === 'price' ||
+    lower === 'pkd' ||
+    lower === 'mfg' ||
+    lower === 'mfd' ||
+    lower === 'exp' ||
+    lower === 'expiry' ||
+    lower === 'best before' ||
     lower.startsWith('detected') ||
     lower.includes('not recognized') ||
     lower.includes('not found') ||
@@ -44,8 +51,52 @@ export function cleanEvidenceString(val?: string | null): string {
   return val
     .replace(/^Detected:\s*/i, '')
     .replace(/\s*\(Consumer feedback \/ Price line\)/i, '')
-    .replace(/^(?:Metric weight|Product title|Nutrition table|14-digit|No explicit|Manufacturer \/ Marketing).*$/i, '')
+    .replace(/^(?:Metric weight|Product title|Nutrition table|14-digit|No explicit|Manufacturer \/ Marketing|Date marker).*$/i, '')
     .trim()
+}
+
+export function isValidDate(val?: string | null): boolean {
+  if (!val) return false
+  const v = val.trim().toLowerCase()
+  if (
+    !isCleanValue(val) ||
+    v === 'pkd' ||
+    v === 'mfg' ||
+    v === 'mfd' ||
+    v === 'packed' ||
+    v === 'date' ||
+    v === 'exp' ||
+    v === 'expiry' ||
+    v === 'best before' ||
+    !/\d/.test(v) // Must contain at least one digit
+  ) {
+    return false
+  }
+  return true
+}
+
+export function isInvalidConsumerCare(val?: string | null): boolean {
+  if (!val) return true
+  const v = val.toLowerCase().trim()
+  return (
+    !v ||
+    v === 'mrp' ||
+    v === 'price' ||
+    v.includes('₹') ||
+    v.includes('rs.') ||
+    v.includes('rs ') ||
+    v.includes('inr') ||
+    v.includes('mrp') ||
+    v.includes('price line') ||
+    v.includes('1001') ||
+    v.includes('lic. no') ||
+    v.includes('license') ||
+    v.includes('pkd') ||
+    v.includes('exp') ||
+    v.includes('lot') ||
+    /^[0-9\.\,\s\/\-]+$/.test(v) ||
+    /^(?:₹|rs\.?)\s*[0-9]+/i.test(v)
+  )
 }
 
 export function extractPackagingDetails(
@@ -97,10 +148,10 @@ export function extractPackagingDetails(
   } else {
     const qtyUnitRegex = '(?:g(?:ms?|rams?)?|kg(?:s)?|ml|l(?:tr|itre?s?)?|pcs|units?|n)\\.?'
     const freePromoRegex = `(?:\\s*[\\+\\&]\\s*[0-9]+(?:\\.[0-9]+)?\\s*${qtyUnitRegex}\\s*(?:FREE)?)?`
-    
+
     // Explicit label match (e.g. NET WEIGHT: 23 G + 5 G FREE or Net Wt: 50 gms)
     const m1 = cleanText.match(
-      new RegExp(`(?:NET\\s*(?:WEIGHT|WT|QTY|QUANTITY|CONTENTS?|CONT\\.?|VOLUME)?|DRAINED\\s*WEIGHT)\\s*[:\\.\\-]?\\s*([0-9]+(?:\\.[0-9]+)?\\s*${qtyUnitRegex}\\b${freePromoRegex})`, 'i')
+      new RegExp(`(?:NET\\s*(?:WEIGHT|WT|QTY|QUANTITY|CONTENTS?|CONT\\.?|VOLUME)?|DRAINED\s*WEIGHT)\\s*[:\\.\\-]?\\s*([0-9]+(?:\\.[0-9]+)?\\s*${qtyUnitRegex}\\b${freePromoRegex})`, 'i')
     )
     // Promotional + FREE match anywhere (e.g. 23 g + 5 g FREE)
     const m2 = !m1 ? cleanText.match(
@@ -125,7 +176,7 @@ export function extractPackagingDetails(
 
   // 3. Manufacturing Date (PKD / MFG / MFD)
   let mfgDate = ''
-  if (isCleanValue(existingCorrections?.mfgDate)) {
+  if (isValidDate(existingCorrections?.mfgDate)) {
     mfgDate = existingCorrections!.mfgDate!.trim()
   } else {
     const dateVal = '(?:\\d{1,2}[\\/\\-\\.\\s](?:[A-Za-z]{3,9}|\\d{1,2})[\\/\\-\\.\\s]\\d{2,4}|\\d{1,2}[\\/\\-\\.]\\d{2,4}|[A-Za-z]{3,9}\\.?[\\\'\\’\\s\\.\\-]?\\d{2,4})'
@@ -134,20 +185,20 @@ export function extractPackagingDetails(
       'i'
     )
     const m = cleanText.match(mfgRegex)
-    if (m) {
+    if (m && isValidDate(m[1])) {
       mfgDate = m[1].trim()
     } else {
       const cleanEv = cleanEvidenceString(evidenceFallback?.mfgDate)
-      if (isCleanValue(cleanEv)) {
+      if (isValidDate(cleanEv)) {
         const evM = cleanEv.match(new RegExp(dateVal, 'i'))
-        mfgDate = evM ? evM[0].trim() : cleanEv
+        mfgDate = evM && isValidDate(evM[0]) ? evM[0].trim() : cleanEv
       }
     }
   }
 
   // 4. Best Before / Expiry Date
   let expiryDate = ''
-  if (isCleanValue(existingCorrections?.expiryDate)) {
+  if (isValidDate(existingCorrections?.expiryDate)) {
     expiryDate = existingCorrections!.expiryDate!.trim()
   } else {
     const dateVal = '(?:\\d{1,2}[\\/\\-\\.\\s](?:[A-Za-z]{3,9}|\\d{1,2})[\\/\\-\\.\\s]\\d{2,4}|\\d{1,2}[\\/\\-\\.]\\d{2,4}|[A-Za-z]{3,9}\\.?[\\\'\\’\\s\\.\\-]?\\d{2,4})'
@@ -160,15 +211,15 @@ export function extractPackagingDetails(
     const dateM = cleanText.match(expDateRegex)
     const periodM = !dateM ? cleanText.match(periodRegex) : null
 
-    if (dateM) {
+    if (dateM && isValidDate(dateM[1])) {
       expiryDate = dateM[1].trim()
     } else if (periodM) {
       expiryDate = periodM[1].trim()
     } else {
-      const cleanEv = cleanEvidenceString(evidenceFallback?.consumerCare) // or date fallback
+      const cleanEv = cleanEvidenceString(evidenceFallback?.consumerCare)
       if (cleanEv && cleanEv.toLowerCase().includes('exp:')) {
         const evM = cleanEv.match(/EXP:\s*([^\s,]+)/i)
-        if (evM) expiryDate = evM[1].trim()
+        if (evM && isValidDate(evM[1])) expiryDate = evM[1].trim()
       }
     }
   }
@@ -205,13 +256,13 @@ export function extractPackagingDetails(
     }
   }
 
-  // 7. Consumer Care Helpline / Email (strictly excludes FSSAI license numbers starting with 1001)
+  // 7. Consumer Care Helpline / Email (strictly excludes currency/prices and FSSAI numbers)
   let consumerCare = ''
   const emailM = cleanText.match(/\b([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)\b/i)
   // Real Indian phone: 1800 toll free, mobile (+91 6-9xxxxxxxx), or STD landline (0xx-xxxxxxx)
   const phoneM = cleanText.match(/(?:\+91[\s\-]?)?[6-9]\d{9}\b|\b1800[\s\-]?\d{3}[\s\-]?\d{3,4}\b|\b0[1-9]\d{1,3}[\s\-]?\d{6,8}\b/)
-  // Explicit consumer care sentence
-  const careLineM = cleanText.match(/(?:Consumer\s*Care|Customer\s*Care|Customer\s*Support|Help(?:line)?|Feedback)\s*[:\-]?\s*([^\n\r]+)/i)
+  // Explicit consumer care sentence (must not be price/MRP)
+  const careLineM = cleanText.match(/(?:Consumer\s*Care|Customer\s*Care|Customer\s*Support|Help(?:line)?)\s*[:\-]?\s*([^\n\r]+)/i)
 
   if (emailM && phoneM) {
     consumerCare = `${emailM[1]} | Tel: ${phoneM[0]}`
@@ -219,28 +270,24 @@ export function extractPackagingDetails(
     consumerCare = `Email: ${emailM[1]}`
   } else if (phoneM) {
     consumerCare = `Helpline: ${phoneM[0]}`
-  } else if (careLineM && !careLineM[1].toLowerCase().includes('mrp') && !careLineM[1].toLowerCase().includes('price line')) {
+  } else if (careLineM && !isInvalidConsumerCare(careLineM[1])) {
     consumerCare = careLineM[1].trim()
   } else {
     const cleanEv = cleanEvidenceString(evidenceFallback?.consumerCare)
-    if (
-      isCleanValue(cleanEv) &&
-      !cleanEv.toLowerCase().includes('mrp') &&
-      !cleanEv.toLowerCase().includes('1001')
-    ) {
+    if (!isInvalidConsumerCare(cleanEv)) {
       consumerCare = cleanEv
     } else {
-      consumerCare = 'Refer to package contact details'
+      consumerCare = 'Refer to manufacturer contact address'
     }
   }
 
   return {
-    mrp: mrp || 'Check package',
-    netQuantity: netQuantity || 'Check package',
-    mfgDate: mfgDate || 'Check package',
-    expiryDate: expiryDate || 'Check package',
-    fssaiNumber: fssaiNumber || 'Check package',
+    mrp: mrp || 'Not declared on panel',
+    netQuantity: netQuantity || 'Not declared on panel',
+    mfgDate: mfgDate || 'Not declared on panel',
+    expiryDate: expiryDate || 'Not declared on panel',
+    fssaiNumber: fssaiNumber || 'Check license panel',
     manufacturer: manufacturer || 'Packer / Brand Holder',
-    consumerCare: consumerCare || 'Refer to package contact details',
+    consumerCare: consumerCare || 'Refer to manufacturer contact address',
   }
 }

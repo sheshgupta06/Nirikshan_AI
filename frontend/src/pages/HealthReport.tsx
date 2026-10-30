@@ -838,74 +838,84 @@ export const HealthReport: React.FC = () => {
             </div>
           )}
 
-          {/* Section: Nutrition Facts */}
-          {(activeSection === 'overview' || activeSection === 'nutrition') && (
+          {/* Section: Nutrition Facts - Shown on overview ONLY if declared on packet, or on nutrition tab */}
+          {((activeSection === 'overview' && hasAnyNutrient) || activeSection === 'nutrition') && (
             <div className="space-y-4">
               <h2 className="text-lg font-bold text-[#123044]">Nutritional Information (per 100g)</h2>
               <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
-                {nutritionFacts ? (
+                {hasAnyNutrient && nutritionFacts ? (
                   <div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <p className="text-xs text-slate-500">Energy</p>
-                        <p className="text-base font-bold text-[#123044] mt-0.5">
-                          {formatNutrient(nutritionFacts.energy_kcal, 'kcal')}
-                        </p>
-                      </div>
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <p className="text-xs text-slate-500">Protein</p>
-                        <p className="text-base font-bold text-[#123044] mt-0.5">
-                          {formatNutrient(nutritionFacts.protein_g, 'g')}
-                        </p>
-                      </div>
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <p className="text-xs text-slate-500">Carbohydrates</p>
-                        <p className="text-base font-bold text-[#123044] mt-0.5">
-                          {formatNutrient(nutritionFacts.carbohydrates_g, 'g')}
-                        </p>
-                      </div>
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <p className="text-xs text-slate-500">Total Sugars</p>
-                        <p className="text-base font-bold text-[#123044] mt-0.5">
-                          {formatNutrient(nutritionFacts.total_sugars_g, 'g')}
-                        </p>
-                      </div>
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <p className="text-xs text-slate-500">Total Fat</p>
-                        <p className="text-base font-bold text-[#123044] mt-0.5">
-                          {formatNutrient(nutritionFacts.total_fat_g, 'g')}
-                        </p>
-                      </div>
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <p className="text-xs text-slate-500">Saturated Fat</p>
-                        <p className="text-base font-bold text-[#123044] mt-0.5">
-                          {formatNutrient(nutritionFacts.saturated_fat_g, 'g')}
-                        </p>
-                      </div>
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <p className="text-xs text-slate-500">Trans Fat</p>
-                        <p className="text-base font-bold text-[#123044] mt-0.5">
-                          {formatNutrient(nutritionFacts.trans_fat_g, 'g')}
-                        </p>
-                      </div>
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <p className="text-xs text-slate-500">Sodium</p>
-                        <p className={`text-base font-bold mt-0.5 ${nutritionFacts.sodium_mg ? 'text-rose-600' : 'text-[#123044]'}`}>
-                          {formatNutrient(nutritionFacts.sodium_mg, 'mg')}
-                        </p>
-                      </div>
+                      {nutritionFacts.energy_kcal !== null && nutritionFacts.energy_kcal !== undefined && !isNaN(Number(nutritionFacts.energy_kcal)) && (
+                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                          <p className="text-xs text-slate-500">Energy</p>
+                          <p className="text-base font-bold text-[#123044] mt-0.5">
+                            {formatNutrient(nutritionFacts.energy_kcal, 'kcal')}
+                          </p>
+                        </div>
+                      )}
+                      {nutritionFacts.protein_g !== null && nutritionFacts.protein_g !== undefined && !isNaN(Number(nutritionFacts.protein_g)) && (
+                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                          <p className="text-xs text-slate-500">Protein</p>
+                          <p className="text-base font-bold text-[#123044] mt-0.5">
+                            {formatNutrient(nutritionFacts.protein_g, 'g')}
+                          </p>
+                        </div>
+                      )}
+                      {nutritionFacts.carbohydrates_g !== null && nutritionFacts.carbohydrates_g !== undefined && !isNaN(Number(nutritionFacts.carbohydrates_g)) && (
+                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                          <p className="text-xs text-slate-500">Carbohydrates</p>
+                          <p className="text-base font-bold text-[#123044] mt-0.5">
+                            {formatNutrient(nutritionFacts.carbohydrates_g, 'g')}
+                          </p>
+                        </div>
+                      )}
+                      {nutritionFacts.total_sugars_g !== null && nutritionFacts.total_sugars_g !== undefined && !isNaN(Number(nutritionFacts.total_sugars_g)) && (
+                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                          <p className="text-xs text-slate-500">Total Sugars</p>
+                          <p className="text-base font-bold text-[#123044] mt-0.5">
+                            {formatNutrient(nutritionFacts.total_sugars_g, 'g')}
+                          </p>
+                        </div>
+                      )}
+                      {nutritionFacts.total_fat_g !== null && nutritionFacts.total_fat_g !== undefined && !isNaN(Number(nutritionFacts.total_fat_g)) && (
+                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                          <p className="text-xs text-slate-500">Total Fat</p>
+                          <p className="text-base font-bold text-[#123044] mt-0.5">
+                            {formatNutrient(nutritionFacts.total_fat_g, 'g')}
+                          </p>
+                        </div>
+                      )}
+                      {nutritionFacts.saturated_fat_g !== null && nutritionFacts.saturated_fat_g !== undefined && !isNaN(Number(nutritionFacts.saturated_fat_g)) && (
+                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                          <p className="text-xs text-slate-500">Saturated Fat</p>
+                          <p className="text-base font-bold text-[#123044] mt-0.5">
+                            {formatNutrient(nutritionFacts.saturated_fat_g, 'g')}
+                          </p>
+                        </div>
+                      )}
+                      {nutritionFacts.trans_fat_g !== null && nutritionFacts.trans_fat_g !== undefined && !isNaN(Number(nutritionFacts.trans_fat_g)) && (
+                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                          <p className="text-xs text-slate-500">Trans Fat</p>
+                          <p className="text-base font-bold text-[#123044] mt-0.5">
+                            {formatNutrient(nutritionFacts.trans_fat_g, 'g')}
+                          </p>
+                        </div>
+                      )}
+                      {nutritionFacts.sodium_mg !== null && nutritionFacts.sodium_mg !== undefined && !isNaN(Number(nutritionFacts.sodium_mg)) && (
+                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                          <p className="text-xs text-slate-500">Sodium</p>
+                          <p className="text-base font-bold text-rose-600 mt-0.5">
+                            {formatNutrient(nutritionFacts.sodium_mg, 'mg')}
+                          </p>
+                        </div>
+                      )}
                     </div>
-
-                    {!hasAnyNutrient && (
-                      <p className="text-xs text-slate-500 italic mt-4 pt-3 border-t border-slate-100 flex items-center gap-1.5">
-                        <span className="text-sm">ℹ️</span>
-                        <span>No nutrition table declared on this packaging (spices, whole tea, raw single-ingredient foods, and small sachets under 10g are exempt from mandatory nutrition labelling under FSSAI regulations).</span>
-                      </p>
-                    )}
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-500">
-                    Nutrition values were not explicitly detected in this image scan.
+                  <p className="text-xs text-slate-500 flex items-center gap-2">
+                    <span className="text-sm">ℹ️</span>
+                    <span>No nutrition table declared on this packaging (spices, whole tea, raw single-ingredient foods, and small sachets under 10g are exempt from mandatory nutrition labelling under FSSAI regulations).</span>
                   </p>
                 )}
               </div>
