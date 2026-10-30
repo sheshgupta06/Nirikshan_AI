@@ -148,14 +148,10 @@ class GeminiVisionOCREngine(BaseOCREngine):
 
         candidate_models = [
             "gemini-flash-lite-latest",
-            "gemini-flash-latest",
-            "gemini-2.5-flash",
-            "gemini-2.5-flash-lite",
-            "gemini-2.0-flash",
         ]
 
         try:
-            with httpx.Client(timeout=5.0) as client:
+            with httpx.Client(timeout=4.0) as client:
                 for model in candidate_models:
                     endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
                     try:

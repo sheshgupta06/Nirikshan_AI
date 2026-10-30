@@ -287,7 +287,6 @@ Output strictly valid JSON with this exact schema:
 
         candidate_models = [
             "gemini-flash-lite-latest",
-            "gemini-flash-latest",
         ]
 
         async with httpx.AsyncClient(timeout=2.5) as client:
