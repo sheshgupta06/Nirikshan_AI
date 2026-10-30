@@ -243,13 +243,12 @@ async def scan_food_label_image(
         b64 = base64.b64encode(enc.tobytes()).decode("utf-8")
 
         prompt = (
-            "Extract packaged food label text verbatim and concisely:\n"
-            "- PRODUCT & BRAND NAME\n"
-            "- INGREDIENTS: (full verbatim comma-separated ingredients list)\n"
-            "- ALLERGENS: (Contains / May Contain declarations)\n"
-            "- NUTRITION: (Energy, Protein, Carbs, Sugars, Fat, Sodium per 100g/serving)\n"
-            "- FSSAI Lic. No., Net Weight, MRP, Batch, Dates\n"
-            "Output plain text line by line. Be concise without commentary."
+            "Transcribe only the text physically printed on this packaged food label photo verbatim.\n"
+            "Rules:\n"
+            "1. Only output text that is physically visible and legible on the package.\n"
+            "2. If a section (such as ingredients, nutrition, or allergens) is not on this panel, DO NOT write 'Not visible', 'Not specified', or 'N/A' - simply omit it completely.\n"
+            "3. Never output meta-commentary, guesses, or explanations.\n"
+            "4. Transcribe lines as they appear: Product Title, Ingredients list, Nutrition facts, FSSAI Lic. No., Net Weight, MRP, Batch, Dates."
         )
         payload = {
             "contents": [
@@ -276,11 +275,15 @@ async def scan_food_label_image(
                     start_y = int(h * 0.05)
                     for i, l in enumerate(lines):
                         clean_l = re.sub(r"^\s*[\*\#\-]+\s*", "", l).replace("**", "").strip()
-                        if clean_l:
-                            y_top = start_y + (i * line_h)
-                            y_bot = min(h - 2, y_top + line_h - 2)
-                            poly = [[int(w * 0.05), y_top], [int(w * 0.95), y_top], [int(w * 0.95), y_bot], [int(w * 0.05), y_bot]]
-                            boxes.append(OCRTextBox(text=clean_l, confidence=0.98, bounding_box=poly))
+                        # Drop unwanted placeholder / commentary lines
+                        if not clean_l or re.search(r":\s*(?:not\s*visible|not\s*specified|not\s*provided|not\s*present|n/a|none)\b", clean_l, re.I):
+                            continue
+                        if re.search(r"^(?:not\s*visible|not\s*specified|not\s*provided|n/a)\b", clean_l, re.I):
+                            continue
+                        y_top = start_y + (i * line_h)
+                        y_bot = min(h - 2, y_top + line_h - 2)
+                        poly = [[int(w * 0.05), y_top], [int(w * 0.95), y_top], [int(w * 0.95), y_bot], [int(w * 0.05), y_bot]]
+                        boxes.append(OCRTextBox(text=clean_l, confidence=0.98, bounding_box=poly))
                     return boxes
             else:
                 logger.warning("Gemini Vision returned non-200 (%d): %s", r.status_code, r.text[:300])

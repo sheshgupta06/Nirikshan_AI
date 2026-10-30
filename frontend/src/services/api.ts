@@ -72,31 +72,34 @@ export async function scanFoodLabelImage(
     formData.append('watchlist', profile.watchlist.trim())
   }
 
-  let res: Response
-  try {
-    res = await fetch(url, {
-      method: 'POST',
-      body: formData,
-    })
-  } catch (netErr: unknown) {
-    // If relative path failed (e.g. static host without rewrite), retry directly against production Render backend
-    if (!API_BASE_URL && DEFAULT_PRODUCTION_BACKEND) {
+  let res: Response | null = null
+  const targetUrls = [url]
+  if (DEFAULT_PRODUCTION_BACKEND && !url.includes(DEFAULT_PRODUCTION_BACKEND)) {
+    targetUrls.push(`${DEFAULT_PRODUCTION_BACKEND}/api/v1/analyze`)
+  }
+
+  for (const targetUrl of targetUrls) {
+    for (let attempt = 1; attempt <= 2; attempt++) {
       try {
-        const directUrl = `${DEFAULT_PRODUCTION_BACKEND}/api/v1/analyze`
-        res = await fetch(directUrl, {
+        res = await fetch(targetUrl, {
           method: 'POST',
           body: formData,
         })
+        break
       } catch {
-        throw new Error(
-          'Network connection error: Unable to reach Nirikshan AI server. Please verify your internet connection and try again.'
-        )
+        // Wait 1.5 seconds before retry (allows Render server to finish waking up)
+        if (attempt < 2) {
+          await new Promise((resolve) => setTimeout(resolve, 1500))
+        }
       }
-    } else {
-      throw new Error(
-        'Network connection error: Unable to reach Nirikshan AI server. Please verify your internet connection and try again.'
-      )
     }
+    if (res) break
+  }
+
+  if (!res) {
+    throw new Error(
+      'Nirikshan AI cloud server is currently waking up from sleep. Please wait 5 seconds and click "Analyse Food Label" again.'
+    )
   }
 
   if (!res.ok) {
