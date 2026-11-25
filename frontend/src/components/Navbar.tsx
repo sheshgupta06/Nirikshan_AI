@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
-  Leaf,
   Menu,
   X,
   History,
@@ -77,11 +76,13 @@ export const Navbar: React.FC = () => {
   return (
     <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-[#E2E8F0] transition-all">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
-        {/* Brand Logo with Leaf Icon matching mockup */}
+        {/* Brand Logo with Official Nirikshan AI Logo */}
         <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl bg-emerald-50 text-[#0F766E] flex items-center justify-center border border-emerald-100 group-hover:scale-105 transition-transform">
-            <Leaf className="w-5 h-5 text-[#0F766E] fill-[#0F766E]/20" />
-          </div>
+          <img
+            src="/logo.png"
+            alt="Nirikshan AI Logo"
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-contain shadow-xs border border-emerald-200 group-hover:scale-105 transition-transform"
+          />
           <div>
             <div className="flex items-center gap-1.5">
               <span className="font-extrabold text-xl tracking-tight text-[#123044]">Nirikshan AI</span>

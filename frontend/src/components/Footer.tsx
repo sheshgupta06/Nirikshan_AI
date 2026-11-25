@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { ShieldCheck, HeartPulse, ClipboardCheck, Scale, ExternalLink } from 'lucide-react'
+import { HeartPulse, ClipboardCheck, Scale, ExternalLink } from 'lucide-react'
 
 export const Footer: React.FC = () => {
   return (
@@ -9,10 +9,12 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
           {/* Brand Col */}
           <div className="lg:col-span-2 space-y-4">
-            <Link to="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#0F766E] flex items-center justify-center text-white shadow-md">
-                <ShieldCheck className="w-6 h-6" />
-              </div>
+            <Link to="/" className="flex items-center gap-3 group">
+              <img
+                src="/logo.png"
+                alt="Nirikshan AI Logo"
+                className="w-11 h-11 rounded-full object-contain shadow-md bg-white p-0.5 group-hover:scale-105 transition-transform"
+              />
               <div className="flex items-center gap-1.5">
                 <span className="font-bold text-xl tracking-tight text-white">Nirikshan</span>
                 <span className="text-xs font-extrabold uppercase px-1.5 py-0.5 rounded bg-white/10 text-emerald-300 border border-white/20">
