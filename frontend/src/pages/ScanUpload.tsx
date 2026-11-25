@@ -13,6 +13,10 @@ import {
   CheckCircle2,
   Sparkles,
   Info,
+  HeartPulse,
+  ShieldCheck,
+  Check,
+  Activity,
 } from 'lucide-react'
 import { scanFoodLabelImage } from '../services/api'
 import { scanStorage } from '../services/scanStorage'
@@ -40,12 +44,19 @@ export const ScanUpload: React.FC = () => {
   const backInputRef = useRef<HTMLInputElement | null>(null)
   const navigate = useNavigate()
 
+  // Selected Audit Mode / Category: Health & Ingredient Safety vs Food Packets Labelling vs All
+  const [selectedCategory, setSelectedCategory] = useState<'health' | 'labelling' | 'all'>('health')
+
   // Active Personalized User Profile Config from Supabase / AuthContext
   const { profile: authProfile } = useAuth()
+  const [selectedConditions, setSelectedConditions] = useState<string[]>(
+    authProfile?.health_conditions || ['Diabetes', 'Hypertension']
+  )
+
   const profile: UserProfileConfig = {
     profile_name: authProfile?.profile_name || 'Default User',
     allergies: authProfile?.allergies || '',
-    health_conditions: authProfile?.health_conditions || [],
+    health_conditions: selectedConditions,
     dietary_preference: authProfile?.dietary_preference || 'VEGETARIAN',
     watchlist: authProfile?.watchlist || '',
   }
@@ -187,7 +198,8 @@ export const ScanUpload: React.FC = () => {
         imageUrl: primaryUrl,
         secondaryImageUrl: secondaryUrl,
         imageUrls: allUrls,
-        modulesRequested: 'both',
+        modulesRequested: selectedCategory,
+        selectedConditions,
         response,
         status: response.status === 'UNCLEAR' ? 'UNCLEAR' : 'SUCCESS',
       })
@@ -249,6 +261,221 @@ export const ScanUpload: React.FC = () => {
           <span>{errorMessage}</span>
         </div>
       )}
+
+      {/* STEP 1: Audit Category / Objective Selection */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <span className="w-7 h-7 rounded-xl bg-[#0F766E] text-white text-xs font-extrabold flex items-center justify-center shadow-xs">
+              1
+            </span>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-[#123044]">
+                Select Audit Objective / Category (ऑडिट का उद्देश्य चुनें)
+              </h2>
+              <p className="text-xs text-[#64748B]">
+                Choose whether you want Health &amp; Ingredient Safety or Food Labelling &amp; Compliance
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Option 1: Health & Ingredient Safety */}
+          <button
+            type="button"
+            onClick={() => setSelectedCategory('health')}
+            className={`relative text-left p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between group ${
+              selectedCategory === 'health'
+                ? 'bg-emerald-50/90 border-emerald-600 shadow-md ring-2 ring-emerald-500/20'
+                : 'bg-white border-slate-200 hover:border-emerald-300 hover:bg-slate-50/70 shadow-xs'
+            }`}
+          >
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-colors ${
+                  selectedCategory === 'health' ? 'bg-emerald-600 text-white' : 'bg-emerald-100 text-emerald-700'
+                }`}>
+                  <HeartPulse className="w-6 h-6" />
+                </div>
+                {selectedCategory === 'health' ? (
+                  <span className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  </span>
+                ) : (
+                  <span className="w-5 h-5 rounded-full border-2 border-slate-300"></span>
+                )}
+              </div>
+              <div>
+                <h3 className="font-extrabold text-sm sm:text-base text-[#123044]">
+                  Health &amp; Ingredient Safety
+                </h3>
+                <p className="text-xs text-emerald-700 font-semibold">स्वास्थ्य एवं सामग्री सुरक्षा</p>
+              </div>
+              <p className="text-xs text-[#64748B] leading-relaxed">
+                Evaluates ingredients safety, hazardous additives, and flags harmful ingredients for <strong>Diabetes, High BP, Kidney Disease, and Allergies</strong>.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-slate-200/80 text-[11px] font-bold text-emerald-800 flex items-center justify-between">
+              <span>Direct: Health &amp; Safety Report</span>
+              <ArrowRight className="w-3.5 h-3.5 text-emerald-600" />
+            </div>
+          </button>
+
+          {/* Option 2: Food Packet Labelling & Compliance */}
+          <button
+            type="button"
+            onClick={() => setSelectedCategory('labelling')}
+            className={`relative text-left p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between group ${
+              selectedCategory === 'labelling'
+                ? 'bg-blue-50/90 border-blue-600 shadow-md ring-2 ring-blue-500/20'
+                : 'bg-white border-slate-200 hover:border-blue-300 hover:bg-slate-50/70 shadow-xs'
+            }`}
+          >
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-colors ${
+                  selectedCategory === 'labelling' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-700'
+                }`}>
+                  <ShieldCheck className="w-6 h-6" />
+                </div>
+                {selectedCategory === 'labelling' ? (
+                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-xs">
+                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  </span>
+                ) : (
+                  <span className="w-5 h-5 rounded-full border-2 border-slate-300"></span>
+                )}
+              </div>
+              <div>
+                <h3 className="font-extrabold text-sm sm:text-base text-[#123044]">
+                  Food Packet Labelling &amp; Rules
+                </h3>
+                <p className="text-xs text-blue-700 font-semibold">पैकेट लेबलिंग एवं सरकारी नियम</p>
+              </div>
+              <p className="text-xs text-[#64748B] leading-relaxed">
+                Verifies <strong>FSSAI 2020 11 statutory rules</strong>, Legal Metrology (MRP, Net Weight in metric units, Mfg/Exp dates, FSSAI Lic &amp; Helpline).
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-slate-200/80 text-[11px] font-bold text-blue-800 flex items-center justify-between">
+              <span>Direct: FSSAI &amp; Legal Report</span>
+              <ArrowRight className="w-3.5 h-3.5 text-blue-600" />
+            </div>
+          </button>
+
+          {/* Option 3: Complete 360° Inspection */}
+          <button
+            type="button"
+            onClick={() => setSelectedCategory('all')}
+            className={`relative text-left p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between group ${
+              selectedCategory === 'all'
+                ? 'bg-amber-50/90 border-amber-600 shadow-md ring-2 ring-amber-500/20'
+                : 'bg-white border-slate-200 hover:border-amber-300 hover:bg-slate-50/70 shadow-xs'
+            }`}
+          >
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-colors ${
+                  selectedCategory === 'all' ? 'bg-amber-600 text-white' : 'bg-amber-100 text-amber-800'
+                }`}>
+                  <Layers className="w-6 h-6" />
+                </div>
+                {selectedCategory === 'all' ? (
+                  <span className="w-6 h-6 rounded-full bg-amber-600 text-white flex items-center justify-center shadow-xs">
+                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  </span>
+                ) : (
+                  <span className="w-5 h-5 rounded-full border-2 border-slate-300"></span>
+                )}
+              </div>
+              <div>
+                <h3 className="font-extrabold text-sm sm:text-base text-[#123044]">
+                  Complete 360° Inspection
+                </h3>
+                <p className="text-xs text-amber-800 font-semibold">संपूर्ण निरीक्षण (दोनों एक साथ)</p>
+              </div>
+              <p className="text-xs text-[#64748B] leading-relaxed">
+                Performs complete 3-in-1 inspection covering both <strong>Health Analysis</strong> and <strong>Government Labelling Compliance</strong> together.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-slate-200/80 text-[11px] font-bold text-amber-800 flex items-center justify-between">
+              <span>Direct: 3-in-1 Dashboard</span>
+              <ArrowRight className="w-3.5 h-3.5 text-amber-600" />
+            </div>
+          </button>
+        </div>
+
+        {/* Quick Health Conditions Selector (shown when Health mode or Complete 360 is active) */}
+        {(selectedCategory === 'health' || selectedCategory === 'all') && (
+          <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 space-y-2.5 transition-all">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <div className="flex items-center gap-2">
+                <Activity className="w-4 h-4 text-emerald-700" />
+                <span className="text-xs sm:text-sm font-bold text-emerald-950">
+                  Select Health Conditions to Screen Against (स्वास्थ्य स्थिति चुनें):
+                </span>
+              </div>
+              <span className="text-[11px] text-emerald-700 font-medium">Click to toggle conditions</span>
+            </div>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {[
+                { id: 'Diabetes', label: 'Diabetes (मधुमेह)' },
+                { id: 'Hypertension', label: 'High BP (हाइपरटेंशन)' },
+                { id: 'Kidney Disease', label: 'Kidney Disease (गुर्दा रोग)' },
+                { id: 'Celiac / Gluten', label: 'Gluten / Celiac (ग्लूटेन)' },
+                { id: 'Nut Allergy', label: 'Peanuts / Nuts (मूंगफली)' },
+                { id: 'High Cholesterol', label: 'Heart / Cholesterol' },
+              ].map((cond) => {
+                const isSelected = selectedConditions.includes(cond.id)
+                return (
+                  <button
+                    key={cond.id}
+                    type="button"
+                    onClick={() => {
+                      if (isSelected) {
+                        setSelectedConditions(selectedConditions.filter((c) => c !== cond.id))
+                      } else {
+                        setSelectedConditions([...selectedConditions, cond.id])
+                      }
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                      isSelected
+                        ? 'bg-emerald-700 text-white shadow-xs'
+                        : 'bg-white text-slate-700 border border-emerald-200 hover:bg-emerald-100/50'
+                    }`}
+                  >
+                    {isSelected ? (
+                      <Check className="w-3 h-3 stroke-[3]" />
+                    ) : (
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    )}
+                    <span>{cond.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* STEP 2: Upload or Capture Packet Photos Header */}
+      <div className="flex items-center gap-2.5 pt-2">
+        <span className="w-7 h-7 rounded-xl bg-[#0F766E] text-white text-xs font-extrabold flex items-center justify-center shadow-xs">
+          2
+        </span>
+        <div>
+          <h2 className="text-base sm:text-lg font-bold text-[#123044]">
+            Upload or Capture Food Packet Photos (पैकेट की फोटो अपलोड करें)
+          </h2>
+          <p className="text-xs text-[#64748B]">
+            {selectedCategory === 'health'
+              ? 'Ensure Back panel with Ingredients and Nutrition table is clearly captured'
+              : selectedCategory === 'labelling'
+              ? 'Ensure MRP, FSSAI License, Net Weight, Dates & Manufacturer details are visible'
+              : 'Provide both Front & Back panels for comprehensive 360° inspection'}
+          </p>
+        </div>
+      </div>
 
       {/* Hidden File Inputs */}
       <input

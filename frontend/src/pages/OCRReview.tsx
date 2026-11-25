@@ -77,7 +77,16 @@ export const OCRReview: React.FC = () => {
         expiryDate: bestBefore,
         fssaiNumber: fssaiLic,
       })
-      navigate(`/scan/${scanId}/results`)
+
+      // Route directly based on selected Audit Category
+      const mode = scan?.modulesRequested
+      if (mode === 'health' || mode === 'ingredient_safety') {
+        navigate(`/scan/${scanId}/health`)
+      } else if (mode === 'labelling' || mode === 'legal_metrology') {
+        navigate(`/scan/${scanId}/fssai`)
+      } else {
+        navigate(`/scan/${scanId}/results`)
+      }
     } else {
       navigate('/scan')
     }
@@ -94,11 +103,31 @@ export const OCRReview: React.FC = () => {
   return (
     <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-6">
       {/* Title & Subtitle matching Screen 5 */}
-      <div className="space-y-1">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#123044]">Review Extracted Text</h1>
-        <p className="text-xs sm:text-sm text-[#64748B]">
-          Please review and correct the extracted information if needed.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="space-y-1">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#123044]">Review Extracted Text</h1>
+          <p className="text-xs sm:text-sm text-[#64748B]">
+            Please review and correct the extracted information if needed before generating the report.
+          </p>
+        </div>
+        <div>
+          {scan?.modulesRequested === 'health' || scan?.modulesRequested === 'ingredient_safety' ? (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+              <span>Mode: Health &amp; Ingredient Safety</span>
+            </span>
+          ) : scan?.modulesRequested === 'labelling' || scan?.modulesRequested === 'legal_metrology' ? (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-100 text-blue-800 border border-blue-300 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+              <span>Mode: Food Packet Labelling &amp; Rules</span>
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-amber-600"></span>
+              <span>Mode: Complete 360° Inspection</span>
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Main Dual-Column Content */}
@@ -299,9 +328,21 @@ export const OCRReview: React.FC = () => {
         <button
           type="button"
           onClick={handleContinue}
-          className="w-full sm:w-auto px-7 py-3 rounded-xl font-bold text-white bg-[#0F766E] hover:bg-[#0D655E] shadow-md shadow-[#0F766E]/20 text-sm transition-all flex items-center justify-center gap-2"
+          className={`w-full sm:w-auto px-7 py-3 rounded-xl font-bold text-white shadow-md text-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            scan?.modulesRequested === 'health' || scan?.modulesRequested === 'ingredient_safety'
+              ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20'
+              : scan?.modulesRequested === 'labelling' || scan?.modulesRequested === 'legal_metrology'
+              ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'
+              : 'bg-[#0F766E] hover:bg-[#0D655E] shadow-[#0F766E]/20'
+          }`}
         >
-          <span>Continue to Reports</span>
+          <span>
+            {scan?.modulesRequested === 'health' || scan?.modulesRequested === 'ingredient_safety'
+              ? 'Proceed to Health & Ingredient Safety Report'
+              : scan?.modulesRequested === 'labelling' || scan?.modulesRequested === 'legal_metrology'
+              ? 'Proceed to FSSAI & Labelling Report'
+              : 'Proceed to Complete 360° Dashboard'}
+          </span>
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>

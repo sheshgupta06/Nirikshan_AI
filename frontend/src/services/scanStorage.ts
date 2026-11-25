@@ -30,7 +30,8 @@ export interface StoredScan {
   imageUrl: string
   secondaryImageUrl?: string
   imageUrls?: string[]
-  modulesRequested: 'both' | 'legal_metrology' | 'ingredient_safety'
+  modulesRequested: 'both' | 'legal_metrology' | 'ingredient_safety' | 'health' | 'labelling' | 'all'
+  selectedConditions?: string[]
   response: ScanImageResponse
   corrections?: UserOCRCorrections
   status: 'SUCCESS' | 'UNCLEAR' | 'ERROR'
